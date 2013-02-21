@@ -1,0 +1,6 @@
+*.sublime-*
+*.o
+bin/
+lib/*.dep
+src/*/*.dep
+test/*.img
