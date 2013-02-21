@@ -1,0 +1,84 @@
+jgfs2
+todo list
+
+
+license:
+- add source code headers: adapt AVRm68k header
+  - include makefiles/redo scripts
+  - do this for the justix tree as well
+
+fs design:
+- use inodes
+  - only put filenames and inode nums in dirents
+  - metadata is stored elsewhere
+- use extents maybe
+- sparse files (nonallocated extents)
+- free space bitmap
+- hard links
+  - trivial: multiple dirents with same inode number
+  - not so trivial: need refcount in inode so free space bitmap (and inode
+    table, if one exists) know the file is freed after the last link is rm'd
+- no journal
+- fs attributes
+  - boot
+    - this can probably be mutually exclusive with compression
+    - read-only by default?
+  - compression
+- backup superblocks
+- compression
+  - lzo or other lz derivative
+  - or: use custom arithmetic coding algo
+  - not for early-boot files (kern, default params, kern syms)
+  - break extents into 'super-clusters', then compress them and store them in
+    fewer clusters as much the compression ratio allows
+  - refuse to compress if the compressed file takes up just as many clusters
+    - or more!
+  - level of granularity?
+    - file: probably best
+    - extent: maybe
+    - supercluster: no
+  - mount option
+    - default: fs-specific
+    - fs attribute for default mount compression behavior
+      - settable at mkfs time
+      - changeable by fs attrib change utility
+  - implement in a manner that allows for multiple algos
+  - need an ioctl and chattr-like utility for file-specific changes
+    - must ensure file is not open or being read in any way!
+    - alternative: in fuse, create a char device or fifo for communication
+      with utils, like zfs
+  - what mechanism will we use to manually specify that the boot files should
+    not be compressed?
+    - mount with compression off while doing these writes
+    - turn their compression off after writing them
+
+lib:
+- reduce number of functions
+- abstract directories
+- consolidate dir functionality (ONE function, so multi-cluster dirs are easy)
+- enforce character set in names
+
+mkfs:
+
+fsck:
+- come up with a more comprehensive list of checks
+- write it
+
+fuse:
+- implement multi-cluster directories
+- touch directory dir_ents whenever their contents are changed in any way
+  (need specifics on this)
+- fsync/msync on writes if possible
+
+defrag:
+
+fsctl:
+- check that fs is unmounted
+- changeable:
+  - label
+  - uuid
+  - compression
+  - ...
+
+attr:
+- be able to change any fs attribute currently defined
