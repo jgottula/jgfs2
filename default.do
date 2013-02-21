@@ -27,7 +27,7 @@ JGFS_SRC=(lib/*.c)
 JGFS_OBJS=${JGFS_SRC[@]//.c/.o}
 JGFS_LIBS=(-lbsd)
 
-FUSE_OUT="bin/jgfs2mount"
+FUSE_OUT="bin/jgfs2fuse"
 FUSE_SRC=(src/fuse/*.c)
 FUSE_OBJS=${FUSE_SRC[@]//.c/.o}
 FUSE_LIBS=(-lbsd -lfuse)
