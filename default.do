@@ -20,7 +20,7 @@ export CFLAGS="-std=gnu11 -O0 -ggdb -Wall -Wextra -Wno-unused-parameter \
 -Wno-unused-function -include stdbool.h -include stdint.h -Isrc"
 
 
-DEFINES="-D_FILE_OFFSET_BITS=64 -DFUSE_USE_VERSION=26"
+DEFINES="-D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -DFUSE_USE_VERSION=26"
 
 JGFS_OUT="bin/libjgfs2.a"
 JGFS_SRC=(lib/*.c)
