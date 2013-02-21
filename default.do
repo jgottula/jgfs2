@@ -25,7 +25,7 @@ DEFINES="-D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -DFUSE_USE_VERSION=26"
 JGFS_OUT="bin/libjgfs2.a"
 JGFS_SRC=(lib/*.c)
 JGFS_OBJS=${JGFS_SRC[@]//.c/.o}
-JGFS_LIBS=(-lbsd)
+JGFS_LIBS=(-lbsd -luuid)
 
 FUSE_OUT="bin/jgfs2fuse"
 FUSE_SRC=(src/fuse/*.c)
@@ -35,7 +35,7 @@ FUSE_LIBS=(-lbsd -lfuse)
 MKFS_OUT="bin/jgfs2mkfs"
 MKFS_SRC=(src/mkfs/*.c)
 MKFS_OBJS=${MKFS_SRC[@]//.c/.o}
-MKFS_LIBS=(-lbsd)
+MKFS_LIBS=(-lbsd -luuid)
 
 FSCK_OUT="bin/jgfs2fsck"
 FSCK_SRC=(src/fsck/*.c)
