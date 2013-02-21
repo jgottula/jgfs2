@@ -5,139 +5,120 @@
 #include "macro.h"
 
 
-#define SECT_SIZE 0x200
+#define JGFS2_SECT_SIZE   0x200
 
-#define JGFS_VER_MAJOR 0x04
-#define JGFS_VER_MINOR 0x01
-#define JGFS_VER_TOTAL 0x0401
+#define JGFS2_VER_EXPAND(_maj, _min) \
+	(((uint16_t)(_maj) * 0x100) + (uint16_t)(_min))
 
-#define JGFS_MAGIC "JGFS"
+#define JGFS2_VER_MAJOR   0x00
+#define JGFS2_VER_MINOR   0x01
+#define JGFS2_VER_TOTAL \
+	JGFS2_VER_EXPAND(JGFS2_VER_MAJOR, JGFS2_VER_MINOR)
 
-#define JGFS_VBR_SECT  0
-#define JGFS_HDR_SECT  1
-#define JGFS_BOOT_SECT 2
+#define JGFS2_MAGIC       "JGF2"
 
-#define JGFS_NAME_LIMIT  19
-#define JGFS_LABEL_LIMIT 19
+#define JGFS2_VBR_SECT    0
+#define JGFS2_SBLK_SECT   1
+#define JGFS2_BOOT_SECT   2
 
-#define JGFS_FENT_PER_S \
-	(SECT_SIZE / sizeof(fat_ent_t))
-
-#define JGFS_DENT_PER_C \
-	(jgfs_clust_size() / sizeof(struct jgfs_dir_ent))
-
-#define JGFS_MAX_FAT_SECT \
-	CEIL(0x10000 / JGFS_FENT_PER_S)
-
-#define JGFS_VER_EXPAND(_maj, _min) \
-	(((uint16_t)_maj * 0x100) + (uint16_t)_min)
+#define JGFS2_LABEL_LIMIT 63
+#define JGFS2_NAME_LIMIT  255
 
 
-typedef uint16_t fat_ent_t;
-
-
-enum jgfs_fat_val {
-	FAT_FREE   = 0x0000, // free
-	FAT_ROOT   = 0x0000, // root directory
+/*enum jgfs2_mode {
+	JGFS2_S_IFDIR = ...,
 	
-	FAT_FIRST  = 0x0001, // first normal cluster
-	/* ... */
-	FAT_LAST   = 0xfffb, // last possible normal cluster
-	
-	/* special */
-	FAT_EOF    = 0xfffc, // last cluster in file
-	FAT_RSVD   = 0xfffd, // reserved
-	FAT_BAD    = 0xfffe, // damaged
-	FAT_OOB    = 0xffff, // past end of device
-	FAT_NALLOC = 0xffff, // file not allocated
+	JGFS2_S_IXOTH = 0x0001,
+};*/
+
+/*enum jgfs2_attr {
+	JGFS2_A_NONE = 0,
+};*/
+
+
+struct __attribute__((__packed__)) jgfs2_sect {
+	uint8_t data[JGFS2_SECT_SIZE];
 };
 
-enum jgfs_file_type {
-	TYPE_FILE    = (1 << 0), // regular file
-	TYPE_DIR     = (1 << 1), // directory
-	TYPE_SYMLINK = (1 << 2), // symlink
+struct __attribute__((__packed__)) jgfs2_inode {
+	uint32_t i_attr;  // file attributes
+	uint16_t i_mode;  // type and permissions
+	
+	uint16_t i_uid;   // owner
+	uint16_t i_gid;   // group
+	
+	uint32_t i_size;  // length in bytes of file content
+	
+	int64_t  i_atime; // access time
+	int64_t  i_ctime; // creation time
+	int64_t  i_mtime; // modification time
+	
+	uint32_t i_nlink; // hard link ref count
+	
+	uint32_t i_gen;   // generation
+	
+	/* TODO: extent info */
 };
 
-enum jgfs_file_attr {
-	ATTR_NONE = 0,
+struct __attribute__((__packed__)) jgfs2_dentry {
+	uint32_t d_inode;    // inode number (zero if last in list)
 	
-	/* ... */
+	uint8_t  d_name_len; // length of name (without NULL)
+	char     d_name[0];  // null-terminated name
 };
 
-
-struct sect {
-	uint8_t data[SECT_SIZE];
+struct __attribute__((__packed__)) jgfs2_directory {
+	struct jgfs2_dentry dents[0];
 };
 
-struct jgfs_fat_sect {
-	fat_ent_t entries[JGFS_FENT_PER_S];
+struct __attribute__((__packed__)) jgfs2_superblock {
+	char     s_magic[4];   // must be "JGF2"
+	
+	uint8_t  s_ver_major;  // major version
+	uint8_t  s_ver_minor;  // minor version
+	
+	uint64_t s_sect_count; // total number of sectors
+	uint16_t s_boot_size;  // number of boot sectors
+	
+	uint16_t s_block_size; // sectors per block
+	
+	int64_t  s_ctime;      // fs creation time
+	int64_t  s_mtime;      // fs last mount time
+	
+	uint8_t  s_uuid[16];   // fs uuid
+	
+	char     s_label[JGFS2_LABEL_LIMIT + 1]; // null-terminated volume label
+	
+	char     s_rsvd[0x18e];
 };
 
-struct  __attribute__((__packed__)) jgfs_dir_ent {
-	char      name[JGFS_NAME_LIMIT + 1]; // [A-Za-z0-9_.] zero padded
-	                                     // empty string means unused entry
-	uint8_t   type;     // type (mutually exclusive)
-	uint8_t   attr;     // attributes (bitmask)
-	uint32_t  mtime;    // unix time
-	uint32_t  size;     // size in bytes
-	fat_ent_t begin;    // first cluster (FAT_NALLOC for empty file)
+struct jgfs2_mkfs_param {
+	uint8_t  uuid[16];   // fs uuid; must be initialized
+	
+	char     label[JGFS2_LABEL_LIMIT + 1]; // null-terminated volume label
+	
+	uint64_t sect_count; // total number of sectors; zero: fill device
+	uint16_t boot_size;  // number of boot sectors
+	
+	uint16_t block_size; // sectors per block; zero: auto-select
+	
+	bool     zap_vbr;    // true: zero the volume boot record
+	bool     zap_boot;   // true: zero the boot area
+	bool     zap_data;   // true: zero the entire data area
 };
 
-struct __attribute__((__packed__)) jgfs_dir_clust {
-	struct jgfs_dir_ent entries[0];
-};
-
-/* this header must be located at sector 1 (offset 0x200~0x400) */
-struct __attribute__((__packed__)) jgfs_hdr {
-	char     magic[4];  // must be "JGFS"
-	uint8_t  ver_major; // major version
-	uint8_t  ver_minor; // minor version
-	
-	uint32_t s_total;   // total number of sectors
-	
-	uint16_t s_boot;    // sectors reserved for the boot area
-	uint16_t s_fat;     // sectors reserved for the fat
-	
-	uint16_t s_per_c;   // sectors per cluster
-	
-	uint32_t ctime;     // fs creation time
-	uint32_t mtime;     // fs last mount time
-	
-	char label[JGFS_LABEL_LIMIT + 1];
-	
-	struct jgfs_dir_ent root_dir_ent; // root directory entry
-	
-	char     reserved[0x1b4];
-};
-
-struct jgfs_mkfs_param {
-	char label[JGFS_LABEL_LIMIT + 1];
-	
-	uint32_t s_total; // set to zero to fill the device
-	uint16_t s_boot;
-	uint16_t s_per_c; // set to zero to auto-choose the best value
-	
-	bool zero_data;   // set to true to zero all data clusters
-	bool zap;         // set to true to zero the vbr and boot area
-};
-
-struct jgfs {
-	struct jgfs_hdr      *hdr;
-	struct sect          *boot;
-	struct jgfs_fat_sect *fat;
+struct jgfs2_mount_options {
+	bool read_only; // disallow write operations
 };
 
 
-_Static_assert(sizeof(struct sect) == 0x200,
-	"sect must be 512 bytes");
-_Static_assert(sizeof(struct jgfs_hdr) == 0x200,
-	"jgfs_hdr must be 512 bytes");
-_Static_assert(sizeof(struct jgfs_fat_sect) == 0x200,
-	"jgfs_fat_sect must be 512 bytes");
-_Static_assert(512 % sizeof(struct jgfs_dir_ent) == 0,
-	"jgfs_dir_ent must go evenly into 512 bytes");
+_Static_assert(sizeof(struct jgfs2_sect) == 0x200,
+	"struct jgfs2_sect must be 512 bytes");
+_Static_assert(sizeof(struct jgfs2_superblock) == 0x200,
+	"struct jgfs2_superblock must be 512 bytes");
 
 
+#if 0
 typedef int (*jgfs_dir_func_t)(struct jgfs_dir_ent *, void *);
 
 
@@ -223,6 +204,7 @@ void jgfs_zero_span(struct jgfs_dir_ent *dir_ent, uint32_t off, uint32_t size);
 
 
 extern struct jgfs jgfs;
+#endif
 
 
 #endif
