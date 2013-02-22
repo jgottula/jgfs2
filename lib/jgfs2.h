@@ -72,24 +72,27 @@ struct __attribute__((__packed__)) jgfs2_directory {
 };
 
 struct __attribute__((__packed__)) jgfs2_superblock {
-	char     s_magic[4];   // must be "JGF2"
+	char     s_magic[4];       // must be "JGF2"
 	
-	uint8_t  s_ver_major;  // major version
-	uint8_t  s_ver_minor;  // minor version
+	uint8_t  s_ver_major;      // major version
+	uint8_t  s_ver_minor;      // minor version
 	
-	uint64_t s_sect_count; // total number of sectors
-	uint16_t s_boot_size;  // number of boot sectors
+	uint64_t s_sect_count;     // total number of sectors
+	uint16_t s_boot_size;      // number of boot sectors
 	
-	uint16_t s_block_size; // sectors per block
+	uint16_t s_block_size;     // sectors per block
 	
-	int64_t  s_ctime;      // fs creation time
-	int64_t  s_mtime;      // fs last mount time
+	int64_t  s_ctime;          // fs creation time
+	int64_t  s_mtime;          // fs last mount time
 	
-	uint8_t  s_uuid[16];   // fs uuid
+	uint8_t  s_uuid[16];       // fs uuid
 	
 	char     s_label[JGFS2_LABEL_LIMIT + 1]; // null-terminated volume label
 	
-	char     s_rsvd[0x18e];
+	uint32_t s_addr_fs_bitmap; // address of free space bitmap
+	uint32_t s_addr_root_dir;  // address of root directory
+	
+	char     s_rsvd[0x186];
 };
 
 struct jgfs2_mkfs_param {

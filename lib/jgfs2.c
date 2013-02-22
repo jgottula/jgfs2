@@ -116,7 +116,7 @@ static void warnx(const char *fmt, ...) {
 
 static void *jgfs2_sect_ptr(uint64_t sect_num) {
 	if (sect_num >= dev.sect) {
-		errx(1, "%s: bounds violation (%" PRIu64 " >= %" PRIu64 ")",
+		errx(1, "%s: bounds violation: %" PRIu64 " >= %" PRIu64,
 			__func__, sect_num, dev.sect);
 	}
 	
@@ -125,11 +125,26 @@ static void *jgfs2_sect_ptr(uint64_t sect_num) {
 
 static void *jgfs2_block_ptr(uint32_t block_num) {
 	if (block_num >= fs.block_count) {
-		errx(1, "%s: bounds violation (%" PRIu32 " >= %" PRIu32 ")",
+		errx(1, "%s: bounds violation: %" PRIu32 " >= %" PRIu32,
 			__func__, block_num, fs.block_count);
 	}
 	
 	return jgfs2_sect_ptr(block_num * fs.sblk->s_block_size);
+}
+
+static void jgfs2_free_set(bool alloc, uint32_t addr, uint32_t len) {
+	if (addr + len >= fs.block_count) {
+		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") >= %" PRIu32,
+			__func__, addr, addr + len, fs.block_count);
+	}
+	
+	TODO("actually modify the fs bitmap");
+}
+
+static bool jgfs2_alloc(uint32_t len, uint32_t *addr) {
+	TODO("actually allocate in jgfs2_alloc");
+	
+	return false;
 }
 
 static void jgfs2_msync(void) {
