@@ -13,6 +13,10 @@
 #include <uuid/uuid.h>
 
 
+#define TODO(_s) \
+	fprintf(stderr, "TODO: %s: %s\n", __func__, (_s))
+
+
 static struct {
 	const char *path;
 	int         fd;
@@ -177,7 +181,7 @@ static void jgfs2_init_real(const struct jgfs2_superblock *new_sblk) {
 	
 	dev.sect = dev.size / JGFS2_SECT_SIZE;
 	
-	warnx("TODO: device size checks");
+	TODO("device size checks");
 	
 	fs.size = (JGFS2_SBLK_SECT + 1) * JGFS2_SECT_SIZE;
 	
@@ -191,14 +195,14 @@ static void jgfs2_init_real(const struct jgfs2_superblock *new_sblk) {
 	fs.sblk = jgfs2_sect_ptr(JGFS2_SBLK_SECT);
 	
 	if (new_sblk != NULL) {
-		warnx("TODO: write all superblocks");
+		TODO("write all superblocks");
 		
 		memcpy(fs.sblk, new_sblk, sizeof(*new_sblk));
 	}
 	
 	if (memcmp(fs.sblk->s_magic, JGFS2_MAGIC,
 		sizeof(fs.sblk->s_magic)) != 0) {
-		warnx("TODO: check backup superblocks");
+		TODO("check backup superblocks");
 		/* when checking backup superblocks, be aware that the mmap doesn't yet
 		 * extend that far into the device */
 		
@@ -290,7 +294,7 @@ void jgfs2_new(const char *dev_path,
 			param_rw.block_size * JGFS2_SECT_SIZE);
 	}
 	
-	warnx("TODO: device size checks");
+	TODO("device size checks");
 	/* note that not all size variables have been initialized at this point */
 	
 	struct jgfs2_superblock new_sblk;
@@ -343,6 +347,6 @@ void jgfs2_new(const char *dev_path,
 		memset(data, 0, fs.block_count - fs.first_data_block);
 	}
 	
-	warnx("TODO: initialize fs structures");
-	warnx("TODO: set free space bitmap");
+	TODO("initialize fs structures");
+	TODO("set free space bitmap");
 }
