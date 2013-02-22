@@ -188,8 +188,6 @@ static void jgfs2_init_real(const struct jgfs2_superblock *new_sblk) {
 		err(1, "mmap failed");
 	}
 	dev.mmap_size = fs.size;
-	
-	fs.vbr  = jgfs2_sect_ptr(JGFS2_VBR_SECT);
 	fs.sblk = jgfs2_sect_ptr(JGFS2_SBLK_SECT);
 	
 	if (new_sblk != NULL) {
@@ -221,18 +219,22 @@ static void jgfs2_init_real(const struct jgfs2_superblock *new_sblk) {
 	fs.size = fs.sblk->s_sect_count * JGFS2_SECT_SIZE;
 	
 	/* set the mmap size to the actual size of the filesystem */
-	if (mremap(dev.mem, dev.mmap_size, fs.size, 0) == MAP_FAILED) {
+	/* note that previously used pointers are now invalid */
+	if ((dev.mem = mremap(dev.mem, dev.mmap_size,
+		fs.size, MREMAP_MAYMOVE)) == MAP_FAILED) {
 		err(1, "mremap failed");
 	}
 	dev.mmap_size = fs.size;
 	
+	fs.vbr  = jgfs2_sect_ptr(JGFS2_VBR_SECT);
+	fs.sblk = jgfs2_sect_ptr(JGFS2_SBLK_SECT);
 	fs.boot = jgfs2_sect_ptr(JGFS2_BOOT_SECT);
 	
 	fs.block_size  = fs.sblk->s_block_size * JGFS2_SECT_SIZE;
 	fs.block_count = dev.size / fs.block_size;
 	
 	fs.first_data_block = CEIL(JGFS2_BOOT_SECT + fs.sblk->s_boot_size,
-		fs.block_size);
+		fs.sblk->s_block_size);
 	
 	if (fs.sblk->s_mtime > time(NULL)) {
 		warnx("last mount time is in the future: %s",
@@ -257,11 +259,13 @@ void jgfs2_init(const char *dev_path,
 void jgfs2_new(const char *dev_path,
 	const struct jgfs2_mount_options *mount_opt,
 	const struct jgfs2_mkfs_param *param) {
+	dev.path = strdup(dev_path);
+	memcpy(&fs.mount_opt, mount_opt, sizeof(*mount_opt));
+	
 	struct jgfs2_mkfs_param param_rw;
 	memcpy(&param_rw, param, sizeof(param_rw));
 	
-	warnx("making new filesystem with label '%s' and uuid '%s'",
-		param_rw.label);
+	warnx("making new filesystem with label '%s'", param_rw.label);
 	
 	if (param_rw.sect_count == 0) {
 		warnx("using entire device");
@@ -282,7 +286,8 @@ void jgfs2_new(const char *dev_path,
 		/* advanced block size choosing algorithm */
 		param_rw.block_size = 2;
 		
-		warnx("using best block size: %" PRIu32 " byte blocks");
+		warnx("using best block size: %" PRIu32 " byte blocks",
+			param_rw.block_size * JGFS2_SECT_SIZE);
 	}
 	
 	warnx("TODO: device size checks");
@@ -328,8 +333,8 @@ void jgfs2_new(const char *dev_path,
 	 * usable block */
 	struct jgfs2_sect *slack =
 		jgfs2_sect_ptr(JGFS2_BOOT_SECT + fs.sblk->s_boot_size);
-	memset(slack, 0, (fs.first_data_block * fs.sblk->s_block_size) -
-		(JGFS2_BOOT_SECT + fs.sblk->s_boot_size));
+	memset(slack, 0, ((fs.first_data_block * fs.sblk->s_block_size) -
+		(JGFS2_BOOT_SECT + fs.sblk->s_boot_size)) * JGFS2_SECT_SIZE);
 	
 	if (param_rw.zap_data) {
 		warnx("zapping all data blocks");
