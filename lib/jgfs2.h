@@ -2,7 +2,7 @@
 #define JGFS2_LIB_JGFS2_H
 
 
-#include "macro.h"
+#define CEIL(_x, _step) ((_x) == 0 ? 0 : ((((_x) - 1) / (_step)) + 1))
 
 
 #define JGFS2_SECT_SIZE   0x200
