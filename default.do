@@ -23,10 +23,15 @@ export CFLAGS="-std=gnu11 -O0 -ggdb -Wall -Wextra -Wno-unused-parameter \
 
 DEFINES="-D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -DFUSE_USE_VERSION=26"
 
-JGFS_OUT="bin/libjgfs2.a"
-JGFS_SRC=(lib/*.c)
-JGFS_OBJS=${JGFS_SRC[@]//.c/.o}
-JGFS_LIBS=(-lbsd -luuid)
+LIB_OUT="bin/libjgfs2.a"
+LIB_SRC=(lib/*.c)
+LIB_OBJS=${LIB_SRC[@]//.c/.o}
+LIB_LIBS=(-lbsd -luuid)
+
+TEST_OUT="bin/jgfs2test"
+TEST_SRC=(src/test/*.c)
+TEST_OBJS=${TEST_SRC[@]//.c/.o}
+TEST_LIBS=()
 
 FUSE_OUT="bin/jgfs2fuse"
 FUSE_SRC=(src/fuse/*.c)
@@ -86,9 +91,11 @@ function target_lib {
 
 case "$TARGET" in
 all)
-	redo lib fuse mkfs fsck defrag fsctl attr ;;
+	redo lib test fuse mkfs fsck defrag fsctl attr ;;
 lib)
-	redo-ifchange $JGFS_OUT ;;
+	redo-ifchange $LIB_OUT ;;
+test)
+	redo-ifchange $TEST_OUT ;;
 fuse)
 	redo-ifchange $FUSE_OUT ;;
 mkfs)
@@ -101,39 +108,44 @@ fsctl)
 	redo-ifchange $FSCTL_OUT ;;
 attr)
 	redo-ifchange $ATTR_OUT ;;
-$JGFS_OUT)
-	LIBS="${JGFS_LIBS[@]}"
-	OBJS="${JGFS_OBJS[@]}"
+$LIB_OUT)
+	LIBS="${LIB_LIBS[@]}"
+	OBJS="${LIB_OBJS[@]}"
 	target_lib
+	;;
+$TEST_OUT)
+	LIBS="${TEST_LIBS[@]}"
+	OBJS="${TEST_OBJS[@]} $LIB_OUT"
+	target_link
 	;;
 $FUSE_OUT)
 	LIBS="${FUSE_LIBS[@]}"
-	OBJS="${FUSE_OBJS[@]} $JGFS_OUT"
+	OBJS="${FUSE_OBJS[@]} $LIB_OUT"
 	target_link
 	;;
 $MKFS_OUT)
 	LIBS="${MKFS_LIBS[@]}"
-	OBJS="${MKFS_OBJS[@]} $JGFS_OUT"
+	OBJS="${MKFS_OBJS[@]} $LIB_OUT"
 	target_link
 	;;
 $FSCK_OUT)
 	LIBS="${FSCK_LIBS[@]}"
-	OBJS="${FSCK_OBJS[@]} $JGFS_OUT"
+	OBJS="${FSCK_OBJS[@]} $LIB_OUT"
 	target_link
 	;;
 $DEFRAG_OUT)
 	LIBS="${DEFRAG_LIBS[@]}"
-	OBJS="${DEFRAG_OBJS[@]} $JGFS_OUT"
+	OBJS="${DEFRAG_OBJS[@]} $LIB_OUT"
 	target_link
 	;;
 $FSCTL_OUT)
 	LIBS="${FSCTL_LIBS[@]}"
-	OBJS="${FSCTL_OBJS[@]} $JGFS_OUT"
+	OBJS="${FSCTL_OBJS[@]} $LIB_OUT"
 	target_link
 	;;
 $ATTR_OUT)
 	LIBS="${ATTR_LIBS[@]}"
-	OBJS="${ATTR_OBJS[@]} $JGFS_OUT"
+	OBJS="${ATTR_OBJS[@]} $LIB_OUT"
 	target_link
 	;;
 *.o)
