@@ -79,10 +79,10 @@ struct __attribute__((__packed__)) jgfs2_superblock {
 	uint8_t  s_ver_major;      // major version
 	uint8_t  s_ver_minor;      // minor version
 	
-	uint64_t s_total_sect;     // total number of sectors
+	uint32_t s_total_sect;     // total number of sectors
 	uint16_t s_boot_sect;      // number of boot sectors
 	
-	uint16_t s_block_size;     // sectors per block
+	uint16_t s_blk_size;       // sectors per block
 	
 	int64_t  s_ctime;          // fs creation time
 	int64_t  s_mtime;          // fs last mount time
@@ -94,7 +94,7 @@ struct __attribute__((__packed__)) jgfs2_superblock {
 	uint32_t s_addr_fs_bitmap; // address of free space bitmap
 	uint32_t s_addr_root_dir;  // address of root directory
 	
-	char     s_rsvd[0x186];
+	char     s_rsvd[0x18a];
 };
 
 struct jgfs2_mkfs_param {
@@ -102,10 +102,10 @@ struct jgfs2_mkfs_param {
 	
 	char     label[JGFS2_LABEL_LIMIT + 1]; // null-terminated volume label
 	
-	uint64_t total_sect; // total number of sectors; zero: fill device
+	uint32_t total_sect; // total number of sectors; zero: fill device
 	uint16_t boot_sect;  // number of boot sectors
 	
-	uint16_t block_size; // sectors per block; zero: auto-select
+	uint16_t blk_size;   // sectors per block; zero: auto-select
 	
 	bool     zap_vbr;    // true: zero the volume boot record
 	bool     zap_boot;   // true: zero the boot area

@@ -8,8 +8,8 @@
 #include "dev.h"
 
 
-#define BLOCK_BYTES(_count) \
-	(fs.block_size * _count)
+#define BLK_BYTES(_count) \
+	(fs.blk_size * _count)
 
 struct jgfs2_fs fs;
 static struct jgfs2_fs fs_init = {
@@ -17,13 +17,13 @@ static struct jgfs2_fs fs_init = {
 	
 	.new_sblk = NULL,
 	
-	.size_byte  = 0,
-	.size_block = 0,
+	.size_byte = 0,
+	.size_blk  = 0,
 	
-	.block_size = 0,
+	.blk_size = 0,
 	
-	.data_block_first = 0,
-	.data_block_count = 0,
+	.data_blk_first = 0,
+	.data_blk_count = 0,
 	
 	.vbr  = NULL,
 	.sblk = NULL,
@@ -31,10 +31,42 @@ static struct jgfs2_fs fs_init = {
 };
 
 
-void *jgfs2_fs_map_sect(uint64_t sect_num, uint64_t sect_count) {
-	TODO("hook into jgfs2_dev_map_sect, but do bounds checks with fs size");
+void *jgfs2_fs_map_sect(uint32_t sect_num, uint32_t sect_count) {
+	if (sect_num + sect_count >= fs.sblk->s_total_sect) {
+		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") >= %" PRIu32,
+			__func__, sect_num, sect_num + sect_count, fs.sblk->s_total_sect);
+	}
 	
-	return NULL;
+	return jgfs2_dev_map_sect(sect_num, sect_count);
+}
+
+void jgfs2_fs_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_count) {
+	if (sect_num + sect_count >= fs.sblk->s_total_sect) {
+		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") >= %" PRIu32,
+			__func__, sect_num, sect_num + sect_count, fs.sblk->s_total_sect);
+	}
+	
+	jgfs2_dev_unmap_sect(addr, sect_num, sect_count);
+}
+
+void *jgfs2_fs_map_blk(uint32_t blk_num, uint32_t blk_count) {
+	if (blk_num + blk_count >= fs.size_blk) {
+		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") >= %" PRIu32,
+			__func__, blk_num, blk_num + blk_count, fs.size_blk);
+	}
+	
+	return jgfs2_dev_map_sect(blk_num * fs.sblk->s_blk_size,
+		blk_count * fs.sblk->s_blk_size);
+}
+
+void jgfs2_fs_unmap_blk(void *addr, uint32_t blk_num, uint32_t blk_count) {
+	if (blk_num + blk_count >= fs.size_blk) {
+		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") >= %" PRIu32,
+			__func__, blk_num, blk_num + blk_count, fs.size_blk);
+	}
+	
+	jgfs2_dev_unmap_sect(addr, blk_num * fs.sblk->s_blk_size,
+		blk_count * fs.sblk->s_blk_size);
 }
 
 bool jgfs2_fs_sblk_check(const struct jgfs2_superblock *sblk) {
@@ -51,7 +83,7 @@ bool jgfs2_fs_sblk_check(const struct jgfs2_superblock *sblk) {
 	}
 	
 	if (sblk->s_total_sect > dev.size_sect) {
-		warnx("filesystem exceeds device bounds (%" PRIu64 " > %" PRIu64 ")",
+		warnx("filesystem exceeds device bounds (%" PRIu32 " > %" PRIu32 ")",
 			sblk->s_total_sect, dev.size_sect);
 		return false;
 	}
@@ -85,14 +117,14 @@ void jgfs2_fs_init(const char *dev_path,
 		errx(1, "primary superblock validation failed");
 	}
 	
-	fs.size_byte  = SECT_BYTES(fs.sblk->s_total_sect);
-	fs.size_block = fs.sblk->s_total_sect / fs.sblk->s_block_size;
+	fs.size_byte = SECT_BYTES(fs.sblk->s_total_sect);
+	fs.size_blk  = fs.sblk->s_total_sect / fs.sblk->s_blk_size;
 	
-	fs.block_size = SECT_BYTES(fs.sblk->s_block_size);
+	fs.blk_size = SECT_BYTES(fs.sblk->s_blk_size);
 	
-	fs.data_block_first = CEIL(JGFS2_BOOT_SECT + fs.sblk->s_boot_sect,
-		fs.sblk->s_block_size);
-	fs.data_block_count = fs.size_block - fs.data_block_first;
+	fs.data_blk_first = CEIL(JGFS2_BOOT_SECT + fs.sblk->s_boot_sect,
+		fs.sblk->s_blk_size);
+	fs.data_blk_count = fs.size_blk - fs.data_blk_first;
 	
 	fs.boot = jgfs2_fs_map_sect(JGFS2_BOOT_SECT, fs.sblk->s_boot_sect);
 	
@@ -139,12 +171,12 @@ void jgfs2_fs_new_pre_init(const struct jgfs2_mkfs_param *param) {
 		}
 	}
 	
-	if (fs.mkfs_param.block_size == 0) {
+	if (fs.mkfs_param.blk_size == 0) {
 		/* advanced block size choosing algorithm */
-		fs.mkfs_param.block_size = 2;
+		fs.mkfs_param.blk_size = 2;
 		
 		warnx("using best block size: %" PRIu32 " byte blocks",
-			SECT_BYTES(fs.mkfs_param.block_size));
+			SECT_BYTES(fs.mkfs_param.blk_size));
 	}
 	
 	TODO("device size checks");
@@ -160,7 +192,7 @@ void jgfs2_fs_new_pre_init(const struct jgfs2_mkfs_param *param) {
 	fs.new_sblk->s_total_sect = fs.mkfs_param.total_sect;
 	fs.new_sblk->s_boot_sect  = fs.mkfs_param.boot_sect;
 	
-	fs.new_sblk->s_block_size = fs.mkfs_param.block_size;
+	fs.new_sblk->s_blk_size = fs.mkfs_param.blk_size;
 	
 	fs.new_sblk->s_ctime = time(NULL);
 	fs.new_sblk->s_mtime = 0;
@@ -191,26 +223,18 @@ void jgfs2_fs_new_post_init(void) {
 	/* always zap the slack space between the end of the boot area and the first
 	 * data block */
 	void *slack = jgfs2_fs_map_sect(JGFS2_BOOT_SECT, fs.sblk->s_boot_sect);
-	memset(slack, 0, BLOCK_BYTES(fs.data_block_first) -
+	memset(slack, 0, BLK_BYTES(fs.data_blk_first) -
 		SECT_BYTES(JGFS2_BOOT_SECT + fs.sblk->s_boot_sect));
 	
 	if (fs.mkfs_param.zap_data) {
 		warnx("zapping all data blocks (this may take a long time)");
 		
-		for (uint32_t i = 0; i < fs.data_block_count; ++i) {
-			/*void *block = jgfs2_fs_map_block(fs.data_block_first + i, 1);
-			memset(block, 0, BLOCK_BYTES(1));*/
-			
-			/* unmap the data block (this is okay since no other maps will exist) */
-			// ...
+		/* zero a block at a time */
+		for (uint32_t i = 0; i < fs.data_blk_count; ++i) {
+			void *blk = jgfs2_fs_map_blk(fs.data_blk_first + i, 1);
+			memset(blk, 0, BLK_BYTES(1));
+			jgfs2_fs_unmap_blk(blk, fs.data_blk_first + i, 1);
 		}
-		
-		/*void *data = jgfs2_fs_map_block(fs.data_block_first,
-			fs.data_block_count);
-		memset(data, 0, BLOCK_BYTES(fs.data_block_count));*/
-		
-		/* unmap the data blocks (this ) */
-		//jgfs2_fs_unmap_block(data, fs.data_block_first, fs.data_block_count);
 	}
 	
 	warnx("initializing filesystem structures");
