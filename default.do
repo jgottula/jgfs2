@@ -17,7 +17,8 @@ export CC="ccache gcc"
 export AR=ar
 
 export CFLAGS="-std=gnu11 -O0 -ggdb -Wall -Wextra -Wno-unused-parameter \
--Wno-unused-function -include stdbool.h -include stdint.h -Isrc"
+-Wno-unused-function -include stddef.h -include stdbool.h -include stdint.h \
+-Isrc"
 
 
 DEFINES="-D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -DFUSE_USE_VERSION=26"
