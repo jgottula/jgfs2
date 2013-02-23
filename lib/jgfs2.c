@@ -50,6 +50,10 @@ static struct {
 	struct jgfs2_sect       *vbr;
 	struct jgfs2_superblock *sblk;
 	struct jgfs2_sect       *boot;
+	
+	void *fs_bitmap;
+	
+	struct jgfs2_directory *root_dir;
 } fs = {
 	.init = false,
 	
