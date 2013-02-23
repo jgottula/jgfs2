@@ -2,10 +2,12 @@
 #define JGFS2_LIB_JGFS2_H
 
 
-#define CEIL(_x, _step) ((_x) == 0 ? 0 : ((((_x) - 1) / (_step)) + 1))
+#define CEIL(_x, _step) \
+	((_x) == 0 ? 0 : ((((_x) - 1) / (_step)) + 1))
 
-
-#define JGFS2_SECT_SIZE   0x200
+#define JGFS2_SECT_SIZE 0x200
+#define SECT_BYTES(_count) \
+	((_count) * JGFS2_SECT_SIZE)
 
 #define JGFS2_VER_EXPAND(_maj, _min) \
 	(((uint16_t)(_maj) * 0x100) + (uint16_t)(_min))
@@ -77,8 +79,8 @@ struct __attribute__((__packed__)) jgfs2_superblock {
 	uint8_t  s_ver_major;      // major version
 	uint8_t  s_ver_minor;      // minor version
 	
-	uint64_t s_sect_count;     // total number of sectors
-	uint16_t s_boot_size;      // number of boot sectors
+	uint64_t s_total_sect;     // total number of sectors
+	uint16_t s_boot_sect;      // number of boot sectors
 	
 	uint16_t s_block_size;     // sectors per block
 	
@@ -100,8 +102,8 @@ struct jgfs2_mkfs_param {
 	
 	char     label[JGFS2_LABEL_LIMIT + 1]; // null-terminated volume label
 	
-	uint64_t sect_count; // total number of sectors; zero: fill device
-	uint16_t boot_size;  // number of boot sectors
+	uint64_t total_sect; // total number of sectors; zero: fill device
+	uint16_t boot_sect;  // number of boot sectors
 	
 	uint16_t block_size; // sectors per block; zero: auto-select
 	
