@@ -24,7 +24,7 @@ export CFLAGS="-std=gnu11 -O0 -ggdb -Wall -Wextra -Wno-unused-parameter \
 DEFINES="-D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -DFUSE_USE_VERSION=26"
 
 LIB_OUT="bin/libjgfs2.a"
-LIB_SRC=(lib/*.c)
+LIB_SRC=(lib/*.c lib/*/*.c)
 LIB_OBJS=${LIB_SRC[@]//.c/.o}
 LIB_LIBS=(-lbsd -luuid)
 
