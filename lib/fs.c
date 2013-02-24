@@ -68,9 +68,9 @@ void jgfs2_fs_unmap_blk(void *addr, uint32_t blk_num, uint32_t blk_cnt) {
 		blk_cnt * fs.sblk->s_blk_size);
 }
 
-bool jgfs2_fs_sblk_check(const struct jgfs2_superblock *sblk) {
+bool jgfs2_fs_sblk_check(const struct jgfs2_super_block *sblk) {
 	if (memcmp(sblk->s_magic, JGFS2_MAGIC, sizeof(sblk->s_magic)) != 0) {
-		warnx("not jgfs2 or invalid superblock");
+		warnx("not jgfs2 or invalid super block");
 		return false;
 	}
 	
@@ -92,7 +92,7 @@ bool jgfs2_fs_sblk_check(const struct jgfs2_superblock *sblk) {
 
 void jgfs2_fs_init(const char *dev_path,
 	const struct jgfs2_mount_options *mount_opt,
-	const struct jgfs2_superblock *new_sblk) {
+	const struct jgfs2_super_block *new_sblk) {
 	fs = fs_init;
 	fs.mount_opt = *mount_opt;
 	
@@ -104,14 +104,14 @@ void jgfs2_fs_init(const char *dev_path,
 	fs.sblk = jgfs2_dev_map_sect(JGFS2_SBLK_SECT, 1);
 	
 	if (new_sblk != NULL) {
-		TODO("write backup superblocks with new_sblk here?");
+		TODO("write backup super blocks with new_sblk here?");
 		
 		memcpy(fs.sblk, new_sblk, sizeof(*fs.sblk));
 	}
 	
-	TODO("verify backup superblocks");
+	TODO("verify backup super blocks");
 	if (!jgfs2_fs_sblk_check(fs.sblk)) {
-		errx(1, "primary superblock validation failed");
+		errx(1, "primary super block validation failed");
 	}
 	
 	fs.size_byte = SECT_TO_BYTE(fs.sblk->s_total_sect);
@@ -124,29 +124,6 @@ void jgfs2_fs_init(const char *dev_path,
 	fs.data_blk_cnt   = fs.size_blk - fs.data_blk_first;
 	
 	fs.boot = jgfs2_fs_map_sect(JGFS2_BOOT_SECT, fs.sblk->s_boot_sect);
-	
-	fs.free_bmap_size_byte = CEIL(fs.size_blk, 8);
-	fs.free_bmap_size_blk  = BYTE_TO_BLK(fs.free_bmap_size_byte);
-	if (new_sblk != NULL) {
-		jgfs2_new_init_free_bmap_pre();
-	}
-	fs.free_bmap = jgfs2_fs_map_blk(fs.sblk->s_addr_free_bmap,
-		fs.free_bmap_size_blk);
-	if (new_sblk != NULL) {
-		jgfs2_new_init_free_bmap_post();
-	}
-	
-	if (new_sblk != NULL) {
-		jgfs2_new_init_inode_table();
-	}
-	fs.inode_table_size_byte = fs.sblk->s_ext_inode_table.e_len;
-	fs.inode_table_size_blk  = BYTE_TO_BLK(fs.inode_table_size_byte);
-	fs.inode_table = jgfs2_fs_map_blk(fs.sblk->s_ext_inode_table.e_addr,
-		fs.inode_table_size_blk);
-	
-	if (new_sblk != NULL) {
-		jgfs2_new_init_root_dir();
-	}
 	
 	if (fs.sblk->s_mtime > time(NULL)) {
 		warnx("last mount time is in the future: %s",
@@ -162,11 +139,6 @@ void jgfs2_fs_init(const char *dev_path,
 
 void jgfs2_fs_done(void) {
 	if (fs.init) {
-		jgfs2_fs_unmap_blk(fs.inode_table, fs.sblk->s_ext_inode_table.e_addr,
-			fs.inode_table_size_blk);
-		jgfs2_fs_unmap_blk(fs.free_bmap, fs.sblk->s_addr_free_bmap,
-			fs.free_bmap_size_blk);
-		
 		jgfs2_fs_unmap_sect(fs.boot, JGFS2_BOOT_SECT, fs.sblk->s_boot_sect);
 		
 		jgfs2_dev_unmap_sect(fs.vbr, JGFS2_VBR_SECT, 1);

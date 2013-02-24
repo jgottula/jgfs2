@@ -3,11 +3,10 @@
 #include <inttypes.h>
 #include <sys/user.h>
 #include <time.h>
-#include "blk.h"
 #include "debug.h"
 #include "dev.h"
 #include "fs.h"
-#include "inode.h"
+#include "tree.h"
 
 
 /* use page-size blocks */
@@ -18,38 +17,11 @@
 
 
 struct jgfs2_mkfs_param mkfs_param;
-struct jgfs2_superblock new_sblk;
+struct jgfs2_super_block new_sblk;
 
-
-void jgfs2_new_init_free_bmap_pre(void) {
-	warnx("initializing free space bitmap");
-	
-	/* locate the free space bitmap in the first available block(s) */
-	fs.sblk->s_addr_free_bmap = CEIL(JGFS2_BOOT_SECT + new_sblk.s_boot_sect,
-		new_sblk.s_blk_size);
-}
-
-void jgfs2_new_init_free_bmap_post(void) {
-	/* free all blocks */
-	memset(fs.free_bmap, 0, fs.free_bmap_size_byte);
-	
-	/* set the pre-data area and the bitmap itself as used */
-	jgfs2_blk_bmap_set(true, 0, fs.data_blk_first + fs.free_bmap_size_blk);
-}
-
-void jgfs2_new_init_inode_table(void) {
-	uint32_t inode_cnt  = CEIL(fs.size_blk, JGFS2_DEFAULT_INODE_RATIO);
-	uint64_t inode_byte = inode_cnt * sizeof(struct jgfs2_inode);
-	uint32_t inode_blk  = CEIL(inode_byte, fs.size_blk);
-	
-	fs.sblk->s_ext_inode_table.e_len = inode_byte;
-	if (!jgfs2_blk_alloc(&fs.sblk->s_ext_inode_table.e_addr, inode_blk)) {
-		errx(1, "could not allocate an extent for the inode table");
-	}
-}
 
 void jgfs2_new_init_root_dir(void) {
-	struct jgfs2_inode *root_inode;
+	/*struct jgfs2_inode *root_inode;
 	root_inode = jgfs2_inode_get(0);
 	memset(root_inode, 0, sizeof(*root_inode));
 	
@@ -69,10 +41,10 @@ void jgfs2_new_init_root_dir(void) {
 	
 	root_inode->i_nlink = 1;
 	
-	root_inode->i_gen = 0;
+	root_inode->i_gen = 0;*/
 }
 
-const struct jgfs2_superblock *jgfs2_new_pre(const char *dev_path,
+const struct jgfs2_super_block *jgfs2_new_pre(const char *dev_path,
 	const struct jgfs2_mkfs_param *param) {
 	mkfs_param = *param;
 	
@@ -135,4 +107,21 @@ void jgfs2_new_post(void) {
 	memset(slack, 0, BLK_TO_BYTE(fs.data_blk_first) -
 		SECT_TO_BYTE(JGFS2_BOOT_SECT + fs.sblk->s_boot_sect));
 	jgfs2_fs_unmap_sect(slack, JGFS2_BOOT_SECT, fs.sblk->s_boot_sect);
+	
+	fs.sblk->s_addr_ext_tree  = fs.data_blk_first;
+	fs.sblk->s_addr_meta_tree = fs.data_blk_first + 1;
+	
+	jgfs2_tree_init(fs.sblk->s_addr_ext_tree);
+	jgfs2_tree_init(fs.sblk->s_addr_meta_tree);
+	
+	jgfs2_node_dump(fs.sblk->s_addr_ext_tree);
+	jgfs2_node_dump(fs.sblk->s_addr_meta_tree);
+	
+	/* init tree roots */
+	/* set used areas as allocated */
+	/* add root dir to meta tree */
+	
+	TODO("ext tree init");
+	TODO("meta tree init");
+	TODO("root dir and other items");
 }

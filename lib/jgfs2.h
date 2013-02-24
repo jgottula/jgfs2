@@ -84,26 +84,9 @@ struct __attribute__((__packed__)) jgfs2_inode {
 	uint32_t i_nlink; // hard link ref count
 	
 	uint32_t i_gen;   // generation
-	
-	struct jgfs2_extent i_ext[9]; // table of extents
-	
-	struct jgfs2_extent i_ext_more; // extent containing more extent entries
-	
-	char     i_rsvd[0];
 };
 
-struct __attribute__((__packed__)) jgfs2_dentry {
-	uint32_t d_inode;    // inode number (zero if last in list)
-	
-	uint8_t  d_name_len; // length of name (without NULL)
-	char     d_name[0];  // null-terminated name
-};
-
-struct __attribute__((__packed__)) jgfs2_directory {
-	struct jgfs2_dentry dents[0];
-};
-
-struct __attribute__((__packed__)) jgfs2_superblock {
+struct __attribute__((__packed__)) jgfs2_super_block {
 	char     s_magic[4];       // must be "JGF2"
 	
 	uint8_t  s_ver_major;      // major version
@@ -121,10 +104,10 @@ struct __attribute__((__packed__)) jgfs2_superblock {
 	
 	char     s_label[JGFS2_LABEL_LIMIT + 1]; // null-terminated volume label
 	
-	uint32_t s_addr_free_bmap; // address of free space bitmap
-	struct jgfs2_extent s_ext_inode_table; // extent for inode table
+	uint32_t s_addr_ext_tree;  // address of extent tree
+	uint32_t s_addr_meta_tree; // address of metadata tree
 	
-	char     s_rsvd[0x186];
+	char     s_rsvd[0x18a];
 };
 
 struct jgfs2_mkfs_param {
@@ -148,10 +131,8 @@ struct jgfs2_mount_options {
 
 _Static_assert(sizeof(struct jgfs2_sect) == 0x200,
 	"struct jgfs2_sect must be 512 bytes");
-_Static_assert(sizeof(struct jgfs2_inode) == 0x80,
-	"struct jgfs2_inode must be 128 bytes");
-_Static_assert(sizeof(struct jgfs2_superblock) == 0x200,
-	"struct jgfs2_superblock must be 512 bytes");
+_Static_assert(sizeof(struct jgfs2_super_block) == 0x200,
+	"struct jgfs2_super_block must be 512 bytes");
 
 
 void jgfs2_stat(uint32_t *blk_size, uint32_t *blk_total, uint32_t *blk_used);
