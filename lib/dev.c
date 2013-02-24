@@ -115,7 +115,7 @@ void jgfs2_dev_close(void) {
 		jgfs2_dev_fsync();
 		
 		if (dev.map_cnt != 0) {
-			warnx("%" PRIu32 " device regions are still mapped");
+			warnx("%" PRIu32 " device regions are still mapped", dev.map_cnt);
 		}
 		
 		if (close(dev.fd) < 0) {
