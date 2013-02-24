@@ -2,7 +2,7 @@
 #include <inttypes.h>
 
 
-void dump_mem(void *ptr, size_t len) {
+void dump_mem(const void *ptr, size_t len) {
 	uintptr_t start = (uintptr_t)ptr;
 	uintptr_t end   = (uintptr_t)((uint8_t *)ptr + len);
 	
@@ -15,8 +15,8 @@ void dump_mem(void *ptr, size_t len) {
 		end += 0x10;
 	}
 	
-	uint8_t *ptr_b = (uint8_t *)start;
-	uint8_t *end_b = (uint8_t *)end;
+	const uint8_t *ptr_b = (const uint8_t *)start;
+	const uint8_t *end_b = (const uint8_t *)end;
 	
 	uint8_t i = 0;
 	

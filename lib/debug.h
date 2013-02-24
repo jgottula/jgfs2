@@ -62,7 +62,7 @@ static void warnx(const char *fmt, ...) {
 }
 
 
-void dump_mem(void *ptr, size_t len);
+void dump_mem(const void *ptr, size_t len);
 
 
 #endif
