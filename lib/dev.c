@@ -24,8 +24,8 @@ void *jgfs2_dev_map_sect(uint32_t sect_num, uint32_t sect_cnt) {
 			__func__, sect_num, sect_num + sect_cnt, dev.size_sect);
 	}
 	
-	uint64_t byte_off = SECT_BYTES(sect_num);
-	uint64_t byte_len = SECT_BYTES(sect_cnt);
+	uint64_t byte_off = SECT_TO_BYTE(sect_num);
+	uint64_t byte_len = SECT_TO_BYTE(sect_cnt);
 	
 	int prot = PROT_READ | (dev.read_only ? 0 : PROT_WRITE);
 	void *sect_mem = mmap(NULL, byte_len, prot, MAP_SHARED, dev.fd, byte_off);
@@ -44,7 +44,7 @@ void jgfs2_dev_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt) {
 			__func__, sect_num, sect_num + sect_cnt, dev.size_sect);
 	}
 	
-	uint64_t byte_len = SECT_BYTES(sect_cnt);
+	uint64_t byte_len = SECT_TO_BYTE(sect_cnt);
 	
 	if (munmap(addr, byte_len) < 0) {
 		err(1, "%s: munmap failed: addr %p, sect [%" PRIu32 ", %" PRIu32 ")",

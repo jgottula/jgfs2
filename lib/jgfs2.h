@@ -6,8 +6,10 @@
 	((_x) == 0 ? 0 : ((((_x) - 1) / (_step)) + 1))
 
 #define JGFS2_SECT_SIZE 0x200
-#define SECT_BYTES(_cnt) \
-	((_cnt) * JGFS2_SECT_SIZE)
+#define SECT_TO_BYTE(_sect) \
+	((_sect) * JGFS2_SECT_SIZE)
+#define BYTE_TO_SECT(_byte) \
+	CEIL((_byte), JGFS2_SECT_SIZE)
 
 #define JGFS2_VER_EXPAND(_maj, _min) \
 	(((uint16_t)(_maj) * 0x100) + (uint16_t)(_min))

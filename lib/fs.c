@@ -8,8 +8,10 @@
 #include "dev.h"
 
 
-#define BLK_BYTES(_cnt) \
-	(fs.blk_size * _cnt)
+#define BLK_TO_BYTE(_blk) \
+	((_blk) * fs.blk_size)
+#define BYTE_TO_BLK(_byte) \
+	CEIL((_byte), fs.blk_size)
 
 struct jgfs2_fs fs;
 static struct jgfs2_fs fs_init = {
@@ -101,7 +103,7 @@ void jgfs2_fs_init(const char *dev_path,
 	TODO("device size checks");
 	
 	/* right now, we are only sure that the vbr and superblock exist */
-	fs.size_byte = SECT_BYTES(JGFS2_SBLK_SECT + 1);
+	fs.size_byte = SECT_TO_BYTE(JGFS2_SBLK_SECT + 1);
 	
 	fs.vbr  = jgfs2_fs_map_sect(JGFS2_VBR_SECT, 1);
 	fs.sblk = jgfs2_fs_map_sect(JGFS2_SBLK_SECT, 1);
@@ -117,10 +119,10 @@ void jgfs2_fs_init(const char *dev_path,
 		errx(1, "primary superblock validation failed");
 	}
 	
-	fs.size_byte = SECT_BYTES(fs.sblk->s_total_sect);
+	fs.size_byte = SECT_TO_BYTE(fs.sblk->s_total_sect);
 	fs.size_blk  = fs.sblk->s_total_sect / fs.sblk->s_blk_size;
 	
-	fs.blk_size = SECT_BYTES(fs.sblk->s_blk_size);
+	fs.blk_size = SECT_TO_BYTE(fs.sblk->s_blk_size);
 	
 	fs.data_blk_first = CEIL(JGFS2_BOOT_SECT + fs.sblk->s_boot_sect,
 		fs.sblk->s_blk_size);
@@ -176,7 +178,7 @@ void jgfs2_fs_new_pre_init(const struct jgfs2_mkfs_param *param) {
 		fs.mkfs_param.blk_size = 2;
 		
 		warnx("using best block size: %" PRIu32 " byte blocks",
-			SECT_BYTES(fs.mkfs_param.blk_size));
+			SECT_TO_BYTE(fs.mkfs_param.blk_size));
 	}
 	
 	TODO("device size checks");
@@ -211,20 +213,20 @@ void jgfs2_fs_new_post_init(void) {
 	if (fs.mkfs_param.zap_vbr) {
 		warnx("zapping the volume boot record");
 		
-		memset(fs.vbr, 0, JGFS2_SECT_SIZE);
+		memset(fs.vbr, 0, SECT_TO_BYTE(1));
 	}
 	
 	if (fs.mkfs_param.zap_boot) {
 		warnx("zapping the boot area");
 		
-		memset(fs.boot, 0, SECT_BYTES(fs.sblk->s_boot_sect));
+		memset(fs.boot, 0, SECT_TO_BYTE(fs.sblk->s_boot_sect));
 	}
 	
 	/* always zap the slack space between the end of the boot area and the first
 	 * data block */
 	void *slack = jgfs2_fs_map_sect(JGFS2_BOOT_SECT, fs.sblk->s_boot_sect);
-	memset(slack, 0, BLK_BYTES(fs.data_blk_first) -
-		SECT_BYTES(JGFS2_BOOT_SECT + fs.sblk->s_boot_sect));
+	memset(slack, 0, BLK_TO_BYTE(fs.data_blk_first) -
+		SECT_TO_BYTE(JGFS2_BOOT_SECT + fs.sblk->s_boot_sect));
 	
 	if (fs.mkfs_param.zap_data) {
 		warnx("zapping all data blocks (this may take a long time)");
@@ -232,7 +234,7 @@ void jgfs2_fs_new_post_init(void) {
 		/* zero a block at a time */
 		for (uint32_t i = 0; i < fs.data_blk_cnt; ++i) {
 			void *blk = jgfs2_fs_map_blk(fs.data_blk_first + i, 1);
-			memset(blk, 0, BLK_BYTES(1));
+			memset(blk, 0, BLK_TO_BYTE(1));
 			jgfs2_fs_unmap_blk(blk, fs.data_blk_first + i, 1);
 		}
 	}
