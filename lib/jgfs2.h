@@ -16,8 +16,7 @@
 
 #define JGFS2_VER_MAJOR   0x00
 #define JGFS2_VER_MINOR   0x01
-#define JGFS2_VER_TOTAL \
-	JGFS2_VER_EXPAND(JGFS2_VER_MAJOR, JGFS2_VER_MINOR)
+#define JGFS2_VER_TOTAL   JGFS2_VER_EXPAND(JGFS2_VER_MAJOR, JGFS2_VER_MINOR)
 
 #define JGFS2_MAGIC       "JGF2"
 
@@ -93,7 +92,7 @@ struct __attribute__((__packed__)) jgfs2_superblock {
 	
 	char     s_label[JGFS2_LABEL_LIMIT + 1]; // null-terminated volume label
 	
-	uint32_t s_addr_fs_bitmap; // address of free space bitmap
+	uint32_t s_addr_free_bmap; // address of free space bitmap
 	uint32_t s_addr_root_dir;  // address of root directory
 	
 	char     s_rsvd[0x18a];

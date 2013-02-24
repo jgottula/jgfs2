@@ -1,6 +1,7 @@
 #include "jgfs2.h"
 #include "debug.h"
 #include "fs.h"
+#include "new.h"
 
 
 static void jgfs2_clean_up(void) {
@@ -13,7 +14,7 @@ void jgfs2_init(const char *dev_path,
 	
 	atexit(jgfs2_clean_up);
 	
-	jgfs2_fs_init(dev_path, mount_opt);
+	jgfs2_fs_init(dev_path, mount_opt, NULL);
 }
 
 void jgfs2_new(const char *dev_path,
@@ -23,7 +24,7 @@ void jgfs2_new(const char *dev_path,
 	
 	atexit(jgfs2_clean_up);
 	
-	jgfs2_fs_new_pre_init(param);
-	jgfs2_fs_init(dev_path, mount_opt);
-	jgfs2_fs_new_post_init();
+	const struct jgfs2_superblock *new_sblk = jgfs2_new_pre(dev_path, param);
+	jgfs2_fs_init(dev_path, mount_opt, new_sblk);
+	jgfs2_new_post();
 }

@@ -1,23 +1,13 @@
 #include "fs.h"
-#include <bsd/string.h>
-#include <fcntl.h>
 #include <inttypes.h>
 #include <time.h>
-#include <unistd.h>
 #include "debug.h"
 #include "dev.h"
 
 
-#define BLK_TO_BYTE(_blk) \
-	((_blk) * fs.blk_size)
-#define BYTE_TO_BLK(_byte) \
-	CEIL((_byte), fs.blk_size)
-
 struct jgfs2_fs fs;
 static struct jgfs2_fs fs_init = {
 	.init = false,
-	
-	.new_sblk = NULL,
 	
 	.size_byte = 0,
 	.size_blk  = 0,
@@ -30,6 +20,12 @@ static struct jgfs2_fs fs_init = {
 	.vbr  = NULL,
 	.sblk = NULL,
 	.boot = NULL,
+	
+	.free_bmap_size_byte = 0,
+	.free_bmap_size_blk  = 0,
+	.free_bmap           = NULL,
+	
+	.root_dir = NULL,
 };
 
 
@@ -94,7 +90,8 @@ bool jgfs2_fs_sblk_check(const struct jgfs2_superblock *sblk) {
 }
 
 void jgfs2_fs_init(const char *dev_path,
-	const struct jgfs2_mount_options *mount_opt) {
+	const struct jgfs2_mount_options *mount_opt,
+	const struct jgfs2_superblock *new_sblk) {
 	fs = fs_init;
 	fs.mount_opt = *mount_opt;
 	
@@ -102,16 +99,13 @@ void jgfs2_fs_init(const char *dev_path,
 	
 	TODO("device size checks");
 	
-	/* right now, we are only sure that the vbr and superblock exist */
-	fs.size_byte = SECT_TO_BYTE(JGFS2_SBLK_SECT + 1);
+	fs.vbr  = jgfs2_dev_map_sect(JGFS2_VBR_SECT, 1);
+	fs.sblk = jgfs2_dev_map_sect(JGFS2_SBLK_SECT, 1);
 	
-	fs.vbr  = jgfs2_fs_map_sect(JGFS2_VBR_SECT, 1);
-	fs.sblk = jgfs2_fs_map_sect(JGFS2_SBLK_SECT, 1);
-	
-	if (fs.new_sblk != NULL) {
+	if (new_sblk != NULL) {
 		TODO("write backup superblocks with new_sblk here?");
 		
-		memcpy(fs.sblk, fs.new_sblk, sizeof(*fs.sblk));
+		memcpy(fs.sblk, new_sblk, sizeof(*fs.sblk));
 	}
 	
 	TODO("verify backup superblocks");
@@ -130,6 +124,11 @@ void jgfs2_fs_init(const char *dev_path,
 	
 	fs.boot = jgfs2_fs_map_sect(JGFS2_BOOT_SECT, fs.sblk->s_boot_sect);
 	
+	fs.free_bmap_size_byte = CEIL(fs.size_blk, 8);
+	fs.free_bmap_size_blk  = BYTE_TO_BLK(fs.free_bmap_size_byte);
+	fs.free_bmap           = jgfs2_fs_map_blk(fs.sblk->s_addr_free_bmap,
+		fs.free_bmap_size_blk);
+	
 	if (fs.sblk->s_mtime > time(NULL)) {
 		warnx("last mount time is in the future: %s",
 			ctime((const time_t *)&fs.sblk->s_mtime));
@@ -144,103 +143,16 @@ void jgfs2_fs_init(const char *dev_path,
 
 void jgfs2_fs_done(void) {
 	if (fs.init) {
-		TODO("cleanup tasks");
+		jgfs2_fs_unmap_blk(fs.free_bmap, fs.sblk->s_addr_free_bmap,
+			fs.free_bmap_size_blk);
+		
+		jgfs2_fs_unmap_sect(fs.boot, JGFS2_BOOT_SECT, fs.sblk->s_boot_sect);
+		
+		jgfs2_dev_unmap_sect(fs.vbr, JGFS2_VBR_SECT, 1);
+		jgfs2_dev_unmap_sect(fs.sblk, JGFS2_SBLK_SECT, 1);
 		
 		jgfs2_dev_close();
 		
 		fs.init = false;
 	}
-}
-
-void jgfs2_fs_new_pre_init(const struct jgfs2_mkfs_param *param) {
-	fs.mkfs_param = *param;
-	
-	warnx("making new filesystem with label '%s'", fs.mkfs_param.label);
-	
-	if (fs.mkfs_param.total_sect == 0) {
-		warnx("using entire device");
-		
-		int temp_fd;
-		if ((temp_fd = open(dev.path, O_RDONLY)) < 0) {
-			err(1, "failed to open '%s'", dev.path);
-		}
-		
-		fs.mkfs_param.total_sect =
-			lseek(temp_fd, 0, SEEK_END) / JGFS2_SECT_SIZE;
-		
-		if (close(temp_fd) < 0) {
-			err(1, "failed to close '%s'", dev.path);
-		}
-	}
-	
-	if (fs.mkfs_param.blk_size == 0) {
-		/* advanced block size choosing algorithm */
-		fs.mkfs_param.blk_size = 2;
-		
-		warnx("using best block size: %" PRIu32 " byte blocks",
-			SECT_TO_BYTE(fs.mkfs_param.blk_size));
-	}
-	
-	TODO("device size checks");
-	/* note that not all size variables have been initialized at this point */
-	
-	fs.new_sblk = calloc(1, sizeof(struct jgfs2_superblock));
-	
-	memcpy(fs.new_sblk->s_magic, JGFS2_MAGIC, sizeof(fs.new_sblk->s_magic));
-	
-	fs.new_sblk->s_ver_major = JGFS2_VER_MAJOR;
-	fs.new_sblk->s_ver_minor = JGFS2_VER_MINOR;
-	
-	fs.new_sblk->s_total_sect = fs.mkfs_param.total_sect;
-	fs.new_sblk->s_boot_sect  = fs.mkfs_param.boot_sect;
-	
-	fs.new_sblk->s_blk_size = fs.mkfs_param.blk_size;
-	
-	fs.new_sblk->s_ctime = time(NULL);
-	fs.new_sblk->s_mtime = 0;
-	
-	memcpy(fs.new_sblk->s_uuid, fs.mkfs_param.uuid,
-		sizeof(fs.new_sblk->s_uuid));
-	
-	strlcpy(fs.new_sblk->s_label, fs.mkfs_param.label,
-		sizeof(fs.new_sblk->s_label));
-}
-
-void jgfs2_fs_new_post_init(void) {
-	free(fs.new_sblk);
-	fs.new_sblk = NULL;
-	
-	if (fs.mkfs_param.zap_vbr) {
-		warnx("zapping the volume boot record");
-		
-		memset(fs.vbr, 0, SECT_TO_BYTE(1));
-	}
-	
-	if (fs.mkfs_param.zap_boot) {
-		warnx("zapping the boot area");
-		
-		memset(fs.boot, 0, SECT_TO_BYTE(fs.sblk->s_boot_sect));
-	}
-	
-	/* always zap the slack space between the end of the boot area and the first
-	 * data block */
-	void *slack = jgfs2_fs_map_sect(JGFS2_BOOT_SECT, fs.sblk->s_boot_sect);
-	memset(slack, 0, BLK_TO_BYTE(fs.data_blk_first) -
-		SECT_TO_BYTE(JGFS2_BOOT_SECT + fs.sblk->s_boot_sect));
-	
-	if (fs.mkfs_param.zap_data) {
-		warnx("zapping all data blocks (this may take a long time)");
-		
-		/* zero a block at a time */
-		for (uint32_t i = 0; i < fs.data_blk_cnt; ++i) {
-			void *blk = jgfs2_fs_map_blk(fs.data_blk_first + i, 1);
-			memset(blk, 0, BLK_TO_BYTE(1));
-			jgfs2_fs_unmap_blk(blk, fs.data_blk_first + i, 1);
-		}
-	}
-	
-	warnx("initializing filesystem structures");
-	
-	TODO("initialize fs structures");
-	TODO("set free space bitmap");
 }

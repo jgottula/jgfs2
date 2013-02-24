@@ -5,13 +5,16 @@
 #include "jgfs2.h"
 
 
+#define BLK_TO_BYTE(_blk) \
+	((_blk) * fs.blk_size)
+#define BYTE_TO_BLK(_byte) \
+	CEIL((_byte), fs.blk_size)
+
+
 struct jgfs2_fs {
 	bool init;
 	
-	struct jgfs2_mkfs_param    mkfs_param;
 	struct jgfs2_mount_options mount_opt;
-	
-	struct jgfs2_superblock *new_sblk;
 	
 	uint64_t size_byte;
 	uint32_t size_blk;
@@ -25,7 +28,9 @@ struct jgfs2_fs {
 	struct jgfs2_superblock *sblk;
 	struct jgfs2_sect       *boot;
 	
-	void *fs_bitmap;
+	uint64_t free_bmap_size_byte;
+	uint32_t free_bmap_size_blk;
+	void    *free_bmap;
 	
 	struct jgfs2_directory *root_dir;
 };
@@ -42,11 +47,9 @@ void jgfs2_fs_unmap_blk(void *addr, uint32_t blk_num, uint32_t blk_cnt);
 bool jgfs2_fs_sblk_check(const struct jgfs2_superblock *sblk);
 
 void jgfs2_fs_init(const char *dev_path,
-	const struct jgfs2_mount_options *mount_opt);
+	const struct jgfs2_mount_options *mount_opt,
+	const struct jgfs2_superblock *new_sblk);
 void jgfs2_fs_done(void);
-
-void jgfs2_fs_new_pre_init(const struct jgfs2_mkfs_param *param);
-void jgfs2_fs_new_post_init(void);
 
 
 #endif
