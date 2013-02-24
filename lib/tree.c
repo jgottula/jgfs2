@@ -56,20 +56,11 @@ void tree_split(uint32_t node_addr) {
 		/* attempt to split down the middle in terms of item+data size */
 		split_at = node_split_point(node_addr);
 		
+		/* TODO: set new_node->hdr.leaf */
+		
 		/* copy items to the new node */
-		uint16_t new_idx = 0;
-		uint32_t data_off = fs.blk_size;
 		for (uint16_t i = split_at; i < node->hdr.item_qty; ++i) {
-			const struct jgfs2_item *item = &node->items[i];
-			
-			data_off -= node->items[i].len;
-			memcpy((uint8_t *)new_node + data_off, (uint8_t *)node + item->off,
-				item->len);
-			
-			new_node->items[new_idx] = node->items[i];
-			new_node->items[new_idx].off = data_off;
-			
-			++new_idx;
+			node_xfer(new_node, node, i);
 		}
 		
 		/* zero out the transferred items and data */

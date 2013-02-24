@@ -11,6 +11,8 @@ bool node_item(uint32_t node_addr, const struct jgfs2_key *key,
 uint32_t node_space(uint32_t node_addr);
 uint16_t node_split_point(uint32_t node_addr);
 void node_dump(uint32_t node_addr);
+void node_xfer(struct jgfs2_node *dst, const struct jgfs2_node *src,
+	uint16_t src_idx);
 
 
 #endif

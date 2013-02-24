@@ -121,3 +121,29 @@ void node_dump(uint32_t node_addr) {
 	
 	fs_unmap_blk(node, node_addr, 1);
 }
+
+void node_xfer(struct jgfs2_node *dst, const struct jgfs2_node *src,
+	uint16_t src_idx) {
+	uint16_t dst_idx = dst->hdr.item_qty;
+	const struct jgfs2_item *src_item = &src->items[src_idx];
+	struct jgfs2_item *dst_item = &dst->items[dst_idx];
+	
+	if (!src->hdr.leaf) {
+		errx(1, "%s: not a leaf node: src", __func__);
+	} else if (!dst->hdr.leaf) {
+		errx(1, "%s: not a leaf node: dst", __func__);
+	}
+	
+	*dst_item = *src_item;
+	
+	if (dst_idx > 0) {
+		dst_item->off = dst->items[dst_idx - 1].off - src_item->len;
+	} else {
+		dst_item->off = fs.blk_size - src_item->len;
+	}
+	
+	memcpy((uint8_t *)dst + dst_item->off, (uint8_t *)src + src_item->off,
+		src_item->len);
+	
+	++dst->hdr.item_qty;
+}
