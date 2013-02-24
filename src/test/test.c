@@ -1,5 +1,6 @@
 #include <err.h>
 #include <stdio.h>
+#include <string.h>
 #include "../../lib/dev.h"
 
 
@@ -34,6 +35,10 @@ static void test_mmap(void) {
 	
 	for (uint8_t *ptr = ptr1; ptr != (uint8_t *)ptr1 + 0x200; ++ptr) {
 		*ptr = ~(*ptr);
+	}
+	
+	if (memcmp(ptr1, ptr2, 0x200) != 0) {
+		errx(1, "%s: memcmp says ptr1[x] != ptr2[x]", __func__);
 	}
 	
 	fprintf(stderr, "dump(ptr1)\n");
