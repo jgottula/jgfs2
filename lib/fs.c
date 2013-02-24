@@ -30,8 +30,8 @@ static struct jgfs2_fs fs_init = {
 
 
 void *jgfs2_fs_map_sect(uint32_t sect_num, uint32_t sect_cnt) {
-	if (sect_num + sect_cnt >= fs.sblk->s_total_sect) {
-		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") >= %" PRIu32,
+	if (sect_num + sect_cnt > fs.sblk->s_total_sect) {
+		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
 			__func__, sect_num, sect_num + sect_cnt, fs.sblk->s_total_sect);
 	}
 	
@@ -39,8 +39,8 @@ void *jgfs2_fs_map_sect(uint32_t sect_num, uint32_t sect_cnt) {
 }
 
 void jgfs2_fs_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt) {
-	if (sect_num + sect_cnt >= fs.sblk->s_total_sect) {
-		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") >= %" PRIu32,
+	if (sect_num + sect_cnt > fs.sblk->s_total_sect) {
+		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
 			__func__, sect_num, sect_num + sect_cnt, fs.sblk->s_total_sect);
 	}
 	
@@ -48,8 +48,8 @@ void jgfs2_fs_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt) {
 }
 
 void *jgfs2_fs_map_blk(uint32_t blk_num, uint32_t blk_cnt) {
-	if (blk_num + blk_cnt >= fs.size_blk) {
-		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") >= %" PRIu32,
+	if (blk_num + blk_cnt > fs.size_blk) {
+		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
 			__func__, blk_num, blk_num + blk_cnt, fs.size_blk);
 	}
 	
@@ -58,8 +58,8 @@ void *jgfs2_fs_map_blk(uint32_t blk_num, uint32_t blk_cnt) {
 }
 
 void jgfs2_fs_unmap_blk(void *addr, uint32_t blk_num, uint32_t blk_cnt) {
-	if (blk_num + blk_cnt >= fs.size_blk) {
-		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") >= %" PRIu32,
+	if (blk_num + blk_cnt > fs.size_blk) {
+		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
 			__func__, blk_num, blk_num + blk_cnt, fs.size_blk);
 	}
 	

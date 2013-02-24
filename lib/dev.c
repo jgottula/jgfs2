@@ -23,8 +23,8 @@ static struct jgfs2_dev dev_init = {
 
 
 void *jgfs2_dev_map_sect(uint32_t sect_num, uint32_t sect_cnt) {
-	if (sect_num + sect_cnt >= dev.size_sect) {
-		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") >= %" PRIu32,
+	if (sect_num + sect_cnt > dev.size_sect) {
+		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
 			__func__, sect_num, sect_num + sect_cnt, dev.size_sect);
 	}
 	
@@ -52,8 +52,8 @@ void *jgfs2_dev_map_sect(uint32_t sect_num, uint32_t sect_cnt) {
 }
 
 void jgfs2_dev_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt) {
-	if (sect_num + sect_cnt >= dev.size_sect) {
-		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") >= %" PRIu32,
+	if (sect_num + sect_cnt > dev.size_sect) {
+		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
 			__func__, sect_num, sect_num + sect_cnt, dev.size_sect);
 	}
 	
