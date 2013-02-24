@@ -7,24 +7,69 @@
 #include "debug.h"
 #include "dev.h"
 #include "fs.h"
+#include "inode.h"
 
 
-/* default to page-size blocks */
+/* use page-size blocks */
 #define JGFS2_DEFAULT_BLK_SIZE (PAGE_SIZE / JGFS2_SECT_SIZE)
+
+/* allocate one inode for every 4 blocks */
+#define JGFS2_DEFAULT_INODE_RATIO 4
 
 
 struct jgfs2_mkfs_param mkfs_param;
 struct jgfs2_superblock new_sblk;
 
 
-void jgfs2_new_init_free_bmap(void) {
+void jgfs2_new_init_free_bmap_pre(void) {
 	warnx("initializing free space bitmap");
 	
+	/* locate the free space bitmap in the first available block(s) */
+	fs.sblk->s_addr_free_bmap = CEIL(JGFS2_BOOT_SECT + new_sblk.s_boot_sect,
+		new_sblk.s_blk_size);
+}
+
+void jgfs2_new_init_free_bmap_post(void) {
 	/* free all blocks */
 	memset(fs.free_bmap, 0, fs.free_bmap_size_byte);
 	
 	/* set the pre-data area and the bitmap itself as used */
 	jgfs2_blk_bmap_set(true, 0, fs.data_blk_first + fs.free_bmap_size_blk);
+}
+
+void jgfs2_new_init_inode_table(void) {
+	uint32_t inode_cnt  = CEIL(fs.size_blk, JGFS2_DEFAULT_INODE_RATIO);
+	uint64_t inode_byte = inode_cnt * sizeof(struct jgfs2_inode);
+	uint32_t inode_blk  = CEIL(inode_byte, fs.size_blk);
+	
+	fs.sblk->s_ext_inode_table.e_len = inode_byte;
+	if (!jgfs2_blk_alloc(&fs.sblk->s_ext_inode_table.e_addr, inode_blk)) {
+		errx(1, "could not allocate an extent for the inode table");
+	}
+}
+
+void jgfs2_new_init_root_dir(void) {
+	struct jgfs2_inode *root_inode;
+	root_inode = jgfs2_inode_get(0);
+	memset(root_inode, 0, sizeof(*root_inode));
+	
+	root_inode->i_used = 0xffff;
+	
+	root_inode->i_attr = 0;
+	root_inode->i_mode = JGFS2_S_IFDIR | 0755;
+	
+	root_inode->i_uid = 0;
+	root_inode->i_gid = 0;
+	
+	root_inode->i_size = 0;
+	
+	root_inode->i_atime = time(NULL);
+	root_inode->i_ctime = time(NULL);
+	root_inode->i_mtime = time(NULL);
+	
+	root_inode->i_nlink = 1;
+	
+	root_inode->i_gen = 0;
 }
 
 const struct jgfs2_superblock *jgfs2_new_pre(const char *dev_path,
@@ -68,10 +113,6 @@ const struct jgfs2_superblock *jgfs2_new_pre(const char *dev_path,
 	
 	strlcpy(new_sblk.s_label, mkfs_param.label, sizeof(new_sblk.s_label));
 	
-	/* locate the free space bitmap in the first available block(s) */
-	new_sblk.s_addr_free_bmap = CEIL(JGFS2_BOOT_SECT + new_sblk.s_boot_sect,
-		new_sblk.s_blk_size);
-	
 	return &new_sblk;
 }
 
@@ -94,19 +135,4 @@ void jgfs2_new_post(void) {
 	memset(slack, 0, BLK_TO_BYTE(fs.data_blk_first) -
 		SECT_TO_BYTE(JGFS2_BOOT_SECT + fs.sblk->s_boot_sect));
 	jgfs2_fs_unmap_sect(slack, JGFS2_BOOT_SECT, fs.sblk->s_boot_sect);
-	
-	if (mkfs_param.zap_data) {
-		warnx("zapping all data blocks (this may take a long time)");
-		
-		TODO("zap using larger blocks");
-		
-		/* zero a block at a time */
-		for (uint32_t i = 0; i < fs.data_blk_cnt; ++i) {
-			void *blk = jgfs2_fs_map_blk(fs.data_blk_first + i, 1);
-			memset(blk, 0, BLK_TO_BYTE(1));
-			jgfs2_fs_unmap_blk(blk, fs.data_blk_first + i, 1);
-		}
-	}
-	
-	jgfs2_new_init_free_bmap();
 }

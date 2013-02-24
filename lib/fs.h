@@ -32,6 +32,10 @@ struct jgfs2_fs {
 	uint32_t free_bmap_size_blk;
 	void    *free_bmap;
 	
+	uint64_t inode_table_size_byte;
+	uint32_t inode_table_size_blk;
+	void    *inode_table;
+	
 	struct jgfs2_directory *root_dir;
 };
 

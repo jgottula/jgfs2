@@ -3,6 +3,7 @@
 #include <time.h>
 #include "debug.h"
 #include "dev.h"
+#include "new.h"
 
 
 struct jgfs2_fs fs;
@@ -126,8 +127,26 @@ void jgfs2_fs_init(const char *dev_path,
 	
 	fs.free_bmap_size_byte = CEIL(fs.size_blk, 8);
 	fs.free_bmap_size_blk  = BYTE_TO_BLK(fs.free_bmap_size_byte);
-	fs.free_bmap           = jgfs2_fs_map_blk(fs.sblk->s_addr_free_bmap,
+	if (new_sblk != NULL) {
+		jgfs2_new_init_free_bmap_pre();
+	}
+	fs.free_bmap = jgfs2_fs_map_blk(fs.sblk->s_addr_free_bmap,
 		fs.free_bmap_size_blk);
+	if (new_sblk != NULL) {
+		jgfs2_new_init_free_bmap_post();
+	}
+	
+	if (new_sblk != NULL) {
+		jgfs2_new_init_inode_table();
+	}
+	fs.inode_table_size_byte = fs.sblk->s_ext_inode_table.e_len;
+	fs.inode_table_size_blk  = BYTE_TO_BLK(fs.inode_table_size_byte);
+	fs.inode_table = jgfs2_fs_map_blk(fs.sblk->s_ext_inode_table.e_addr,
+		fs.inode_table_size_blk);
+	
+	if (new_sblk != NULL) {
+		jgfs2_new_init_root_dir();
+	}
 	
 	if (fs.sblk->s_mtime > time(NULL)) {
 		warnx("last mount time is in the future: %s",
@@ -143,6 +162,8 @@ void jgfs2_fs_init(const char *dev_path,
 
 void jgfs2_fs_done(void) {
 	if (fs.init) {
+		jgfs2_fs_unmap_blk(fs.inode_table, fs.sblk->s_ext_inode_table.e_addr,
+			fs.inode_table_size_blk);
 		jgfs2_fs_unmap_blk(fs.free_bmap, fs.sblk->s_addr_free_bmap,
 			fs.free_bmap_size_blk);
 		

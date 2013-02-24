@@ -14,25 +14,43 @@
 #define JGFS2_VER_EXPAND(_maj, _min) \
 	(((uint16_t)(_maj) * 0x100) + (uint16_t)(_min))
 
-#define JGFS2_VER_MAJOR   0x00
-#define JGFS2_VER_MINOR   0x01
-#define JGFS2_VER_TOTAL   JGFS2_VER_EXPAND(JGFS2_VER_MAJOR, JGFS2_VER_MINOR)
+#define JGFS2_VER_MAJOR     0x00
+#define JGFS2_VER_MINOR     0x01
+#define JGFS2_VER_TOTAL     JGFS2_VER_EXPAND(JGFS2_VER_MAJOR, JGFS2_VER_MINOR)
 
-#define JGFS2_MAGIC       "JGF2"
+#define JGFS2_MAGIC         "JGF2"
 
-#define JGFS2_VBR_SECT    0
-#define JGFS2_SBLK_SECT   1
-#define JGFS2_BOOT_SECT   2
+#define JGFS2_VBR_SECT      0
+#define JGFS2_SBLK_SECT     1
+#define JGFS2_BOOT_SECT     2
 
-#define JGFS2_LABEL_LIMIT 63
-#define JGFS2_NAME_LIMIT  255
+#define JGFS2_LABEL_LIMIT   63
+#define JGFS2_NAME_LIMIT    255
+
+#define JGFS2_INODE_EXTENTS 9
 
 
-/*enum jgfs2_mode {
-	JGFS2_S_IFDIR = ...,
+enum jgfs2_mode {
+	JGFS2_S_IFMT  = 0170000,
 	
-	JGFS2_S_IXOTH = 0x0001,
-};*/
+	JGFS2_S_IFREG = 0100000,
+	JGFS2_S_IFDIR = 0040000,
+	
+	JGFS2_S_IRWXU = 0000700,
+	JGFS2_S_IRUSR = 0000400,
+	JGFS2_S_IWUSR = 0000200,
+	JGFS2_S_IXUSR = 0000100,
+	
+	JGFS2_S_IRWXG = 0000070,
+	JGFS2_S_IRGRP = 0000040,
+	JGFS2_S_IWGRP = 0000020,
+	JGFS2_S_IXGRP = 0000010,
+	
+	JGFS2_S_IRWXO = 0000007,
+	JGFS2_S_IROTH = 0000004,
+	JGFS2_S_IWOTH = 0000002,
+	JGFS2_S_IXOTH = 0000001,
+};
 
 /*enum jgfs2_attr {
 	JGFS2_A_NONE = 0,
@@ -43,7 +61,14 @@ struct __attribute__((__packed__)) jgfs2_sect {
 	uint8_t data[JGFS2_SECT_SIZE];
 };
 
+struct __attribute__((__packed__)) jgfs2_extent {
+	uint32_t e_addr;
+	uint32_t e_len;
+};
+
 struct __attribute__((__packed__)) jgfs2_inode {
+	uint16_t i_used;  // zero if unused
+	
 	uint32_t i_attr;  // file attributes
 	uint16_t i_mode;  // type and permissions
 	
@@ -60,7 +85,11 @@ struct __attribute__((__packed__)) jgfs2_inode {
 	
 	uint32_t i_gen;   // generation
 	
-	/* TODO: extent info */
+	struct jgfs2_extent i_ext[9]; // table of extents
+	
+	struct jgfs2_extent i_ext_more; // extent containing more extent entries
+	
+	char     i_rsvd[0];
 };
 
 struct __attribute__((__packed__)) jgfs2_dentry {
@@ -93,9 +122,9 @@ struct __attribute__((__packed__)) jgfs2_superblock {
 	char     s_label[JGFS2_LABEL_LIMIT + 1]; // null-terminated volume label
 	
 	uint32_t s_addr_free_bmap; // address of free space bitmap
-	uint32_t s_addr_root_dir;  // address of root directory
+	struct jgfs2_extent s_ext_inode_table; // extent for inode table
 	
-	char     s_rsvd[0x18a];
+	char     s_rsvd[0x186];
 };
 
 struct jgfs2_mkfs_param {
@@ -110,7 +139,6 @@ struct jgfs2_mkfs_param {
 	
 	bool     zap_vbr;    // true: zero the volume boot record
 	bool     zap_boot;   // true: zero the boot area
-	bool     zap_data;   // true: zero the entire data area
 };
 
 struct jgfs2_mount_options {
@@ -120,6 +148,8 @@ struct jgfs2_mount_options {
 
 _Static_assert(sizeof(struct jgfs2_sect) == 0x200,
 	"struct jgfs2_sect must be 512 bytes");
+_Static_assert(sizeof(struct jgfs2_inode) == 0x80,
+	"struct jgfs2_inode must be 128 bytes");
 _Static_assert(sizeof(struct jgfs2_superblock) == 0x200,
 	"struct jgfs2_superblock must be 512 bytes");
 
