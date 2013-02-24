@@ -1,4 +1,5 @@
 #include "jgfs2.h"
+#include "blk.h"
 #include "debug.h"
 #include "fs.h"
 #include "new.h"
@@ -6,6 +7,12 @@
 
 static void jgfs2_clean_up(void) {
 	jgfs2_fs_done();
+}
+
+void jgfs2_stat(uint32_t *blk_size, uint32_t *blk_total, uint32_t *blk_used) {
+	*blk_size  = fs.blk_size;
+	*blk_total = fs.size_blk;
+	*blk_used  = jgfs2_blk_bmap_cnt(true);
 }
 
 void jgfs2_new(const char *dev_path,

@@ -154,6 +154,8 @@ _Static_assert(sizeof(struct jgfs2_superblock) == 0x200,
 	"struct jgfs2_superblock must be 512 bytes");
 
 
+void jgfs2_stat(uint32_t *blk_size, uint32_t *blk_total, uint32_t *blk_used);
+
 void jgfs2_new(const char *dev_path,
 	const struct jgfs2_mount_options *mount_opt,
 	const struct jgfs2_mkfs_param *param);
