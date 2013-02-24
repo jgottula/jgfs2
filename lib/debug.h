@@ -10,7 +10,7 @@
 
 
 #define TODO(_s) \
-	fprintf(stderr, "TODO: %s: %s\n", __func__, (_s))
+	fprintf(stderr, "\e[37;1mTODO: %s: %s\n\e[0m", __func__, (_s))
 
 
 static void err(int eval, const char *fmt, ...) {
