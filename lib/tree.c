@@ -1,10 +1,9 @@
 #include "tree.h"
-#include <inttypes.h>
-#include <stdio.h>
 #include "debug.h"
 #include "dev.h"
 #include "extent.h"
 #include "fs.h"
+#include "node.h"
 
 
 int8_t key_cmp(const struct jgfs2_key *lhs, const struct jgfs2_key *rhs) {
@@ -27,113 +26,6 @@ int8_t key_cmp(const struct jgfs2_key *lhs, const struct jgfs2_key *rhs) {
 	}
 	
 	return 0;
-}
-
-bool node_item(uint32_t node_addr, const struct jgfs2_key *key,
-	void **found_data) {
-	struct jgfs2_node *node = fs_map_blk(node_addr, 1);
-	bool status = false;
-	
-	if (!node->hdr.leaf) {
-		errx(1, "%s: not a leaf node: %" PRIu32, __func__, node_addr);
-	}
-	
-	for (uint16_t i = 0; i < node->hdr.item_qty; ++i) {
-		const struct jgfs2_item *item = &node->items[i];
-		
-		if (key_cmp(key, &item->key) == 0) {
-			*found_data = (uint8_t *)node + item->off;
-		}
-	}
-	
-	fs_unmap_blk(node, node_addr, 1);
-	
-	return status;
-}
-
-uint32_t node_space(uint32_t node_addr) {
-	struct jgfs2_node *node = fs_map_blk(node_addr, 1);
-	uint32_t space = 0;
-	
-	if (!node->hdr.leaf) {
-		errx(1, "%s: not a leaf node: %" PRIu32, __func__, node_addr);
-	}
-	
-	TODO("test this");
-	
-	intptr_t space_end =
-		(intptr_t)node + node->items[node->hdr.item_qty - 1].off;
-	intptr_t space_begin =
-		(intptr_t)(&node->items[node->hdr.item_qty]);
-	
-	space = space_end - space_begin;
-	
-	fs_unmap_blk(node, node_addr, 1);
-	
-	return space;
-}
-
-uint32_t node_used(uint32_t node_addr) {
-	struct jgfs2_node *node = fs_map_blk(node_addr, 1);
-	uint32_t used = 0;
-	
-	if (!node->hdr.leaf) {
-		errx(1, "%s: not a leaf node: %" PRIu32, __func__, node_addr);
-	}
-	
-	TODO("test this");
-	
-	uint32_t used_items =
-		node->hdr.item_qty * sizeof(struct jgfs2_item);
-	uint32_t used_data_begin =
-		node->items[node->hdr.item_qty - 1].off;
-	
-	used = used_items + (fs.blk_size - used_data_begin);
-	
-	fs_unmap_blk(node, node_addr, 1);
-	
-	return used;
-}
-
-void node_dump(uint32_t node_addr) {
-	struct jgfs2_node *node = fs_map_blk(node_addr, 1);
-	
-	warnx("%s: %s node %" PRIu32 " with %" PRIu16 " %ss", __func__,
-		(node->hdr.leaf ? "leaf" : "non-leaf"), node_addr, node->hdr.item_qty,
-		(node->hdr.leaf ? "item" : "node ptr"));
-	
-	for (uint16_t i = 0; i < node->hdr.item_qty; ++i) {
-		if (node->hdr.leaf) {
-			const struct jgfs2_item *item = &node->items[i];
-			
-			fprintf(stderr, "item %3" PRIu16 ": id %" PRIu32 " type %" PRIu8 
-				" off %" PRIu32 "\n",
-				i, item->key.id, item->key.type, item->key.off);
-		} else {
-			const struct jgfs2_node_ptr *child = &node->children[i];
-			
-			fprintf(stderr, "child %3" PRIu16 ": id %" PRIu32 " type %" PRIu8 
-				" off %" PRIu32 "\naddr %08" PRIx32,
-				i, child->key.id, child->key.type, child->key.off, child->addr);
-		}
-	}
-	
-	uint8_t *node_bytes = (uint8_t *)node;
-	for (size_t i = 0; i < fs.blk_size; ++i) {
-		if (i % 16 == 0) {
-			fprintf(stderr, "%04zx: ", i);
-		} else if (i % 16 == 8) {
-			fputc(' ', stderr);
-		}
-		
-		fprintf(stderr, " %02x", node_bytes[i]);
-		
-		if (i % 16 == 15) {
-			fputc('\n', stderr);
-		}
-	}
-	
-	fs_unmap_blk(node, node_addr, 1);
 }
 
 void tree_init(uint32_t root_addr) {
@@ -161,19 +53,8 @@ void tree_split(uint32_t node_addr) {
 	
 	uint16_t split_at = node->hdr.item_qty / 2;
 	if (node->hdr.leaf) {
-		uint32_t used = node_used(node_addr);
-		uint32_t used_incr = 0;
-		
-		/* attempt to split down the middle in terms of item size */
-		for (uint16_t i = 0; i < node->hdr.item_qty; ++i) {
-			used_incr += sizeof(struct jgfs2_item);
-			used_incr += node->items[i].len;
-			
-			if (i != 0 && used_incr >= used / 2) {
-				split_at = i;
-				break;
-			}
-		}
+		/* attempt to split down the middle in terms of item+data size */
+		split_at = node_split_point(node_addr);
 		
 		/* copy items to the new node */
 		uint16_t new_idx = 0;
