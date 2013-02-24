@@ -5,7 +5,7 @@
 #include "jgfs2.h"
 
 
-
+uint32_t ext_alloc(uint32_t len);
 
 
 #endif

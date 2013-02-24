@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include "debug.h"
 #include "dev.h"
+#include "extent.h"
 #include "fs.h"
 
 
@@ -72,6 +73,28 @@ uint32_t node_space(uint32_t node_addr) {
 	return space;
 }
 
+uint32_t node_used(uint32_t node_addr) {
+	struct jgfs2_node *node = fs_map_blk(node_addr, 1);
+	uint32_t used = 0;
+	
+	if (!node->hdr.leaf) {
+		errx(1, "%s: not a leaf node: %" PRIu32, __func__, node_addr);
+	}
+	
+	TODO("test this");
+	
+	uint32_t used_items =
+		node->hdr.item_qty * sizeof(struct jgfs2_item);
+	uint32_t used_data_begin =
+		node->items[node->hdr.item_qty - 1].off;
+	
+	used = used_items + (fs.blk_size - used_data_begin);
+	
+	fs_unmap_blk(node, node_addr, 1);
+	
+	return used;
+}
+
 void node_dump(uint32_t node_addr) {
 	struct jgfs2_node *node = fs_map_blk(node_addr, 1);
 	
@@ -125,12 +148,89 @@ void tree_init(uint32_t root_addr) {
 }
 
 void tree_split(uint32_t node_addr) {
-	/* if this is the root node (parent == 0), create a new root with two node
-	 * ptrs: one to this node, and one to a new node */
-	/* go to this node's parent and try to insert a key */
-	/* if the parent is full, recurse */
+	struct jgfs2_node *node = fs_map_blk(node_addr, 1);
 	
-	/* BE SURE TO UPDATE VALUES in node->hdr */
+	TODO("test this");
+	
+	/* allocating a block should be okay because the ext tree does not insert
+	 * items on allocations; otherwise, we could deadlock */
+	uint32_t new_addr = ext_alloc(1);
+	struct jgfs2_node *new_node = fs_map_blk(new_addr, 1);
+	
+	uint16_t split_at = node->hdr.item_qty / 2;
+	if (node->hdr.leaf) {
+		uint32_t used = node_used(node_addr);
+		uint32_t used_incr = 0;
+		
+		/* attempt to split down the middle in terms of item size */
+		for (uint16_t i = 0; i < node->hdr.item_qty; ++i) {
+			used_incr += sizeof(struct jgfs2_item);
+			used_incr += node->items[i].len;
+			
+			if (i != 0 && used_incr >= used / 2) {
+				split_at = i;
+				break;
+			}
+		}
+		
+		/* copy items to the new node */
+		uint16_t new_idx = 0;
+		uint32_t data_off = fs.blk_size;
+		for (uint16_t i = split_at; i < node->hdr.item_qty; ++i) {
+			const struct jgfs2_item *item = &node->items[i];
+			
+			data_off -= node->items[i].len;
+			memcpy((uint8_t *)new_node + data_off, (uint8_t *)node + item->off,
+				item->len);
+			
+			new_node->items[new_idx] = node->items[i];
+			new_node->items[new_idx].off = data_off;
+			
+			++new_idx;
+		}
+		
+		/* zero out the transferred items and data */
+		uint8_t *zero_begin = (uint8_t *)&node->items[split_at];
+		uint8_t *zero_end   = (uint8_t *)node + node->items[split_at].off +
+			node->items[split_at].len;
+		
+		memset(zero_begin, 0, zero_end - zero_begin);
+	} else {
+		uint16_t new_idx = 0;
+		for (uint16_t i = split_at; i < node->hdr.item_qty; ++i) {
+			new_node->children[new_idx] = node->children[i];
+			
+			++new_idx;
+		}
+		
+		/* zero out the transferred node ptrs */
+		uint8_t *zero_begin = (uint8_t *)&node->children[split_at];
+		uint8_t *zero_end   = (uint8_t *)node + fs.blk_size;
+		
+		memset(zero_begin, 0, zero_end - zero_begin);
+	}
+	
+	new_node->hdr.item_qty = node->hdr.item_qty - split_at;
+	node->hdr.item_qty = split_at;
+	
+	if (node_addr == 0) {
+		
+	} else {
+		
+	}
+	
+	/* create a new node with the second half of the data from this node */
+		/* if this is not the root node (parent != 0), try to insert a ptr to
+		 * the new node into our parent */
+			/* if the parent is full, recurse */
+		/* if this is the root node (parent == 0), clear it out and create two
+		 * children, one for each half of the data */
+	/* update all child nodes' parent value as necessary */
+	
+	TODO("update all hdr.next_addr");
+	
+	fs_unmap_blk(new_node, new_addr, 1);
+	fs_unmap_blk(node, node_addr, 1);
 }
 
 void tree_insert(uint32_t node_addr, const struct jgfs2_key *key, uint32_t len,
