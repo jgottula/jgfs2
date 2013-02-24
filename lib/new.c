@@ -24,7 +24,7 @@ void jgfs2_new_init_free_bmap(void) {
 	memset(fs.free_bmap, 0, fs.free_bmap_size_byte);
 	
 	/* set the pre-data area and the bitmap itself as used */
-	jgfs2_blk_bmap(true, 0, fs.data_blk_first + fs.free_bmap_size_blk);
+	jgfs2_blk_bmap_set(true, 0, fs.data_blk_first + fs.free_bmap_size_blk);
 }
 
 const struct jgfs2_superblock *jgfs2_new_pre(const char *dev_path,
