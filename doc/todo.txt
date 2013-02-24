@@ -8,12 +8,16 @@ license:
   - do this for the justix tree as well
 
 fs design:
+- replace free space bitmap with a tree/list of free regions
+  - this makes it trivial to find a contiguous free region of a certain size
+  - upon deallocation, we may need to merge contiguous free regions
+  - sorted data structure would be ideal (sort by size?), but a table/list may
+    ultimately be the way to implement it
 - use inodes
   - only put filenames and inode nums in dirents
   - metadata is stored elsewhere
 - use extents maybe
 - sparse files (nonallocated extents)
-- free space bitmap
 - hard links
   - trivial: multiple dirents with same inode number
   - not so trivial: need refcount in inode so free space bitmap (and inode
