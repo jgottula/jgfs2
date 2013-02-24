@@ -157,6 +157,8 @@ void tree_split(uint32_t node_addr) {
 	uint32_t new_addr = ext_alloc(1);
 	struct jgfs2_node *new_node = fs_map_blk(new_addr, 1);
 	
+	const struct jgfs2_key *first_key, *second_key;
+	
 	uint16_t split_at = node->hdr.item_qty / 2;
 	if (node->hdr.leaf) {
 		uint32_t used = node_used(node_addr);
@@ -195,6 +197,9 @@ void tree_split(uint32_t node_addr) {
 			node->items[split_at].len;
 		
 		memset(zero_begin, 0, zero_end - zero_begin);
+		
+		first_key  = &node->items[0].key;
+		second_key = &new_node->items[0].key;
 	} else {
 		uint16_t new_idx = 0;
 		for (uint16_t i = split_at; i < node->hdr.item_qty; ++i) {
@@ -208,13 +213,37 @@ void tree_split(uint32_t node_addr) {
 		uint8_t *zero_end   = (uint8_t *)node + fs.blk_size;
 		
 		memset(zero_begin, 0, zero_end - zero_begin);
+		
+		first_key  = &node->children[0].key;
+		second_key = &new_node->children[0].key;
 	}
 	
 	new_node->hdr.item_qty = node->hdr.item_qty - split_at;
 	node->hdr.item_qty = split_at;
 	
-	if (node_addr == 0) {
+	/* this is poorly written and needs to be redone */
+	if (node->hdr.parent_addr == 0) {
+		uint32_t newer_addr = ext_alloc(1);
+		struct jgfs2_node *newer_node = fs_map_blk(newer_addr, 1);
 		
+		*newer_node = *node;
+		newer_node->hdr.parent_addr = node_addr;
+		
+		/* zero out the new root node */
+		uint8_t *zero_begin = (uint8_t *)&node->hdr +
+			sizeof(struct jgfs2_node_hdr);
+		uint8_t *zero_end   = (uint8_t *)node + fs.blk_size;
+		
+		memset(zero_begin, 0, zero_end - zero_begin);
+		
+		node->hdr.leaf = false;
+		node->hdr.item_qty = 2;
+		node->children[0].key = *first_key;
+		node->children[0].addr = newer_addr;
+		node->children[1].key = *second_key;
+		node->children[1].addr = new_addr;
+		
+		fs_unmap_blk(newer_node, newer_addr, 1);
 	} else {
 		
 	}
