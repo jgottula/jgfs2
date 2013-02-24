@@ -23,7 +23,6 @@ void jgfs2_new(const char *dev_path,
 	
 	const struct jgfs2_super_block *new_sblk = jgfs2_new_pre(dev_path, param);
 	jgfs2_fs_init(dev_path, mount_opt, new_sblk);
-	jgfs2_new_post();
 }
 
 void jgfs2_init(const char *dev_path,
