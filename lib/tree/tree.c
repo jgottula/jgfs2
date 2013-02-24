@@ -1,32 +1,9 @@
 #include "tree.h"
-#include "debug.h"
-#include "dev.h"
-#include "extent.h"
-#include "fs.h"
-#include "node.h"
+#include "../debug.h"
+#include "../dev.h"
+#include "../extent.h"
+#include "../fs.h"
 
-
-int8_t key_cmp(const struct jgfs2_key *lhs, const struct jgfs2_key *rhs) {
-	if (lhs->id > rhs->id) {
-		return 1;
-	} else if (lhs->id < rhs->id) {
-		return -1;
-	}
-	
-	if (lhs->type > rhs->type) {
-		return 1;
-	} else if (lhs->type < rhs->type) {
-		return -1;
-	}
-	
-	if (lhs->off > rhs->off) {
-		return 1;
-	} else if (lhs->off < rhs->off) {
-		return -1;
-	}
-	
-	return 0;
-}
 
 void tree_init(uint32_t root_addr) {
 	struct jgfs2_node *root = fs_map_blk(root_addr, 1);
@@ -43,6 +20,8 @@ void tree_split(uint32_t node_addr) {
 	struct jgfs2_node *node = fs_map_blk(node_addr, 1);
 	
 	TODO("test this");
+	
+	
 	
 	/* allocating a block should be okay because the ext tree does not insert
 	 * items on allocations; otherwise, we could deadlock */
@@ -64,11 +43,7 @@ void tree_split(uint32_t node_addr) {
 		}
 		
 		/* zero out the transferred items and data */
-		uint8_t *zero_begin = (uint8_t *)&node->items[split_at];
-		uint8_t *zero_end   = (uint8_t *)node + node->items[split_at].off +
-			node->items[split_at].len;
-		
-		memset(zero_begin, 0, zero_end - zero_begin);
+		node_item_zero(node, split_at);
 		
 		first_key  = &node->items[0].key;
 		second_key = &new_node->items[0].key;
@@ -153,6 +128,8 @@ uint32_t tree_search(uint32_t node_addr, const struct jgfs2_key *key) {
 		found_addr = node_addr;
 		goto done;
 	} else {
+		/* TODO: handle case where key is less than the lowest subbranch key */
+		
 		for (uint16_t i = 0; i < node->hdr.item_qty; ++i) {
 			if (key_cmp(key, &node->children[i].key) >= 0) {
 				if (i == node->hdr.item_qty - 1 ||
