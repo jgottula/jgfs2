@@ -1,7 +1,10 @@
+#include <assert.h>
 #include <err.h>
 #include <stdio.h>
 #include <string.h>
+#include "../../lib/blk.h"
 #include "../../lib/dev.h"
+#include "../../lib/fs.h"
 
 
 static void dump(void *ptr, size_t len) {
@@ -56,8 +59,33 @@ static void test_mmap(void) {
 	jgfs2_dev_close();
 }
 
+static void test_bmap(void) {
+	warnx(__func__);
+	
+	jgfs2_init("/dev/loop0p1", &(struct jgfs2_mount_options){false});
+	
+	memset(fs.free_bmap, 0, fs.free_bmap_size_byte);
+	fprintf(stderr, "zero:\n");
+	dump(fs.free_bmap, fs.free_bmap_size_byte);
+	
+	jgfs2_blk_bmap_set(true, 7, 64);
+	fprintf(stderr, "7 thru 70 inclusive:\n");
+	dump(fs.free_bmap, fs.free_bmap_size_byte);
+	
+	for (uint32_t i = 0; i < fs.size_blk; ++i) {
+		bool isfree = jgfs2_blk_bmap_isfree(i, 1);
+		
+		assert(i >= 7 || isfree);
+		assert((i < 7 || i > 70) || !isfree);
+		assert(i <= 70 || isfree);
+	}
+	
+	jgfs2_done();
+}
+
 int main(int argc, char **argv) {
 	warnx("performing unit tests");
 	
-	test_mmap();
+	//test_mmap();
+	test_bmap();
 }
