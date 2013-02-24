@@ -18,37 +18,37 @@ static struct jgfs2_dev dev_init = {
 };
 
 
-void *jgfs2_dev_map_sect(uint32_t sect_num, uint32_t sect_count) {
-	if (sect_num + sect_count >= dev.size_sect) {
+void *jgfs2_dev_map_sect(uint32_t sect_num, uint32_t sect_cnt) {
+	if (sect_num + sect_cnt >= dev.size_sect) {
 		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") >= %" PRIu32,
-			__func__, sect_num, sect_num + sect_count, dev.size_sect);
+			__func__, sect_num, sect_num + sect_cnt, dev.size_sect);
 	}
 	
 	uint64_t byte_off = SECT_BYTES(sect_num);
-	uint64_t byte_len = SECT_BYTES(sect_count);
+	uint64_t byte_len = SECT_BYTES(sect_cnt);
 	
 	int prot = PROT_READ | (dev.read_only ? 0 : PROT_WRITE);
 	void *sect_mem = mmap(NULL, byte_len, prot, MAP_SHARED, dev.fd, byte_off);
 	
 	if (sect_mem == MAP_FAILED) {
 		err(1, "%s: mmap failed: sect [%" PRIu32 ", %" PRIu32 ")",
-			__func__, sect_num, sect_num + sect_count);
+			__func__, sect_num, sect_num + sect_cnt);
 	}
 	
 	return sect_mem;
 }
 
-void jgfs2_dev_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_count) {
-	if (sect_num + sect_count >= dev.size_sect) {
+void jgfs2_dev_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt) {
+	if (sect_num + sect_cnt >= dev.size_sect) {
 		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") >= %" PRIu32,
-			__func__, sect_num, sect_num + sect_count, dev.size_sect);
+			__func__, sect_num, sect_num + sect_cnt, dev.size_sect);
 	}
 	
-	uint64_t byte_len = SECT_BYTES(sect_count);
+	uint64_t byte_len = SECT_BYTES(sect_cnt);
 	
 	if (munmap(addr, byte_len) < 0) {
 		err(1, "%s: munmap failed: addr %p, sect [%" PRIu32 ", %" PRIu32 ")",
-			__func__, addr, sect_num, sect_num + sect_count);
+			__func__, addr, sect_num, sect_num + sect_cnt);
 	}
 }
 

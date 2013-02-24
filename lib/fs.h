@@ -19,7 +19,7 @@ struct jgfs2_fs {
 	uint32_t blk_size;
 	
 	uint32_t data_blk_first;
-	uint32_t data_blk_count;
+	uint32_t data_blk_cnt;
 	
 	struct jgfs2_sect       *vbr;
 	struct jgfs2_superblock *sblk;
@@ -34,10 +34,10 @@ struct jgfs2_fs {
 extern struct jgfs2_fs fs;
 
 
-void *jgfs2_fs_map_sect(uint32_t sect_num, uint32_t sect_count);
-void jgfs2_fs_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_count);
-void *jgfs2_fs_map_blk(uint32_t blk_num, uint32_t blk_count);
-void jgfs2_fs_unmap_blk(void *addr, uint32_t blk_num, uint32_t blk_count);
+void *jgfs2_fs_map_sect(uint32_t sect_num, uint32_t sect_cnt);
+void jgfs2_fs_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt);
+void *jgfs2_fs_map_blk(uint32_t blk_num, uint32_t blk_cnt);
+void jgfs2_fs_unmap_blk(void *addr, uint32_t blk_num, uint32_t blk_cnt);
 
 bool jgfs2_fs_sblk_check(const struct jgfs2_superblock *sblk);
 
