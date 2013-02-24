@@ -5,7 +5,7 @@
 #include "jgfs2.h"
 
 
-struct jgfs2_dev {
+struct dev {
 	long page_size;
 	
 	bool read_only;
@@ -20,7 +20,7 @@ struct jgfs2_dev {
 };
 
 
-extern struct jgfs2_dev dev;
+extern struct dev dev;
 
 
 void *dev_map_sect(uint32_t sect_num, uint32_t sect_cnt);

@@ -6,8 +6,8 @@
 #include "debug.h"
 
 
-struct jgfs2_dev dev;
-static struct jgfs2_dev dev_null = {
+struct dev dev;
+static struct dev dev_null = {
 	.read_only = true,
 	
 	.page_size = 0,

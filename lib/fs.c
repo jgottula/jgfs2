@@ -6,8 +6,8 @@
 #include "new.h"
 
 
-struct jgfs2_fs fs;
-static struct jgfs2_fs fs_null = {
+struct fs fs;
+static struct fs fs_null = {
 	.init = false,
 	
 	.size_byte = 0,

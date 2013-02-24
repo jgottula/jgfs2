@@ -11,7 +11,7 @@
 	CEIL((_byte), fs.blk_size)
 
 
-struct jgfs2_fs {
+struct fs {
 	bool init;
 	
 	struct jgfs2_mount_options mount_opt;
@@ -40,7 +40,7 @@ struct jgfs2_fs {
 };
 
 
-extern struct jgfs2_fs fs;
+extern struct fs fs;
 
 
 void *fs_map_sect(uint32_t sect_num, uint32_t sect_cnt);
