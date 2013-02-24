@@ -6,6 +6,8 @@
 
 
 struct jgfs2_dev {
+	long page_size;
+	
 	bool read_only;
 	
 	const char *path;
@@ -13,6 +15,8 @@ struct jgfs2_dev {
 	
 	uint64_t size_byte;
 	uint32_t size_sect;
+	
+	uint32_t map_cnt;
 };
 
 
