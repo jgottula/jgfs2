@@ -5,6 +5,7 @@
 #include "jgfs2.h"
 
 
+uint32_t jgfs2_blk_bmap_cnt(bool alloc);
 bool jgfs2_blk_bmap_isfree(uint32_t blk_num, uint32_t blk_cnt);
 void jgfs2_blk_bmap_set(bool alloc, uint32_t blk_num, uint32_t blk_cnt);
 

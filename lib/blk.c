@@ -4,6 +4,45 @@
 #include "fs.h"
 
 
+uint32_t jgfs2_blk_bmap_cnt(bool alloc) {
+	uint8_t *bmap_ptr = (uint8_t *)fs.free_bmap;
+	uint8_t *bmap_end = (uint8_t *)fs.free_bmap + fs.free_bmap_size_byte;
+	
+	uint32_t cnt = 0;
+	
+	do {
+		if (alloc) {
+			if (*bmap_ptr == 0xff) {
+				cnt += 8;
+			} else {
+				if (*bmap_ptr & (1 << 0)) ++cnt;
+				if (*bmap_ptr & (1 << 1)) ++cnt;
+				if (*bmap_ptr & (1 << 2)) ++cnt;
+				if (*bmap_ptr & (1 << 3)) ++cnt;
+				if (*bmap_ptr & (1 << 4)) ++cnt;
+				if (*bmap_ptr & (1 << 5)) ++cnt;
+				if (*bmap_ptr & (1 << 6)) ++cnt;
+				if (*bmap_ptr & (1 << 7)) ++cnt;
+			}
+		} else {
+			if (*bmap_ptr == 0x00) {
+				cnt += 8;
+			} else {
+				if (!(*bmap_ptr & (1 << 0))) ++cnt;
+				if (!(*bmap_ptr & (1 << 1))) ++cnt;
+				if (!(*bmap_ptr & (1 << 2))) ++cnt;
+				if (!(*bmap_ptr & (1 << 3))) ++cnt;
+				if (!(*bmap_ptr & (1 << 4))) ++cnt;
+				if (!(*bmap_ptr & (1 << 5))) ++cnt;
+				if (!(*bmap_ptr & (1 << 6))) ++cnt;
+				if (!(*bmap_ptr & (1 << 7))) ++cnt;
+			}
+		}
+	} while (++bmap_ptr != bmap_end);
+	
+	return cnt;
+}
+
 bool jgfs2_blk_bmap_isfree(uint32_t blk_num, uint32_t blk_cnt) {
 	if (blk_num + blk_cnt > fs.size_blk) {
 		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
