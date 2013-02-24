@@ -65,18 +65,30 @@ void jgfs2_blk_bmap_set(bool alloc, uint32_t blk_num, uint32_t blk_cnt) {
 }
 
 bool jgfs2_blk_alloc(uint32_t *blk_num, uint32_t blk_cnt) {
-	TODO("actually allocate");
+	bool status = false;
 	
-	/* find a free span of at least the size requested */
-	
-	/* align large allocations to 8 blocks */
+	/* align larger allocations to multiples of 8 blocks */
 	if (blk_cnt < 8) {
-		
+		TODO("small allocations");
 	} else {
+		uint8_t *bmap_ptr = (uint8_t *)fs.free_bmap;
+		uint32_t len = 0;
 		
+		for (uint32_t i = 0; i < fs.size_blk; ++i) {
+			if (*(bmap_ptr++) == 0x00) {
+				if (++len >= CEIL(blk_cnt, 8)) {
+					*blk_num = 8 * (i - (len - 1));
+					jgfs2_blk_bmap_set(true, *blk_num, blk_cnt);
+					status = true;
+					break;
+				}
+			} else {
+				len = 0;
+			}
+		}
 	}
 	
-	return false;
+	return status;
 }
 
 bool jgfs2_blk_realloc(uint32_t blk_num, uint32_t blk_cnt, uint32_t new_cnt) {
