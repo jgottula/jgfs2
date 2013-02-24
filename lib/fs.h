@@ -43,17 +43,17 @@ struct jgfs2_fs {
 extern struct jgfs2_fs fs;
 
 
-void *jgfs2_fs_map_sect(uint32_t sect_num, uint32_t sect_cnt);
-void jgfs2_fs_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt);
-void *jgfs2_fs_map_blk(uint32_t blk_num, uint32_t blk_cnt);
-void jgfs2_fs_unmap_blk(void *addr, uint32_t blk_num, uint32_t blk_cnt);
+void *fs_map_sect(uint32_t sect_num, uint32_t sect_cnt);
+void fs_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt);
+void *fs_map_blk(uint32_t blk_num, uint32_t blk_cnt);
+void fs_unmap_blk(void *addr, uint32_t blk_num, uint32_t blk_cnt);
 
-bool jgfs2_fs_sblk_check(const struct jgfs2_super_block *sblk);
+bool fs_sblk_check(const struct jgfs2_super_block *sblk);
 
-void jgfs2_fs_init(const char *dev_path,
+void fs_init(const char *dev_path,
 	const struct jgfs2_mount_options *mount_opt,
 	const struct jgfs2_super_block *new_sblk);
-void jgfs2_fs_done(void);
+void fs_done(void);
 
 
 #endif

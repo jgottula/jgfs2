@@ -7,7 +7,7 @@
 
 
 struct jgfs2_dev dev;
-static struct jgfs2_dev dev_init = {
+static struct jgfs2_dev dev_null = {
 	.read_only = true,
 	
 	.page_size = 0,
@@ -22,7 +22,7 @@ static struct jgfs2_dev dev_init = {
 };
 
 
-void *jgfs2_dev_map_sect(uint32_t sect_num, uint32_t sect_cnt) {
+void *dev_map_sect(uint32_t sect_num, uint32_t sect_cnt) {
 	if (sect_num + sect_cnt > dev.size_sect) {
 		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
 			__func__, sect_num, sect_num + sect_cnt, dev.size_sect);
@@ -51,7 +51,7 @@ void *jgfs2_dev_map_sect(uint32_t sect_num, uint32_t sect_cnt) {
 	return (addr + adjust);
 }
 
-void jgfs2_dev_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt) {
+void dev_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt) {
 	if (sect_num + sect_cnt > dev.size_sect) {
 		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
 			__func__, sect_num, sect_num + sect_cnt, dev.size_sect);
@@ -77,20 +77,20 @@ void jgfs2_dev_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt) {
 	--dev.map_cnt;
 }
 
-void jgfs2_dev_fsync(void) {
+void dev_fsync(void) {
 	if (fsync(dev.fd) < 0) {
 		warn("fsync failed");
 	}
 }
 
-void jgfs2_dev_msync(void *addr, size_t length) {
+void dev_msync(void *addr, size_t length) {
 	if (msync(addr, length, MS_SYNC) < 0) {
 		warn("msync failed");
 	}
 }
 
-void jgfs2_dev_open(const char *dev_path, bool read_only) {
-	dev = dev_init;
+void dev_open(const char *dev_path, bool read_only) {
+	dev = dev_null;
 	
 	if ((dev.page_size = sysconf(_SC_PAGESIZE)) < 0) {
 		err(1, "could not get system page size");
@@ -110,9 +110,9 @@ void jgfs2_dev_open(const char *dev_path, bool read_only) {
 	dev.size_sect = dev.size_byte / JGFS2_SECT_SIZE;
 }
 
-void jgfs2_dev_close(void) {
+void dev_close(void) {
 	if (dev.fd != -1) {
-		jgfs2_dev_fsync();
+		dev_fsync();
 		
 		if (dev.map_cnt != 0) {
 			warnx("%" PRIu32 " device regions are still mapped", dev.map_cnt);

@@ -39,15 +39,16 @@ struct __attribute__((__packed__)) jgfs2_node {
 };
 
 
-int8_t jgfs2_key_cmp(const struct jgfs2_key *lhs, const struct jgfs2_key *rhs);
+int8_t key_cmp(const struct jgfs2_key *lhs, const struct jgfs2_key *rhs);
 
-bool jgfs2_node_item(uint32_t node_addr, const struct jgfs2_key *key,
+bool node_item(uint32_t node_addr, const struct jgfs2_key *key,
 	void **found_data);
-uint32_t jgfs2_node_space(uint32_t node_addr);
-void jgfs2_node_dump(uint32_t node_addr);
+uint32_t node_space(uint32_t node_addr);
+void node_dump(uint32_t node_addr);
 
-void jgfs2_tree_init(uint32_t root_addr);
-void jgfs2_tree_split(uint32_t node_addr);
-uint32_t jgfs2_tree_search(uint32_t node_addr, const struct jgfs2_key *key);
+void tree_init(uint32_t root_addr);
+void tree_split(uint32_t node_addr);
+uint32_t tree_search(uint32_t node_addr, const struct jgfs2_key *key);
+
 
 #endif

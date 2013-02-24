@@ -23,14 +23,14 @@ struct jgfs2_dev {
 extern struct jgfs2_dev dev;
 
 
-void *jgfs2_dev_map_sect(uint32_t sect_num, uint32_t sect_cnt);
-void jgfs2_dev_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt);
+void *dev_map_sect(uint32_t sect_num, uint32_t sect_cnt);
+void dev_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt);
 
-void jgfs2_dev_fsync(void);
-void jgfs2_dev_msync(void *addr, size_t length);
+void dev_fsync(void);
+void dev_msync(void *addr, size_t length);
 
-void jgfs2_dev_open(const char *dev_path, bool read_only);
-void jgfs2_dev_close(void);
+void dev_open(const char *dev_path, bool read_only);
+void dev_close(void);
 
 
 #endif

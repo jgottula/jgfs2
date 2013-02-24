@@ -7,7 +7,7 @@
 
 
 struct jgfs2_fs fs;
-static struct jgfs2_fs fs_init = {
+static struct jgfs2_fs fs_null = {
 	.init = false,
 	
 	.size_byte = 0,
@@ -30,45 +30,45 @@ static struct jgfs2_fs fs_init = {
 };
 
 
-void *jgfs2_fs_map_sect(uint32_t sect_num, uint32_t sect_cnt) {
+void *fs_map_sect(uint32_t sect_num, uint32_t sect_cnt) {
 	if (sect_num + sect_cnt > fs.sblk->s_total_sect) {
 		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
 			__func__, sect_num, sect_num + sect_cnt, fs.sblk->s_total_sect);
 	}
 	
-	return jgfs2_dev_map_sect(sect_num, sect_cnt);
+	return dev_map_sect(sect_num, sect_cnt);
 }
 
-void jgfs2_fs_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt) {
+void fs_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt) {
 	if (sect_num + sect_cnt > fs.sblk->s_total_sect) {
 		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
 			__func__, sect_num, sect_num + sect_cnt, fs.sblk->s_total_sect);
 	}
 	
-	jgfs2_dev_unmap_sect(addr, sect_num, sect_cnt);
+	dev_unmap_sect(addr, sect_num, sect_cnt);
 }
 
-void *jgfs2_fs_map_blk(uint32_t blk_num, uint32_t blk_cnt) {
+void *fs_map_blk(uint32_t blk_num, uint32_t blk_cnt) {
 	if (blk_num + blk_cnt > fs.size_blk) {
 		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
 			__func__, blk_num, blk_num + blk_cnt, fs.size_blk);
 	}
 	
-	return jgfs2_dev_map_sect(blk_num * fs.sblk->s_blk_size,
+	return dev_map_sect(blk_num * fs.sblk->s_blk_size,
 		blk_cnt * fs.sblk->s_blk_size);
 }
 
-void jgfs2_fs_unmap_blk(void *addr, uint32_t blk_num, uint32_t blk_cnt) {
+void fs_unmap_blk(void *addr, uint32_t blk_num, uint32_t blk_cnt) {
 	if (blk_num + blk_cnt > fs.size_blk) {
 		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
 			__func__, blk_num, blk_num + blk_cnt, fs.size_blk);
 	}
 	
-	jgfs2_dev_unmap_sect(addr, blk_num * fs.sblk->s_blk_size,
+	dev_unmap_sect(addr, blk_num * fs.sblk->s_blk_size,
 		blk_cnt * fs.sblk->s_blk_size);
 }
 
-bool jgfs2_fs_sblk_check(const struct jgfs2_super_block *sblk) {
+bool fs_sblk_check(const struct jgfs2_super_block *sblk) {
 	if (memcmp(sblk->s_magic, JGFS2_MAGIC, sizeof(sblk->s_magic)) != 0) {
 		warnx("not jgfs2 or invalid super block");
 		return false;
@@ -90,18 +90,18 @@ bool jgfs2_fs_sblk_check(const struct jgfs2_super_block *sblk) {
 	return true;
 }
 
-void jgfs2_fs_init(const char *dev_path,
+void fs_init(const char *dev_path,
 	const struct jgfs2_mount_options *mount_opt,
 	const struct jgfs2_super_block *new_sblk) {
-	fs = fs_init;
+	fs = fs_null;
 	fs.mount_opt = *mount_opt;
 	
-	jgfs2_dev_open(dev_path, fs.mount_opt.read_only);
+	dev_open(dev_path, fs.mount_opt.read_only);
 	
 	TODO("device size checks");
 	
-	fs.vbr  = jgfs2_dev_map_sect(JGFS2_VBR_SECT, 1);
-	fs.sblk = jgfs2_dev_map_sect(JGFS2_SBLK_SECT, 1);
+	fs.vbr  = dev_map_sect(JGFS2_VBR_SECT, 1);
+	fs.sblk = dev_map_sect(JGFS2_SBLK_SECT, 1);
 	
 	if (new_sblk != NULL) {
 		TODO("write backup super blocks with new_sblk here?");
@@ -110,7 +110,7 @@ void jgfs2_fs_init(const char *dev_path,
 	}
 	
 	TODO("verify backup super blocks");
-	if (!jgfs2_fs_sblk_check(fs.sblk)) {
+	if (!fs_sblk_check(fs.sblk)) {
 		errx(1, "primary super block validation failed");
 	}
 	
@@ -123,9 +123,9 @@ void jgfs2_fs_init(const char *dev_path,
 		fs.sblk->s_blk_size);
 	fs.data_blk_cnt   = fs.size_blk - fs.data_blk_first;
 	
-	fs.boot = jgfs2_fs_map_sect(JGFS2_BOOT_SECT, fs.sblk->s_boot_sect);
+	fs.boot = fs_map_sect(JGFS2_BOOT_SECT, fs.sblk->s_boot_sect);
 	
-	jgfs2_new_post();
+	fs_new_post();
 	
 	if (fs.sblk->s_mtime > time(NULL)) {
 		warnx("last mount time is in the future: %s",
@@ -139,14 +139,14 @@ void jgfs2_fs_init(const char *dev_path,
 	fs.init = true;
 }
 
-void jgfs2_fs_done(void) {
+void fs_done(void) {
 	if (fs.init) {
-		jgfs2_fs_unmap_sect(fs.boot, JGFS2_BOOT_SECT, fs.sblk->s_boot_sect);
+		fs_unmap_sect(fs.boot, JGFS2_BOOT_SECT, fs.sblk->s_boot_sect);
 		
-		jgfs2_dev_unmap_sect(fs.vbr, JGFS2_VBR_SECT, 1);
-		jgfs2_dev_unmap_sect(fs.sblk, JGFS2_SBLK_SECT, 1);
+		dev_unmap_sect(fs.vbr, JGFS2_VBR_SECT, 1);
+		dev_unmap_sect(fs.sblk, JGFS2_SBLK_SECT, 1);
 		
-		jgfs2_dev_close();
+		dev_close();
 		
 		fs.init = false;
 	}

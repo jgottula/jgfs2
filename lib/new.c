@@ -20,9 +20,9 @@ struct jgfs2_mkfs_param mkfs_param;
 struct jgfs2_super_block new_sblk;
 
 
-void jgfs2_new_init_root_dir(void) {
+void fs_new_init_root_dir(void) {
 	/*struct jgfs2_inode *root_inode;
-	root_inode = jgfs2_inode_get(0);
+	root_inode = inode_get(0);
 	memset(root_inode, 0, sizeof(*root_inode));
 	
 	root_inode->i_used = 0xffff;
@@ -44,7 +44,7 @@ void jgfs2_new_init_root_dir(void) {
 	root_inode->i_gen = 0;*/
 }
 
-const struct jgfs2_super_block *jgfs2_new_pre(const char *dev_path,
+const struct jgfs2_super_block *fs_new(const char *dev_path,
 	const struct jgfs2_mkfs_param *param) {
 	mkfs_param = *param;
 	
@@ -53,9 +53,9 @@ const struct jgfs2_super_block *jgfs2_new_pre(const char *dev_path,
 	if (mkfs_param.total_sect == 0) {
 		warnx("using entire device");
 		
-		jgfs2_dev_open(dev_path, true);
+		dev_open(dev_path, true);
 		mkfs_param.total_sect = dev.size_sect;
-		jgfs2_dev_close();
+		dev_close();
 	}
 	
 	if (mkfs_param.blk_size == 0) {
@@ -88,7 +88,7 @@ const struct jgfs2_super_block *jgfs2_new_pre(const char *dev_path,
 	return &new_sblk;
 }
 
-void jgfs2_new_post(void) {
+void fs_new_post(void) {
 	if (mkfs_param.zap_vbr) {
 		warnx("zapping the volume boot record");
 		
@@ -103,19 +103,19 @@ void jgfs2_new_post(void) {
 	
 	/* always zap the slack space between the end of the boot area and the first
 	 * data block */
-	void *slack = jgfs2_fs_map_sect(JGFS2_BOOT_SECT, fs.sblk->s_boot_sect);
+	void *slack = fs_map_sect(JGFS2_BOOT_SECT, fs.sblk->s_boot_sect);
 	memset(slack, 0, BLK_TO_BYTE(fs.data_blk_first) -
 		SECT_TO_BYTE(JGFS2_BOOT_SECT + fs.sblk->s_boot_sect));
-	jgfs2_fs_unmap_sect(slack, JGFS2_BOOT_SECT, fs.sblk->s_boot_sect);
+	fs_unmap_sect(slack, JGFS2_BOOT_SECT, fs.sblk->s_boot_sect);
 	
 	fs.sblk->s_addr_ext_tree  = fs.data_blk_first;
 	fs.sblk->s_addr_meta_tree = fs.data_blk_first + 1;
 	
-	jgfs2_tree_init(fs.sblk->s_addr_ext_tree);
-	jgfs2_tree_init(fs.sblk->s_addr_meta_tree);
+	tree_init(fs.sblk->s_addr_ext_tree);
+	tree_init(fs.sblk->s_addr_meta_tree);
 	
-	jgfs2_node_dump(fs.sblk->s_addr_ext_tree);
-	jgfs2_node_dump(fs.sblk->s_addr_meta_tree);
+	node_dump(fs.sblk->s_addr_ext_tree);
+	node_dump(fs.sblk->s_addr_meta_tree);
 	
 	/* init tree roots */
 	/* set used areas as allocated */

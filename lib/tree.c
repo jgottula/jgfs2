@@ -6,7 +6,7 @@
 #include "fs.h"
 
 
-int8_t jgfs2_key_cmp(const struct jgfs2_key *lhs, const struct jgfs2_key *rhs) {
+int8_t key_cmp(const struct jgfs2_key *lhs, const struct jgfs2_key *rhs) {
 	if (lhs->id > rhs->id) {
 		return 1;
 	} else if (lhs->id < rhs->id) {
@@ -28,9 +28,9 @@ int8_t jgfs2_key_cmp(const struct jgfs2_key *lhs, const struct jgfs2_key *rhs) {
 	return 0;
 }
 
-bool jgfs2_node_item(uint32_t node_addr, const struct jgfs2_key *key,
+bool node_item(uint32_t node_addr, const struct jgfs2_key *key,
 	void **found_data) {
-	struct jgfs2_node *node = jgfs2_fs_map_blk(node_addr, 1);
+	struct jgfs2_node *node = fs_map_blk(node_addr, 1);
 	bool status = false;
 	
 	if (!node->hdr.leaf) {
@@ -40,18 +40,18 @@ bool jgfs2_node_item(uint32_t node_addr, const struct jgfs2_key *key,
 	for (uint16_t i = 0; i < node->hdr.item_qty; ++i) {
 		const struct jgfs2_item *item = &node->items[i];
 		
-		if (jgfs2_key_cmp(key, &item->key) == 0) {
+		if (key_cmp(key, &item->key) == 0) {
 			*found_data = (uint8_t *)node + item->off;
 		}
 	}
 	
-	jgfs2_fs_unmap_blk(node, node_addr, 1);
+	fs_unmap_blk(node, node_addr, 1);
 	
 	return status;
 }
 
-uint32_t jgfs2_node_space(uint32_t node_addr) {
-	struct jgfs2_node *node = jgfs2_fs_map_blk(node_addr, 1);
+uint32_t node_space(uint32_t node_addr) {
+	struct jgfs2_node *node = fs_map_blk(node_addr, 1);
 	uint32_t space = 0;
 	
 	if (!node->hdr.leaf) {
@@ -67,13 +67,13 @@ uint32_t jgfs2_node_space(uint32_t node_addr) {
 	
 	space = space_end - space_begin;
 	
-	jgfs2_fs_unmap_blk(node, node_addr, 1);
+	fs_unmap_blk(node, node_addr, 1);
 	
 	return space;
 }
 
-void jgfs2_node_dump(uint32_t node_addr) {
-	struct jgfs2_node *node = jgfs2_fs_map_blk(node_addr, 1);
+void node_dump(uint32_t node_addr) {
+	struct jgfs2_node *node = fs_map_blk(node_addr, 1);
 	
 	warnx("%s: %s node %" PRIu32 " with %" PRIu16 " %ss", __func__,
 		(node->hdr.leaf ? "leaf" : "non-leaf"), node_addr, node->hdr.item_qty,
@@ -110,21 +110,21 @@ void jgfs2_node_dump(uint32_t node_addr) {
 		}
 	}
 	
-	jgfs2_fs_unmap_blk(node, node_addr, 1);
+	fs_unmap_blk(node, node_addr, 1);
 }
 
-void jgfs2_tree_init(uint32_t root_addr) {
-	struct jgfs2_node *root = jgfs2_fs_map_blk(root_addr, 1);
+void tree_init(uint32_t root_addr) {
+	struct jgfs2_node *root = fs_map_blk(root_addr, 1);
 	
 	root->hdr.leaf        = true;
 	root->hdr.parent_addr = 0;
 	root->hdr.next_addr   = 0;
 	root->hdr.item_qty    = 0;
 	
-	jgfs2_fs_unmap_blk(root, root_addr, 1);
+	fs_unmap_blk(root, root_addr, 1);
 }
 
-void jgfs2_tree_split(uint32_t node_addr) {
+void tree_split(uint32_t node_addr) {
 	/* if this is the root node (parent == 0), create a new root with two node
 	 * ptrs: one to this node, and one to a new node */
 	/* go to this node's parent and try to insert a key */
@@ -133,19 +133,19 @@ void jgfs2_tree_split(uint32_t node_addr) {
 	/* BE SURE TO UPDATE VALUES in node->hdr */
 }
 
-void jgfs2_tree_insert(uint32_t node_addr, const struct jgfs2_key *key,
-	uint32_t len, void *data) {
-	uint32_t dest_addr = jgfs2_tree_search(node_addr, key);
+void tree_insert(uint32_t node_addr, const struct jgfs2_key *key, uint32_t len,
+	void *data) {
+	uint32_t dest_addr = tree_search(node_addr, key);
 	
-	if (jgfs2_node_space(dest_addr) >= sizeof(struct jgfs2_item) + len) {
+	if (node_space(dest_addr) >= sizeof(struct jgfs2_item) + len) {
 		/* okay to insert normally */
 	} else {
 		/* need to split the node */
 	}
 }
 
-uint32_t jgfs2_tree_search(uint32_t node_addr, const struct jgfs2_key *key) {
-	struct jgfs2_node *node = jgfs2_fs_map_blk(node_addr, 1);
+uint32_t tree_search(uint32_t node_addr, const struct jgfs2_key *key) {
+	struct jgfs2_node *node = fs_map_blk(node_addr, 1);
 	uint32_t found_addr = 0;
 	
 	if (node->hdr.leaf) {
@@ -153,10 +153,10 @@ uint32_t jgfs2_tree_search(uint32_t node_addr, const struct jgfs2_key *key) {
 		goto done;
 	} else {
 		for (uint16_t i = 0; i < node->hdr.item_qty; ++i) {
-			if (jgfs2_key_cmp(key, &node->children[i].key) >= 0) {
+			if (key_cmp(key, &node->children[i].key) >= 0) {
 				if (i == node->hdr.item_qty - 1 ||
-					jgfs2_key_cmp(key, &node->children[i + 1].key) < 0) {
-					found_addr = jgfs2_tree_search(node->children[i].addr,key);
+					key_cmp(key, &node->children[i + 1].key) < 0) {
+					found_addr = tree_search(node->children[i].addr, key);
 					goto done;
 				}
 			}
@@ -164,7 +164,7 @@ uint32_t jgfs2_tree_search(uint32_t node_addr, const struct jgfs2_key *key) {
 	}
 	
 done:
-	jgfs2_fs_unmap_blk(node, node_addr, 1);
+	fs_unmap_blk(node, node_addr, 1);
 	
 	return found_addr;
 }
