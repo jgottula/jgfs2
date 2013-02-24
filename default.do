@@ -31,7 +31,7 @@ LIB_LIBS=(-lbsd -luuid)
 TEST_OUT="bin/jgfs2test"
 TEST_SRC=(src/test/*.c)
 TEST_OBJS=${TEST_SRC[@]//.c/.o}
-TEST_LIBS=()
+TEST_LIBS=(-lbsd)
 
 FUSE_OUT="bin/jgfs2fuse"
 FUSE_SRC=(src/fuse/*.c)
