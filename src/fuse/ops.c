@@ -13,27 +13,38 @@ char *dev_path;
 
 
 void *jg_init(struct fuse_conn_info *conn) {
-	jgfs_init(dev_path);
+	struct jgfs2_mount_options mount_opt = {
+		.read_only = false,
+	};
+	
+	warnx("TODO: implement mount options");
+	
+	jgfs2_init(dev_path, &mount_opt);
 	
 	return NULL;
 }
 
 void jg_destroy(void *userdata) {
-	jgfs_done();
+	jgfs2_done();
 }
 
 int jg_statfs(const char *path, struct statvfs *statv) {
 	memset(statv, 0, sizeof(*statv));
 	
-	statv->f_bsize = jgfs_clust_size();
-	statv->f_blocks = jgfs_fs_clusters();
-	statv->f_bfree = statv->f_bavail = jgfs_fat_count(FAT_FREE);
+	uint32_t blk_size, blk_total, blk_used;
+	jgfs2_stat(&blk_size, &blk_total, &blk_used);
 	
-	statv->f_namemax = JGFS_NAME_LIMIT;
+	statv->f_bsize  = blk_size;
+	statv->f_blocks = blk_total;
+	statv->f_bfree  = (blk_total - blk_used);
+	statv->f_bavail = (blk_total - blk_used);
+	
+	statv->f_namemax = JGFS2_NAME_LIMIT;
 	
 	return 0;
 }
 
+#if 0
 int jg_getattr(const char *path, struct stat *buf) {
 	struct jgfs_dir_clust *parent;
 	struct jgfs_dir_ent   *child;
@@ -434,6 +445,7 @@ int jg_write(const char *path, const char *buf, size_t size, off_t offset,
 	
 	return b_written;
 }
+#endif
 
 
 struct fuse_operations jg_oper = {
@@ -442,6 +454,7 @@ struct fuse_operations jg_oper = {
 	
 	.statfs    = jg_statfs,
 	
+#if 0
 	.getattr   = jg_getattr,
 	.utimens   = jg_utimens,
 	
@@ -470,4 +483,5 @@ struct fuse_operations jg_oper = {
 	
 	.read      = jg_read,
 	.write     = jg_write,
+#endif
 };
