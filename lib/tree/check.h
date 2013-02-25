@@ -19,28 +19,29 @@ enum check_result_type {
 };
 
 enum check_error_code {
-	ERR_TREE_SORT       = 1, // key[n] > key[n+1]
-	ERR_TREE_DUPE       = 2, // key[a] == key[b]
-	ERR_TREE_NEXT_SKIP  = 3, // next->next skips a node
-	ERR_TREE_NEXT_ORDER = 4, // next->next goes backwards
-	ERR_TREE_PREV_SKIP  = 3, // prev->prev skips a node
-	ERR_TREE_PREV_ORDER = 4, // prev->prev goes forwards
+	ERR_TREE_SORT       = 1,    // key[n] > key[n+1]
+	ERR_TREE_DUPE       = 2,    // key[a] == key[b]
+	ERR_TREE_NEXT_SKIP  = 3,    // next->next skips a node
+	ERR_TREE_NEXT_ORDER = 4,    // next->next goes backwards
+	ERR_TREE_PREV_SKIP  = 3,    // prev->prev skips a node
+	ERR_TREE_PREV_ORDER = 4,    // prev->prev goes forwards
 	
-	ERR_NODE_THIS  = 0,      // hdr.this is wrong
-	ERR_NODE_EMPTY = 1,      // !root and no elems
-	ERR_NODE_SORT  = 2,      // key[0] > key[1]
-	ERR_NODE_DUPE  = 3,      // key @ elem_idx[0] == key @ elem_idx[1]
+	ERR_NODE_THIS  = 0,         // hdr.this is wrong
+	ERR_NODE_EMPTY = 1,         // !root and no elems
+	ERR_NODE_SORT  = 2,         // key[0] > key[1]
+	ERR_NODE_DUPE  = 3,         // key @ elem_idx[0] == key @ elem_idx[1]
 	
-	ERR_BRANCH_OVERFLOW = 1, // cnt items wouldn't fit in a node
-	ERR_BRANCH_KEY      = 2, // elem.key != child.keys[0]
-	ERR_BRANCH_PARENT   = 3, // hdr.this != child.parent
+	ERR_BRANCH_OVERFLOW    = 1, // cnt items wouldn't fit in a node
+	ERR_BRANCH_PARENT      = 2, // hdr.this != child.parent
+	ERR_BRANCH_EMPTY_CHILD = 3, // child.hdr.cnt == 0
+	ERR_BRANCH_KEY         = 4, // elem.key != child.keys[0]
 	
-	ERR_LEAF_OVERFLOW = 1,   // item_ref overlaps item data
-	ERR_LEAF_UNCONTIG = 2,   // wasted space between item data
-	ERR_LEAF_OVERLAP  = 3,   // elem data regions overlap
+	ERR_LEAF_OVERFLOW = 1,      // item_ref overlaps item data
+	ERR_LEAF_UNCONTIG = 2,      // wasted space between item data
+	ERR_LEAF_OVERLAP  = 3,      // elem data regions overlap
 	
-	ERR_ITEM_KEY  = 1,       // inappropriate id or off for item type
-	ERR_ITEM_SIZE = 2,       // inappropriate size for item type
+	ERR_ITEM_KEY  = 1,          // inappropriate id or off for item type
+	ERR_ITEM_SIZE = 2,          // inappropriate size for item type
 };
 
 
@@ -56,6 +57,7 @@ struct node_check_error {
 	uint32_t code;
 	uint32_t node_addr;
 	
+	uint16_t elem_cnt;
 	uint16_t elem_idx[2];
 	key      key[2];
 };
@@ -64,6 +66,7 @@ struct branch_check_error {
 	uint32_t code;
 	uint32_t node_addr;
 	
+	uint16_t elem_cnt;
 	uint16_t elem_idx;
 	node_ref elem;
 };
