@@ -18,6 +18,8 @@ void tree_insert(uint32_t root_addr, const key *key, struct item_data item) {
 		uint32_t leaf_addr = leaf->hdr.this;
 		
 		if (leaf_insert(leaf, key, item)) {
+			node_unmap((node_ptr)leaf);
+			
 			done = true;
 		} else if (!retried) {
 			node_unmap((node_ptr)leaf);
