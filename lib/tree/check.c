@@ -60,7 +60,29 @@ struct check_result check_node(uint32_t node_addr) {
 			}
 		}
 	} else {
+		branch_ptr node_branch = (branch_ptr)node;
 		
+		const node_ref *elem_end = node_branch->elems + node_branch->hdr.cnt;
+		for (const node_ref *elem = node_branch->elems + 1;
+			elem < elem_end; ++elem) {
+			const node_ref *elem_prev = elem - 1;
+			
+			int8_t cmp = key_cmp(&elem_prev->key, &elem->key);
+			
+			if (cmp >= 0) {
+				result.type = RESULT_TYPE_NODE;
+				result.node = (struct node_check_error){
+					.code        = (cmp > 0 ? ERR_NODE_SORT : ERR_NODE_DUPE),
+					.node_addr   = node_addr,
+					.elem_idx[0] = elem_prev - node_branch->elems,
+					.elem_idx[1] = elem - node_branch->elems,
+					.key[0]      = elem_prev->key,
+					.key[1]      = elem->key,
+				};
+				
+				goto done;
+			}
+		}
 	}
 	
 	/* run specific branch- and leaf-specific checks */
