@@ -66,26 +66,6 @@ struct __attribute__((__packed__)) jgfs2_extent {
 	uint32_t e_len;
 };
 
-struct __attribute__((__packed__)) jgfs2_inode {
-	uint16_t i_used;  // zero if unused
-	
-	uint32_t i_attr;  // file attributes
-	uint16_t i_mode;  // type and permissions
-	
-	uint16_t i_uid;   // owner
-	uint16_t i_gid;   // group
-	
-	uint32_t i_size;  // length in bytes of file content
-	
-	int64_t  i_atime; // access time
-	int64_t  i_ctime; // creation time
-	int64_t  i_mtime; // modification time
-	
-	uint32_t i_nlink; // hard link ref count
-	
-	uint32_t i_gen;   // generation
-};
-
 struct __attribute__((__packed__)) jgfs2_super_block {
 	char     s_magic[4];       // must be "JGF2"
 	
