@@ -28,42 +28,42 @@ LIB_SRC=(lib/*.c lib/*/*.c)
 LIB_OBJS=${LIB_SRC[@]//.c/.o}
 LIB_LIBS=(-lbsd -luuid)
 
-TEST_OUT="bin/jgfs2test"
+TEST_OUT="bin/test.jgfs2"
 TEST_SRC=(src/test/*.c)
 TEST_OBJS=${TEST_SRC[@]//.c/.o}
 TEST_LIBS=(-lbsd)
 
-TREE_OUT="bin/jgfs2tree"
+TREE_OUT="bin/tree.jgfs2"
 TREE_SRC=(src/tree/*.c)
 TREE_OBJS=${TREE_SRC[@]//.c/.o}
 TREE_LIBS=()
 
-FUSE_OUT="bin/jgfs2fuse"
+FUSE_OUT="bin/fuse.jgfs2"
 FUSE_SRC=(src/fuse/*.c)
 FUSE_OBJS=${FUSE_SRC[@]//.c/.o}
 FUSE_LIBS=(-lbsd -lfuse)
 
-MKFS_OUT="bin/jgfs2mkfs"
+MKFS_OUT="bin/mkfs.jgfs2"
 MKFS_SRC=(src/mkfs/*.c)
 MKFS_OBJS=${MKFS_SRC[@]//.c/.o}
 MKFS_LIBS=(-lbsd -luuid)
 
-FSCK_OUT="bin/jgfs2fsck"
+FSCK_OUT="bin/fsck.jgfs2"
 FSCK_SRC=(src/fsck/*.c)
 FSCK_OBJS=${FSCK_SRC[@]//.c/.o}
 FSCK_LIBS=()
 
-DEFRAG_OUT="bin/jgfs2defrag"
+DEFRAG_OUT="bin/defrag.jgfs2"
 DEFRAG_SRC=(src/defrag/*.c)
 DEFRAG_OBJS=${DEFRAG_SRC[@]//.c/.o}
 DEFRAG_LIBS=()
 
-FSCTL_OUT="bin/jgfs2ctl"
+FSCTL_OUT="bin/fsctl.jgfs2"
 FSCTL_SRC=(src/fsctl/*.c)
 FSCTL_OBJS=${FSCTL_SRC[@]//.c/.o}
 FSCTL_LIBS=()
 
-ATTR_OUT="bin/jgfs2attr"
+ATTR_OUT="bin/attr.jgfs2"
 ATTR_SRC=(src/attr/*.c)
 ATTR_OBJS=${ATTR_SRC[@]//.c/.o}
 ATTR_LIBS=()
