@@ -5,6 +5,8 @@
 
 
 static void jgfs2_clean_up(void) {
+	warnx("cleaning up");
+	
 	fs_done();
 }
 
