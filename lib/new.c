@@ -52,7 +52,7 @@ const struct jgfs2_super_block *fs_new(const char *dev_path,
 	if (mkfs_param.total_sect == 0) {
 		warnx("using entire device");
 		
-		dev_open(dev_path, true);
+		dev_open(dev_path, true, false);
 		mkfs_param.total_sect = dev.size_sect;
 		dev_close();
 	}
@@ -123,4 +123,7 @@ void fs_new_post(void) {
 	TODO("ext tree init");
 	TODO("meta tree init");
 	TODO("root dir and other items");
+	
+	check_print(check_tree(fs.sblk->s_addr_ext_tree), true);
+	check_print(check_tree(fs.sblk->s_addr_meta_tree), true);
 }

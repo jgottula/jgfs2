@@ -16,6 +16,18 @@
 		__FILE__, __LINE__, __func__, (_s))
 
 
+struct map_node {
+	struct map_node *next;
+	
+	struct {
+		const void *addr;
+		
+		uint32_t sect_num;
+		uint32_t sect_cnt;
+	} payload;
+};
+
+
 static noreturn void err(const char *fmt, ...)
 	__attribute__((format(printf, 1, 2)));
 static noreturn void errx(const char *fmt, ...)
@@ -72,6 +84,10 @@ static void warnx(const char *fmt, ...) {
 	fputc('\n', stderr);
 }
 
+
+void debug_map_push(const void *addr, uint32_t sect_num, uint32_t sect_cnt);
+void debug_map_pop(const void *addr, uint32_t sect_num, uint32_t sect_cnt);
+void debug_map_dump(void);
 
 void dump_mem(const void *ptr, size_t len);
 void dump_sect(uint32_t sect_num, uint32_t sect_cnt);

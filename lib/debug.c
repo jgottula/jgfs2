@@ -2,6 +2,54 @@
 #include "fs.h"
 
 
+struct map_node *map_list = NULL;
+
+
+void debug_map_push(const void *addr, uint32_t sect_num, uint32_t sect_cnt) {
+	fprintf(stderr, "\e[31;1m  MAP %p %" PRIx32 " %" PRIx32 "\n\e[0m",
+		addr, sect_num, sect_cnt);
+	
+	if (map_list == NULL) {
+		map_list = malloc(sizeof(struct map_node));
+		map_list->next = NULL;
+	} else {
+		struct map_node *new_head = malloc(sizeof(struct map_node));
+		new_head->next = map_list;
+		map_list = new_head;
+	}
+	
+	map_list->payload.addr = addr;
+	
+	map_list->payload.sect_num = sect_num;
+	map_list->payload.sect_cnt = sect_cnt;
+}
+
+void debug_map_pop(const void *addr, uint32_t sect_num, uint32_t sect_cnt) {
+	fprintf(stderr, "\e[32;1mUNMAP %p %" PRIx32 " %" PRIx32 "\n\e[0m",
+		addr, sect_num, sect_cnt);
+	
+	struct map_node **prev = &map_list, *node = map_list;
+	while (node != NULL) {
+		if (node->payload.addr == addr &&
+			node->payload.sect_num == sect_num &&
+			node->payload.sect_cnt == sect_cnt) {
+			*prev = node->next;
+			free(node);
+			
+			return;
+		}
+		
+		prev = &node->next;
+		node = node->next;
+	}
+	
+	errx("%s: this block doesn't seem to have been mapped", __func__);
+}
+
+void debug_map_dump(void) {
+	
+}
+
 void dump_mem(const void *ptr, size_t len) {
 	warnx("%s: %zu bytes @ %p", __func__, len, ptr);
 	

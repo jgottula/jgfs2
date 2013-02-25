@@ -106,6 +106,7 @@ struct jgfs2_mkfs_param {
 
 struct jgfs2_mount_options {
 	bool read_only; // disallow write operations
+	bool debug_map; // debug memory mappings
 };
 
 

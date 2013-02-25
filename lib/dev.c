@@ -8,6 +8,7 @@
 struct dev dev;
 static struct dev dev_null = {
 	.read_only = true,
+	.debug_map = false,
 	
 	.page_size = 0,
 	
@@ -47,6 +48,10 @@ void *dev_map_sect(uint32_t sect_num, uint32_t sect_cnt) {
 	
 	++dev.map_cnt;
 	
+	if (dev.debug_map) {
+		debug_map_push(addr, sect_num, sect_cnt);
+	}
+	
 	return (addr + adjust);
 }
 
@@ -74,6 +79,10 @@ void dev_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt) {
 	}
 	
 	--dev.map_cnt;
+	
+	if (dev.debug_map) {
+		debug_map_pop(addr, sect_num, sect_cnt);
+	}
 }
 
 void dev_fsync(void) {
@@ -88,7 +97,7 @@ void dev_msync(void *addr, size_t length) {
 	}
 }
 
-void dev_open(const char *dev_path, bool read_only) {
+void dev_open(const char *dev_path, bool read_only, bool debug_map) {
 	dev = dev_null;
 	
 	if ((dev.page_size = sysconf(_SC_PAGESIZE)) < 0) {
@@ -96,6 +105,7 @@ void dev_open(const char *dev_path, bool read_only) {
 	}
 	
 	dev.read_only = read_only;
+	dev.debug_map = debug_map;
 	
 	dev.path = strdup(dev_path);
 	int flags = (dev.read_only ? O_RDONLY : O_RDWR);
@@ -115,6 +125,10 @@ void dev_close(void) {
 		
 		if (dev.map_cnt != 0) {
 			warnx("%" PRIu32 " device regions are still mapped", dev.map_cnt);
+			
+			if (dev.debug_map) {
+				debug_map_dump();
+			}
 		}
 		
 		if (close(dev.fd) < 0) {

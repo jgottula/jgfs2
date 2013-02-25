@@ -95,7 +95,7 @@ void fs_init(const char *dev_path,
 	fs = fs_null;
 	fs.mount_opt = *mount_opt;
 	
-	dev_open(dev_path, fs.mount_opt.read_only);
+	dev_open(dev_path, fs.mount_opt.read_only, fs.mount_opt.debug_map);
 	
 	TODO("device size checks");
 	
