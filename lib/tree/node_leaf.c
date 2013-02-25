@@ -166,21 +166,5 @@ bool leaf_insert(leaf_ptr node, const key *key, struct item_data item) {
 }
 
 void leaf_split_post(leaf_ptr this, leaf_ptr new) {
-#if 0
-	/* attempt to split down the middle in terms of item+data size */
-	split_at = node_split_point(node_addr);
-	
-	/* TODO: set new_node->hdr.leaf */
-	
-	/* copy items to the new node */
-	for (uint16_t i = split_at; i < node->hdr.item_qty; ++i) {
-		node_xfer(new_node, node, i);
-	}
-	
-	/* zero out the transferred items and data */
-	node_item_zero(node, split_at);
-	
-	first_key  = &node->items[0].key;
-	second_key = &new_node->items[0].key;
-#endif
+	leaf_xfer_half(new, this);
 }
