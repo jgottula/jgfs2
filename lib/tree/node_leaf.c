@@ -136,6 +136,12 @@ void leaf_append_naive(leaf_ptr node, const key *key, struct item_data item) {
 }
 
 bool leaf_insert(leaf_ptr node, const key *key, struct item_data item) {
+	if (sizeof(item_ref) + item.len >
+		node_size_byte() - sizeof(struct node_hdr)) {
+		errx(1, "%s: will never fit: node %08" PRIx32 " %s len %" PRIu32,
+			__func__, node->hdr.this, key_str(key), item.len);
+	}
+	
 	/* the caller needs to make space if necessary */
 	if (leaf_free(node) < sizeof(item_ref) + item.len) {
 		return false;
