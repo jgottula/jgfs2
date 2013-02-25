@@ -115,7 +115,7 @@ void leaf_insert_naive(leaf_ptr node, uint16_t at, const key *key,
 	item_ref *elem = node->elems + at;
 	
 	uint32_t off;
-	if (at > 0) {
+	if (at == 0) {
 		off = node_size_byte() - item.len;
 	} else {
 		item_ref *elem_prev = elem - 1;
