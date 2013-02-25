@@ -6,7 +6,7 @@ void leaf_dump(const leaf_ptr node) {
 	const struct node_hdr *hdr = &node->hdr;
 	
 	warnx("%s: this 0x%08" PRIx32 " parent 0x%08" PRIx32 " prev 0x%08" PRIx32
-		"next 0x%08" PRIx32 " cnt %" PRIu16,
+		" next 0x%08" PRIx32 " cnt %" PRIu16,
 		__func__, hdr->this, hdr->parent, hdr->prev, hdr->next, hdr->cnt);
 	
 	const item_ref *elem_end = node->elems + node->hdr.cnt;
