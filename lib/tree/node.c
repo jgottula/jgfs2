@@ -17,7 +17,7 @@ void node_dump(uint32_t node_addr) {
 
 struct check_result node_check(uint32_t node_addr) {
 	// check: sort order
-	// check: not empty
+	// check: not empty (ok for root only)
 	// check: no dupes
 	
 	// branch: elem->key == elem->addr->elems[0].key

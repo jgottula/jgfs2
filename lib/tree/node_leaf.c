@@ -2,8 +2,6 @@
 #include "../debug.h"
 
 
-#warning update headers
-
 void leaf_dump(const leaf_ptr node) {
 	const struct node_hdr *hdr = &node->hdr;
 	
@@ -90,20 +88,6 @@ void leaf_zero(leaf_ptr node, uint16_t first) {
 	memset(zero_begin, 0, (zero_end - zero_begin));
 }
 
-void leaf_append_naive(leaf_ptr node, const key *key, struct item_data item) {
-	uint32_t off = node->elems[node->hdr.cnt - 1].off - item.len;
-	uint8_t *data_ptr = (uint8_t *)node + off;
-	
-	memcpy(data_ptr, item.data, item.len);
-	
-	item_ref *elem = node->elems + node->hdr.cnt;
-	elem->key = *key;
-	elem->off = off;
-	elem->len = item.len;
-	
-	++node->hdr.cnt;
-}
-
 void leaf_xfer_half(leaf_ptr dst, leaf_ptr src) {
 	uint16_t half = leaf_half(src);
 	
@@ -117,11 +101,60 @@ void leaf_xfer_half(leaf_ptr dst, leaf_ptr src) {
 	leaf_zero(src, half);
 }
 
+void leaf_insert_naive(leaf_ptr node, uint16_t at, const key *key,
+	struct item_data item) {
+	item_ref *elem = node->elems +at;
+	
+	uint32_t off;
+	if (at > 0) {
+		off = node_size_byte() - item.len;
+	} else {
+		item_ref *elem_prev = elem - 1;
+		off = elem_prev->off - item.len;
+	}
+	
+	uint8_t *data_ptr = (uint8_t *)node + off;
+	memcpy(data_ptr, item.data, item.len);
+	
+	elem->key = *key;
+	elem->off = off;
+	elem->len = item.len;
+}
+
+void leaf_append_naive(leaf_ptr node, const key *key, struct item_data item) {
+	leaf_insert_naive(node, node->hdr.cnt, key, item);
+	++node->hdr.cnt;
+}
+
 bool leaf_insert(leaf_ptr node, const key *key, struct item_data item) {
+	/* the caller needs to make space if necessary */
+	if (leaf_free(node) < sizeof(item_ref) + item.len) {
+		return false;
+	}
 	
+	/* default insert at position 0 for empty leaf or lowest key */
+	uint16_t insert_at = 0;
+	for (uint16_t i = node->hdr.cnt; i > 0; --i) {
+		if (key_cmp(key, &node->elems[i - 1].key) < 0) {
+			insert_at = i;
+			break;
+		} else {
+			/* we need to move the elements themselves AND their data */
+			uint8_t *data_ptr = (uint8_t *)node + node->elems[i - 1].off;
+			memmove(data_ptr - item.len, data_ptr, node->elems[i - 1].len);
+			
+			node->elems[i] = node->elems[i - 1];
+		}
+	}
 	
-	/* if there is not enough space, FAIL */
+	leaf_insert_naive(node, insert_at, key, item);
+	++node->hdr.cnt;
 	
-	/* if we inserted the element in position 0, we need to update the node_ref
-	 * to us in our parent (if we are not root) */
+	/* if we are not root and we just inserted the element in position 0, we
+	 * need to update the node_ref to us in our parent */
+	if (insert_at == 0 && node->hdr.parent != 0) {
+		TODO("update parent ref key");
+	}
+	
+	return true;
 }

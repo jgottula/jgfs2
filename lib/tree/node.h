@@ -62,8 +62,8 @@ uint32_t branch_used(const branch_ptr node);
 uint32_t branch_free(const branch_ptr node);
 uint16_t branch_half(const branch_ptr node);
 void branch_zero(branch_ptr node, uint16_t first);
-void branch_append_naive(branch_ptr node, const node_ref *elem);
 void branch_xfer_half(branch_ptr dst, branch_ptr src);
+void branch_append_naive(branch_ptr node, const node_ref *elem);
 bool branch_insert(branch_ptr node, const node_ref *elem);
 
 void leaf_dump(const leaf_ptr node);
@@ -73,8 +73,10 @@ uint32_t leaf_used(const leaf_ptr node);
 uint32_t leaf_free(const leaf_ptr node);
 uint16_t leaf_half(const leaf_ptr node);
 void leaf_zero(leaf_ptr node, uint16_t first);
-void leaf_append_naive(leaf_ptr node, const key *key, struct item_data item);
 void leaf_xfer_half(leaf_ptr dst, leaf_ptr src);
+void leaf_insert_naive(leaf_ptr node, uint16_t at, const key *key,
+	struct item_data item);
+void leaf_append_naive(leaf_ptr node, const key *key, struct item_data item);
 bool leaf_insert(leaf_ptr node, const key *key, struct item_data item);
 
 

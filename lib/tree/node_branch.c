@@ -50,10 +50,6 @@ void branch_zero(branch_ptr node, uint16_t first) {
 	memset(zero_begin, 0, (zero_end - zero_begin));
 }
 
-void branch_append_naive(branch_ptr node, const node_ref *elem) {
-	node->elems[node->hdr.cnt++] = *elem;
-}
-
 void branch_xfer_half(branch_ptr dst, branch_ptr src) {
 	uint16_t half = branch_half(src);
 	
@@ -65,7 +61,12 @@ void branch_xfer_half(branch_ptr dst, branch_ptr src) {
 	branch_zero(src, half);
 }
 
+void branch_append_naive(branch_ptr node, const node_ref *elem) {
+	node->elems[node->hdr.cnt++] = *elem;
+}
+
 bool branch_insert(branch_ptr node, const node_ref *elem) {
+	/* the caller needs to make space if necessary */
 	if (branch_free(node) < sizeof(node_ref)) {
 		return false;
 	}
