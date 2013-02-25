@@ -1,6 +1,10 @@
 #include "check.h"
 
 
+struct check_result check_item(const key *key, struct item_data item) {
+	
+}
+
 struct check_result check_node_branch(branch_ptr node) {
 	struct check_result result = { RESULT_TYPE_OK };
 	
