@@ -25,10 +25,47 @@ struct check_result check_node_branch(branch_ptr node) {
 struct check_result check_node_leaf(leaf_ptr node) {
 	struct check_result result = { RESULT_TYPE_OK };
 	
-	// test here
-	// when any test fails, set result and goto done
+	if (node->hdr.cnt > 0) {
+		if (leaf_used(node) > (node_size_byte() - sizeof(struct node_hdr))) {
+			result.type = RESULT_TYPE_LEAF;
+			result.leaf = (struct leaf_check_error){
+				.code        = ERR_LEAF_OVERFLOW,
+				.node_addr   = node->hdr.this,
+			};
+			
+			goto done;
+		}
+		
+		uint32_t last_off = node_size_byte();
+		for (uint16_t i = 0; i < node->hdr.cnt; ++i) {
+			const item_ref *elem_i = node->elems + i;
+			
+			if (last_off != elem_i->off + elem_i->len) {
+				result.type = RESULT_TYPE_LEAF;
+				result.leaf = (struct leaf_check_error){
+					.code        = (last_off < elem_i->off + elem_i->len ?
+						ERR_LEAF_UNCONTIG : ERR_LEAF_OVERLAP),
+					.node_addr   = node->hdr.this,
+					
+					.elem_cnt    = 1,
+					.elem_idx[0] = i,
+					.elem[0]     = *elem_i,
+				};
+				
+				if (i < node->hdr.cnt - 1) {
+					result.leaf.elem_cnt    = 2;
+					result.leaf.elem_idx[1] = i + 1;
+					result.leaf.elem[1]     = *(elem_i + 1);
+				}
+				
+				goto done;
+			}
+			
+			last_off -= elem_i->len;
+		}
+	}
 	
-//done:
+done:
 	return result;
 }
 
@@ -185,14 +222,55 @@ void check_print(struct check_result result, bool fatal) {
 				err->elem_idx[1], key_str(&err->key[1]));
 			break;
 		}
+		
+		node_unmap(node);
 	} else if (result.type == RESULT_TYPE_BRANCH) {
 		//const struct branch_check_error *err = &result.branch;
 		
 		TODO("report for branch results");
 	} else if (result.type == RESULT_TYPE_LEAF) {
-		//const struct leaf_check_error *err = &result.leaf;
+		const struct leaf_check_error *err = &result.leaf;
 		
-		TODO("report for leaf results");
+		warnx("check_leaf on 0x%" PRIx32 " failed:", err->node_addr);
+		
+		bool have_desc = true;
+		const char *err_desc;
+		switch (err->code) {
+		case ERR_LEAF_OVERFLOW:
+			err_desc = "node content overflow";
+			break;
+		case ERR_LEAF_UNCONTIG:
+			err_desc = "uncontiguous item data";
+			break;
+		case ERR_LEAF_OVERLAP:
+			err_desc = "overlapping item data";
+			break;
+		default:
+			have_desc = false;
+		}
+		
+		if (have_desc) {
+			warnx("%s", err_desc);
+		} else {
+			warnx("unknown error (%" PRId32 ")", err->code);
+			err_desc = "unknown error";
+		}
+		
+		switch (err->code) {
+		case ERR_LEAF_UNCONTIG:
+		case ERR_LEAF_OVERLAP:
+			if (err->elem_cnt >= 1) {
+				warnx("[elem %" PRIu16 "] key %s off 0x%" PRIx32 " len 0x%"
+					PRIx32, err->elem_idx[0], key_str(&err->elem[0].key),
+					err->elem[0].off, err->elem[0].len);
+			}
+			if (err->elem_cnt >= 2) {
+				warnx("[elem %" PRIu16 "] key %s off 0x%" PRIx32 " len 0x%"
+					PRIx32, err->elem_idx[1], key_str(&err->elem[1].key),
+					err->elem[1].off, err->elem[1].len);
+			}
+			break;
+		}
 	} else if (result.type == RESULT_TYPE_ITEM) {
 		//const struct item_check_error *err = &result.item;
 		

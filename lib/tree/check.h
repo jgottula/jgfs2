@@ -31,13 +31,13 @@ enum check_error_code {
 	ERR_NODE_SORT  = 2,      // key[0] > key[1]
 	ERR_NODE_DUPE  = 3,      // key @ elem_idx[0] == key @ elem_idx[1]
 	
-	ERR_BRANCH_KEY      = 1, // elem.key != child.keys[0]
-	ERR_BRANCH_PARENT   = 2, // hdr.this != child.parent
-	ERR_BRANCH_OVERFLOW = 3, // cnt items wouldn't fit in a node
+	ERR_BRANCH_OVERFLOW = 1, // cnt items wouldn't fit in a node
+	ERR_BRANCH_KEY      = 2, // elem.key != child.keys[0]
+	ERR_BRANCH_PARENT   = 3, // hdr.this != child.parent
 	
-	ERR_LEAF_OVERLAP  = 1,   // elem data regions overlap
+	ERR_LEAF_OVERFLOW = 1,   // item_ref overlaps item data
 	ERR_LEAF_UNCONTIG = 2,   // wasted space between item data
-	ERR_LEAF_OVERFLOW = 3,   // item_ref overlaps item data
+	ERR_LEAF_OVERLAP  = 3,   // elem data regions overlap
 	
 	ERR_ITEM_KEY  = 1,       // inappropriate id or off for item type
 	ERR_ITEM_SIZE = 2,       // inappropriate size for item type
@@ -72,8 +72,9 @@ struct leaf_check_error {
 	uint32_t code;
 	uint32_t node_addr;
 	
-	uint16_t elem_idx;
-	item_ref elem;
+	uint16_t elem_cnt;
+	uint16_t elem_idx[2];
+	item_ref elem[2];
 };
 
 struct item_check_error {
