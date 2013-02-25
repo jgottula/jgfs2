@@ -35,13 +35,23 @@ static leaf_ptr tree_search_r(uint32_t root_addr, uint32_t node_addr,
 		branch_ptr branch = (branch_ptr)node;
 		leaf_ptr   result = NULL;
 		
-		TODO("handle case where key < node->elems[0].key");
+		if (node->hdr.cnt == 0) {
+			errx(1, "%s: cannot be empty: root %08" PRIx32 " node %08" PRIx32,
+				__func__, root_addr, node_addr);
+		}
 		
-		const node_ref *elem_end = branch->elems + branch->hdr.cnt;
-		for (const node_ref *elem = branch->elems; elem < elem_end; ++elem) {
-			if (key_cmp(key, &elem->key) > 0) {
-				result = tree_search_r(root_addr, elem->addr, key);
-				break;
+		/* if smaller than any other key, recurse through the first subnode */
+		const node_ref *elem_first = branch->elems;
+		if (key_cmp(key, &elem_first->key) < 0) {
+			result = tree_search_r(root_addr, elem_first->addr, key);
+		} else {
+			const node_ref *elem_end = branch->elems + branch->hdr.cnt;
+			for (const node_ref *elem = branch->elems;
+				elem < elem_end; ++elem) {
+				if (key_cmp(key, &elem->key) > 0) {
+					result = tree_search_r(root_addr, elem->addr, key);
+					break;
+				}
 			}
 		}
 		
