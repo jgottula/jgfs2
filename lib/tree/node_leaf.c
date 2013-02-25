@@ -149,17 +149,31 @@ bool leaf_insert(leaf_ptr node, const key *key, struct item_data item) {
 	
 	/* default insert at position 0 for empty leaf or lowest key */
 	uint16_t insert_at = 0;
-	for (uint16_t i = node->hdr.cnt; i > 0; --i) {
-		if (key_cmp(key, &node->elems[i - 1].key) < 0) {
-			insert_at = i;
-			break;
-		} else {
-			/* we need to move the elements themselves AND their data */
-			uint8_t *data_ptr = (uint8_t *)node + node->elems[i - 1].off;
-			memmove(data_ptr - item.len, data_ptr, node->elems[i - 1].len);
-			
-			node->elems[i] = node->elems[i - 1];
+	if (node->hdr.cnt != 0 && key_cmp(key, &node->elems[0].key) > 0) {
+		for (uint16_t i = 0; i < node->hdr.cnt; ++i) {
+			if (key_cmp(key, &node->elems[i].key) > 0) {
+				insert_at = i + 1;
+				break;
+			}
 		}
+		
+		if (insert_at == 0) {
+			errx("%s: can't find spot: node 0x%" PRIx32 " %s len %" PRIu32,
+				__func__, node->hdr.this, key_str(key), item.len);
+		}
+	}
+	
+	/* shift elements above the insertion point over by one; this includes the
+	 * data buffers to which they point */
+	item_ref *elem_last = node->elems + (node->hdr.cnt - 1);
+	for (item_ref *elem = elem_last; elem >= node->elems + insert_at; --elem) {
+		item_ref *elem_next = elem + 1;
+		*elem_next = *elem;
+		
+		uint8_t *data_ptr = (uint8_t *)node + elem_next->off;
+		memmove(data_ptr - item.len, data_ptr, elem_next->len);
+		
+		elem_next->off -= item.len;
 	}
 	
 	leaf_insert_naive(node, insert_at, key, item);
