@@ -4,9 +4,9 @@
 
 
 void test_mmap(void) {
-	fprintf(stderr, "%s", __func__);
+	fprintf(stderr, "%s\n", __func__);
 	
-	dev_open("/dev/loop0p1", false);
+	dev_open("/dev/loop0p1", false, true);
 	
 	void *ptr1 = dev_map_sect(0, 1);
 	void *ptr2 = dev_map_sect(0, 1);
@@ -23,7 +23,7 @@ void test_mmap(void) {
 	}
 	
 	if (memcmp(ptr1, ptr2, 0x200) != 0) {
-		errx(1, "%s: memcmp says ptr1[x] != ptr2[x]", __func__);
+		fprintf(stderr, "%s: memcmp says ptr1[x] != ptr2[x]\n", __func__);
 	}
 	
 	fprintf(stderr, "dump_mem(ptr1)\n");
