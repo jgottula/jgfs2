@@ -112,7 +112,7 @@ void leaf_xfer_half(leaf_ptr dst, leaf_ptr src) {
 
 void leaf_insert_naive(leaf_ptr node, uint16_t at, const key *key,
 	struct item_data item) {
-	item_ref *elem = node->elems +at;
+	item_ref *elem = node->elems + at;
 	
 	uint32_t off;
 	if (at > 0) {
