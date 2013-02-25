@@ -17,8 +17,8 @@ void dump_mem(const void *ptr, size_t len) {
 		end += 0x10;
 	}
 	
-	/* get base 2 log of len for display purposes */
-	len = (end - begin) - 1;
+	/* get log2 of len for display purposes */
+	len = (end - begin);
 	uint8_t log2_len = 0;
 	while (len != 0) {
 		len >>= 1;
@@ -35,11 +35,11 @@ void dump_mem(const void *ptr, size_t len) {
 	const uint8_t *ptr_b = begin_b;
 	
 	bool skip = false, skip_prev = false;
-	while (ptr_b < end_b) {
-		if (ptr_b - begin_b >= 0x10 && end_b - ptr_b > 0x10) {
+	while (ptr_b <= end_b) {
+		if (ptr_b - begin_b >= 0x10 && end_b - ptr_b >= 0x10) {
 			if (memcmp(ptr_b - 0x10, ptr_b, 0x10) == 0) {
 				if (!skip_prev) {
-					fputs(" *\n", stderr);
+					fputs("         *\n", stderr);
 					skip = true;
 				}
 			}
@@ -48,15 +48,18 @@ void dump_mem(const void *ptr, size_t len) {
 		}
 		
 		if (!skip) {
-			fprintf(stderr, "%0*" PRIxPTR ": ", log2_len, ptr_b - begin_b);
+			fprintf(stderr, "        %0*" PRIxPTR ": ",
+				log2_len, ptr_b - begin_b);
 			
-			for (const uint8_t *ptr_line = ptr_b;
-				ptr_line < ptr_b + 0x10; ++ptr_line) {
-				if (ptr_line == ptr_b + 8) {
-					fputc(' ', stderr);
+			if (ptr_b < end_b) {
+				for (const uint8_t *ptr_line = ptr_b;
+					ptr_line < ptr_b + 0x10; ++ptr_line) {
+					if (ptr_line == ptr_b + 8) {
+						fputc(' ', stderr);
+					}
+					
+					fprintf(stderr, " %02" PRIu8, *ptr_line);
 				}
-				
-				fprintf(stderr, " %02" PRIu8, *ptr_line);
 			}
 			
 			fputc('\n', stderr);
