@@ -29,8 +29,6 @@ void dump_mem(const void *ptr, size_t len) {
 	/* set len correctly */
 	len = (end - begin);
 	
-	warnx("%" PRIu8, log2_len);
-	
 	const uint8_t *begin_b = (const uint8_t *)begin;
 	const uint8_t *end_b   = (const uint8_t *)end;
 	
