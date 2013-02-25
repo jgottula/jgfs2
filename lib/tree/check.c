@@ -41,8 +41,6 @@ struct check_result check_node(uint32_t node_addr) {
 		result.node = (struct node_check_error){
 			.code        = ERR_NODE_THIS,
 			.node_addr   = node_addr,
-			
-			.hdr = node->hdr,
 		};
 		
 		goto done;
@@ -140,17 +138,18 @@ void check_print(struct check_result result, bool fatal) {
 	if (result.type == RESULT_TYPE_OK) {
 		return;
 	} else if (result.type == RESULT_TYPE_TREE) {
-		//const struct tree_check_error *tree = &result.tree;
+		//const struct tree_check_error *err = &result.tree;
 		
 		TODO("report for tree results");
 	} else if (result.type == RESULT_TYPE_NODE) {
-		const struct node_check_error *node = &result.node;
+		const struct node_check_error *err = &result.node;
+		const node_ptr node = node_map(err->node_addr);
 		
-		warnx("check_node on 0x%" PRIx32 " failed:", node->node_addr);
+		warnx("check_node on 0x%" PRIx32 " failed:", err->node_addr);
 		
 		bool have_desc = true;
 		const char *err_desc;
-		switch (node->code) {
+		switch (err->code) {
 		case ERR_NODE_THIS:
 			err_desc = "hdr.this != node_addr";
 			break;
@@ -170,32 +169,32 @@ void check_print(struct check_result result, bool fatal) {
 		if (have_desc) {
 			warnx("%s", err_desc);
 		} else {
-			warnx("unknown error (%" PRId32 ")", node->code);
+			warnx("unknown error (%" PRId32 ")", err->code);
 			err_desc = "unknown error";
 		}
 		
-		switch (node->code) {
+		switch (err->code) {
 		case ERR_NODE_THIS:
 			warnx("hdr.this 0x%" PRIx32, node->hdr.this);
 			break;
 		case ERR_NODE_SORT:
 		case ERR_NODE_DUPE:
 			warnx("[elem %" PRIu16 "] key %s",
-				node->elem_idx[0], key_str(&node->key[0]));
+				err->elem_idx[0], key_str(&err->key[0]));
 			warnx("[elem %" PRIu16 "] key %s",
-				node->elem_idx[1], key_str(&node->key[1]));
+				err->elem_idx[1], key_str(&err->key[1]));
 			break;
 		}
 	} else if (result.type == RESULT_TYPE_BRANCH) {
-		//const struct branch_check_error *branch = &result.branch;
+		//const struct branch_check_error *err = &result.branch;
 		
 		TODO("report for branch results");
 	} else if (result.type == RESULT_TYPE_LEAF) {
-		//const struct leaf_check_error *leaf = &result.leaf;
+		//const struct leaf_check_error *err = &result.leaf;
 		
 		TODO("report for leaf results");
 	} else if (result.type == RESULT_TYPE_ITEM) {
-		//const struct item_check_error *item = &result.item;
+		//const struct item_check_error *err = &result.item;
 		
 		TODO("report for item results");
 	} else {

@@ -56,7 +56,6 @@ struct node_check_error {
 	uint32_t code;
 	uint32_t node_addr;
 	
-	struct node_hdr hdr;
 	uint16_t elem_idx[2];
 	key      key[2];
 };
