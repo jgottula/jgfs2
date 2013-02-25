@@ -16,15 +16,15 @@
 		__FILE__, __LINE__, __func__, (_s))
 
 
-static noreturn void err(int eval, const char *fmt, ...)
-	__attribute__((format(printf, 2, 3)));
-static noreturn void errx(int eval, const char *fmt, ...)
-	__attribute__((format(printf, 2, 3)));
+static noreturn void err(const char *fmt, ...)
+	__attribute__((format(printf, 1, 2)));
+static noreturn void errx(const char *fmt, ...)
+	__attribute__((format(printf, 1, 2)));
 static void warn(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 static void warnx(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
 
-static noreturn void err(int eval, const char *fmt, ...) {
+static noreturn void err(const char *fmt, ...) {
 	fputs("jgfs2: ", stderr);
 	
 	va_list ap;
@@ -34,10 +34,10 @@ static noreturn void err(int eval, const char *fmt, ...) {
 	
 	fprintf(stderr, ": %s\n", strerror(errno));
 	
-	exit(eval);
+	abort();
 }
 
-static noreturn void errx(int eval, const char *fmt, ...) {
+static noreturn void errx(const char *fmt, ...) {
 	fputs("jgfs2: ", stderr);
 	
 	va_list ap;
@@ -47,7 +47,7 @@ static noreturn void errx(int eval, const char *fmt, ...) {
 	
 	fputc('\n', stderr);
 	
-	exit(eval);
+	abort();
 }
 
 static void warn(const char *fmt, ...) {

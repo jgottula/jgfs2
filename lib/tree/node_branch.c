@@ -55,9 +55,9 @@ void branch_xfer_half(branch_ptr dst, branch_ptr src) {
 	uint16_t half = branch_half(src);
 	
 	if (half == 0) {
-		errx(1, "%s: half == 0", __func__);
+		errx("%s: half == 0", __func__);
 	} else if (half == src->hdr.cnt) {
-		errx(1, "%s: half == src->hdr.cnt", __func__);
+		errx("%s: half == src->hdr.cnt", __func__);
 	}
 	
 	const node_ref *elem_end = src->elems + src->hdr.cnt;
@@ -88,8 +88,7 @@ bool branch_insert(branch_ptr node, const node_ref *elem) {
 	}
 	
 	if (node->hdr.cnt == 0) {
-		errx(1, "%s: cannot be empty: node 0x%" PRIx32,
-			__func__, node->hdr.this);
+		errx("%s: cannot be empty: node 0x%" PRIx32, __func__, node->hdr.this);
 	}
 	
 	/* insert at the end if highest key */
@@ -125,12 +124,12 @@ bool branch_insert(branch_ptr node, const node_ref *elem) {
 
 void branch_ref(branch_ptr node, node_ptr child) {
 	if (branch_free(node) < sizeof(node_ref)) {
-		errx(1, "%s: no space: node 0x%" PRIx32 " child 0x%" PRIx32,
+		errx("%s: no space: node 0x%" PRIx32 " child 0x%" PRIx32,
 			__func__, node->hdr.this, child->hdr.this);
 	}
 	
 	if (child->hdr.cnt == 0) {
-		errx(1, "%s: empty child: node 0x%" PRIx32 " child 0x%" PRIx32,
+		errx("%s: empty child: node 0x%" PRIx32 " child 0x%" PRIx32,
 			__func__, node->hdr.this, child->hdr.this);
 	}
 	
@@ -147,7 +146,7 @@ void branch_ref(branch_ptr node, node_ptr child) {
 
 void branch_ref_update(branch_ptr node, node_ptr child) {
 	if (child->hdr.cnt == 0) {
-		errx(1, "%s: empty child: node 0x%" PRIx32 " child 0x%" PRIx32,
+		errx("%s: empty child: node 0x%" PRIx32 " child 0x%" PRIx32,
 			__func__, node->hdr.this, child->hdr.this);
 	}
 	
@@ -168,7 +167,7 @@ void branch_ref_update(branch_ptr node, node_ptr child) {
 	}
 	
 	if (!found) {
-		errx(1, "%s: not found: node 0x%" PRIx32 " child 0x%" PRIx32,
+		errx("%s: not found: node 0x%" PRIx32 " child 0x%" PRIx32,
 			__func__, node->hdr.this, child->hdr.this);
 	}
 }

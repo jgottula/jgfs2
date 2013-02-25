@@ -193,7 +193,7 @@ void check_print(const struct check_result *result, bool fatal) {
 		
 		TODO("report for item results");
 	} else {
-		errx(1, "%s: result->type unknown: %" PRIu32, __func__, result->type);
+		errx("%s: result->type unknown: %" PRIu32, __func__, result->type);
 	}
 	
 	if (fatal) {

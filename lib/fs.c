@@ -31,7 +31,7 @@ static struct fs fs_null = {
 
 void *fs_map_sect(uint32_t sect_num, uint32_t sect_cnt) {
 	if (sect_num + sect_cnt > fs.sblk->s_total_sect) {
-		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
+		errx("%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
 			__func__, sect_num, sect_num + sect_cnt, fs.sblk->s_total_sect);
 	}
 	
@@ -40,7 +40,7 @@ void *fs_map_sect(uint32_t sect_num, uint32_t sect_cnt) {
 
 void fs_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt) {
 	if (sect_num + sect_cnt > fs.sblk->s_total_sect) {
-		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
+		errx("%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
 			__func__, sect_num, sect_num + sect_cnt, fs.sblk->s_total_sect);
 	}
 	
@@ -49,7 +49,7 @@ void fs_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt) {
 
 void *fs_map_blk(uint32_t blk_num, uint32_t blk_cnt) {
 	if (blk_num + blk_cnt > fs.size_blk) {
-		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
+		errx("%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
 			__func__, blk_num, blk_num + blk_cnt, fs.size_blk);
 	}
 	
@@ -59,7 +59,7 @@ void *fs_map_blk(uint32_t blk_num, uint32_t blk_cnt) {
 
 void fs_unmap_blk(void *addr, uint32_t blk_num, uint32_t blk_cnt) {
 	if (blk_num + blk_cnt > fs.size_blk) {
-		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
+		errx("%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
 			__func__, blk_num, blk_num + blk_cnt, fs.size_blk);
 	}
 	
@@ -110,7 +110,7 @@ void fs_init(const char *dev_path,
 	
 	TODO("verify backup super blocks");
 	if (!fs_sblk_check(fs.sblk)) {
-		errx(1, "primary super block validation failed");
+		errx("primary super block validation failed");
 	}
 	
 	fs.size_byte = SECT_TO_BYTE(fs.sblk->s_total_sect);

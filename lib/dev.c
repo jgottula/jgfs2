@@ -23,7 +23,7 @@ static struct dev dev_null = {
 
 void *dev_map_sect(uint32_t sect_num, uint32_t sect_cnt) {
 	if (sect_num + sect_cnt > dev.size_sect) {
-		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
+		errx("%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
 			__func__, sect_num, sect_num + sect_cnt, dev.size_sect);
 	}
 	
@@ -41,7 +41,7 @@ void *dev_map_sect(uint32_t sect_num, uint32_t sect_cnt) {
 	void *addr = mmap(NULL, byte_len, prot, MAP_SHARED, dev.fd, byte_off);
 	
 	if (addr == MAP_FAILED) {
-		err(1, "%s: mmap failed: sect [%" PRIu32 ", %" PRIu32 ")",
+		err("%s: mmap failed: sect [%" PRIu32 ", %" PRIu32 ")",
 			__func__, sect_num, sect_num + sect_cnt);
 	}
 	
@@ -52,7 +52,7 @@ void *dev_map_sect(uint32_t sect_num, uint32_t sect_cnt) {
 
 void dev_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt) {
 	if (sect_num + sect_cnt > dev.size_sect) {
-		errx(1, "%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
+		errx("%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
 			__func__, sect_num, sect_num + sect_cnt, dev.size_sect);
 	}
 	
@@ -69,7 +69,7 @@ void dev_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt) {
 	}
 	
 	if (munmap(addr, byte_len) < 0) {
-		err(1, "%s: munmap failed: addr %p, sect [%" PRIu32 ", %" PRIu32 ")",
+		err("%s: munmap failed: addr %p, sect [%" PRIu32 ", %" PRIu32 ")",
 			__func__, addr, sect_num, sect_num + sect_cnt);
 	}
 	
@@ -92,7 +92,7 @@ void dev_open(const char *dev_path, bool read_only) {
 	dev = dev_null;
 	
 	if ((dev.page_size = sysconf(_SC_PAGESIZE)) < 0) {
-		err(1, "could not get system page size");
+		err("could not get system page size");
 	}
 	
 	dev.read_only = read_only;
@@ -100,7 +100,7 @@ void dev_open(const char *dev_path, bool read_only) {
 	dev.path = strdup(dev_path);
 	int flags = (dev.read_only ? O_RDONLY : O_RDWR);
 	if ((dev.fd = open(dev.path, flags)) < 0) {
-		err(1, "failed to open '%s'", dev.path);
+		err("failed to open '%s'", dev.path);
 	}
 	
 	dev.size_byte = lseek(dev.fd, 0, SEEK_END);

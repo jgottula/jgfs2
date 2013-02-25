@@ -95,9 +95,9 @@ void leaf_xfer_half(leaf_ptr dst, leaf_ptr src) {
 	uint16_t half = leaf_half(src);
 	
 	if (half == 0) {
-		errx(1, "%s: half == 0", __func__);
+		errx("%s: half == 0", __func__);
 	} else if (half == src->hdr.cnt) {
-		errx(1, "%s: half == src->hdr.cnt", __func__);
+		errx("%s: half == src->hdr.cnt", __func__);
 	}
 	
 	const item_ref *elem_end = src->elems + src->hdr.cnt;
@@ -138,7 +138,7 @@ void leaf_append_naive(leaf_ptr node, const key *key, struct item_data item) {
 bool leaf_insert(leaf_ptr node, const key *key, struct item_data item) {
 	if (sizeof(item_ref) + item.len >
 		node_size_byte() - sizeof(struct node_hdr)) {
-		errx(1, "%s: will never fit: node 0x%" PRIx32 " %s len %" PRIu32,
+		errx("%s: will never fit: node 0x%" PRIx32 " %s len %" PRIu32,
 			__func__, node->hdr.this, key_str(key), item.len);
 	}
 	

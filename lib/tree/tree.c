@@ -25,7 +25,7 @@ void tree_insert(uint32_t root_addr, const key *key, struct item_data item) {
 			
 			retried = true;
 		} else {
-			errx(1, "%s: leaf_insert loop: root 0x%" PRIx32 " leaf 0x%" PRIx32
+			errx("%s: leaf_insert loop: root 0x%" PRIx32 " leaf 0x%" PRIx32
 				" %s len %" PRId32, __func__, root_addr, leaf_addr,
 				key_str(key), item.len);
 		}
@@ -46,7 +46,7 @@ static leaf_ptr tree_search_r(uint32_t root_addr, uint32_t node_addr,
 		leaf_ptr   result = NULL;
 		
 		if (node->hdr.cnt == 0) {
-			errx(1, "%s: cannot be empty: root 0x%" PRIx32 " node 0x%" PRIx32,
+			errx("%s: cannot be empty: root 0x%" PRIx32 " node 0x%" PRIx32,
 				__func__, root_addr, node_addr);
 		}
 		
@@ -74,7 +74,7 @@ static leaf_ptr tree_search_r(uint32_t root_addr, uint32_t node_addr,
 leaf_ptr tree_search(uint32_t root_addr, const key *key) {
 	node_ptr node = node_map(root_addr);
 	if (node->hdr.parent != 0) {
-		errx(1, "%s: node 0x%" PRIx32 " not root: parent 0x%" PRIx32,
+		errx("%s: node 0x%" PRIx32 " not root: parent 0x%" PRIx32,
 			__func__, root_addr, node->hdr.parent);
 	}
 	node_unmap(node);
