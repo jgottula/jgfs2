@@ -6,7 +6,7 @@ struct map_node *map_list = NULL;
 
 
 void debug_map_push(const void *addr, uint32_t sect_num, uint32_t sect_cnt) {
-	fprintf(stderr, "\e[31;1m  MAP %p %" PRIx32 " %" PRIx32 "\n\e[0m",
+	fprintf(stderr, "\e[31;1m  MAP %p %08" PRIx32 " %08" PRIx32 "\n\e[0m",
 		addr, sect_num, sect_cnt);
 	
 	if (map_list == NULL) {
@@ -25,7 +25,7 @@ void debug_map_push(const void *addr, uint32_t sect_num, uint32_t sect_cnt) {
 }
 
 void debug_map_pop(const void *addr, uint32_t sect_num, uint32_t sect_cnt) {
-	fprintf(stderr, "\e[32;1mUNMAP %p %" PRIx32 " %" PRIx32 "\n\e[0m",
+	fprintf(stderr, "\e[32;1mUNMAP %p %08" PRIx32 " %08" PRIx32 "\n\e[0m",
 		addr, sect_num, sect_cnt);
 	
 	struct map_node **prev = &map_list, *node = map_list;
@@ -47,7 +47,13 @@ void debug_map_pop(const void *addr, uint32_t sect_num, uint32_t sect_cnt) {
 }
 
 void debug_map_dump(void) {
-	
+	struct map_node *node = map_list;
+	while (node != NULL) {
+		fprintf(stderr, "\e[33;1m LEAK %p %08" PRIx32 " %08" PRIx32 "\n\e[0m",
+			node->payload.addr, node->payload.sect_num, node->payload.sect_cnt);
+		
+		node = node->next;
+	}
 }
 
 void dump_mem(const void *ptr, size_t len) {
