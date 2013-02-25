@@ -74,28 +74,32 @@ void branch_append_naive(branch_ptr node, const node_ref *elem) {
 	node->elems[node->hdr.cnt++] = *elem;
 }
 
-bool branch_insert(branch_ptr node, const node_ref *elem) {
+bool branch_insert(branch_ptr node, uint16_t cnt, const node_ref *elems) {
 	/* the caller needs to make space if necessary */
-	if (branch_free(node) < sizeof(node_ref)) {
+	if (branch_free(node) < cnt * sizeof(node_ref)) {
 		return false;
 	}
 	
 	/* default insert at position 0 for empty branch or lowest key */
 	uint16_t insert_at = 0;
-	for (uint16_t i = node->hdr.cnt; i > 0; --i) {
-		if (key_cmp(&elem->key, &node->elems[i - 1].key) < 0) {
-			insert_at = i;
+	uint16_t idx = node->hdr.cnt;
+	while (idx-- != 0) {
+		node->elems[idx + cnt] = node->elems[idx];
+		
+		if (key_cmp(&elem->key, &node->elems[idx].key) < 0) {
+			insert_at = idx;
 			break;
-		} else {
-			node->elems[i] = node->elems[i - 1];
 		}
 	}
 	
-	node->elems[insert_at] = *elem;
-	++node->hdr.cnt;
+	for (uint16_t i = 0; i < cnt; ++i) {
+		node->elems[insert_at + i] = elems[i];
+	}
 	
-	/* if we are not root and we just inserted the element in position 0, we
-	 * need to update the node_ref to us in our parent */
+	node->hdr.cnt += cnt;
+	
+	/* if we are not root and we just inserted element(s) at position 0, we need
+	 * to update the node_ref to us in our parent */
 	if (insert_at == 0 && node->hdr.parent != 0) {
 		TODO("update parent ref key");
 	}
