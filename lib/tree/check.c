@@ -26,11 +26,11 @@ struct check_result check_node_leaf(leaf_ptr node) {
 	struct check_result result = { RESULT_TYPE_OK };
 	
 	if (node->hdr.cnt > 0) {
-		if (leaf_used(node) > (node_size_byte() - sizeof(struct node_hdr))) {
+		if (leaf_used(node) > node_size_usable()) {
 			result.type = RESULT_TYPE_LEAF;
 			result.leaf = (struct leaf_check_error){
-				.code        = ERR_LEAF_OVERFLOW,
-				.node_addr   = node->hdr.this,
+				.code      = ERR_LEAF_OVERFLOW,
+				.node_addr = node->hdr.this,
 			};
 			
 			goto done;
@@ -38,30 +38,30 @@ struct check_result check_node_leaf(leaf_ptr node) {
 		
 		uint32_t last_off = node_size_byte();
 		for (uint16_t i = 0; i < node->hdr.cnt; ++i) {
-			const item_ref *elem_i = node->elems + i;
+			const item_ref *elem = node->elems + i;
 			
-			if (last_off != elem_i->off + elem_i->len) {
+			if (last_off != elem->off + elem->len) {
 				result.type = RESULT_TYPE_LEAF;
 				result.leaf = (struct leaf_check_error){
-					.code        = (last_off < elem_i->off + elem_i->len ?
+					.code      = (last_off < elem->off + elem->len ?
 						ERR_LEAF_UNCONTIG : ERR_LEAF_OVERLAP),
-					.node_addr   = node->hdr.this,
+					.node_addr = node->hdr.this,
 					
 					.elem_cnt    = 1,
 					.elem_idx[0] = i,
-					.elem[0]     = *elem_i,
+					.elem[0]     = *elem,
 				};
 				
 				if (i < node->hdr.cnt - 1) {
 					result.leaf.elem_cnt    = 2;
 					result.leaf.elem_idx[1] = i + 1;
-					result.leaf.elem[1]     = *(elem_i + 1);
+					result.leaf.elem[1]     = *(elem + 1);
 				}
 				
 				goto done;
 			}
 			
-			last_off -= elem_i->len;
+			last_off -= elem->len;
 		}
 	}
 	
@@ -232,6 +232,7 @@ void check_print(struct check_result result, bool fatal) {
 		TODO("report for branch results");
 	} else if (result.type == RESULT_TYPE_LEAF) {
 		const struct leaf_check_error *err = &result.leaf;
+		const leaf_ptr node = (leaf_ptr)node_map(err->node_addr);
 		
 		warnx("check_leaf on 0x%" PRIx32 " failed:", err->node_addr);
 		
@@ -259,6 +260,10 @@ void check_print(struct check_result result, bool fatal) {
 		}
 		
 		switch (err->code) {
+		case ERR_LEAF_OVERFLOW:
+			warnx("%" PRIu32 " used > %" PRIu32 " possible",
+				leaf_used(node), node_size_usable());
+			break;
 		case ERR_LEAF_UNCONTIG:
 		case ERR_LEAF_OVERLAP:
 			if (err->elem_cnt >= 1) {
@@ -273,6 +278,8 @@ void check_print(struct check_result result, bool fatal) {
 			}
 			break;
 		}
+		
+		node_unmap((node_ptr)node);
 	} else if (result.type == RESULT_TYPE_ITEM) {
 		//const struct item_check_error *err = &result.item;
 		
