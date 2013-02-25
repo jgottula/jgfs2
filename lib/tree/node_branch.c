@@ -14,7 +14,7 @@ void branch_dump(const branch_ptr node) {
 			(elem - node->elems), key_str(&elem->key), elem->addr);
 	}
 	
-	dump_mem(node, sizeof(*node));
+	dump_mem(node, node_size_byte());
 }
 
 branch_ptr branch_init(uint32_t node_addr, uint32_t parent) {
