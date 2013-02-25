@@ -15,7 +15,7 @@ void leaf_dump(const leaf_ptr node) {
 			(elem - node->elems), key_str(&elem->key), elem->len);
 	}
 	
-	dump_mem(node, sizeof(*node));
+	dump_mem(node, node_size_byte());
 }
 
 leaf_ptr leaf_init(uint32_t node_addr, uint32_t parent, uint32_t prev,
