@@ -100,11 +100,11 @@ struct check_result {
 };
 
 
-struct check_result check_item(const key *key, struct item_data item);
+struct check_result check_tree(uint32_t root_addr);
+struct check_result check_node(uint32_t node_addr);
 struct check_result check_node_branch(branch_ptr node);
 struct check_result check_node_leaf(leaf_ptr node);
-struct check_result check_node(uint32_t node_addr);
-struct check_result check_tree(uint32_t root_addr);
+struct check_result check_item(const key *key, struct item_data item);
 void check_print(struct check_result result, bool fatal);
 
 
