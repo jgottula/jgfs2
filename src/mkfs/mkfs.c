@@ -11,6 +11,7 @@ void jgfs2_new(const char *, const struct jgfs2_mount_options *,
 int main(int argc, char **argv) { // void
 	struct jgfs2_mount_options mount_opt;
 	mount_opt.read_only = false;
+	mount_opt.debug_map = false;
 	
 	struct jgfs2_mkfs_param param;
 	strcpy(param.label, "justix");
