@@ -88,7 +88,7 @@ bool branch_insert(branch_ptr node, const node_ref *elem) {
 	}
 	
 	if (node->hdr.cnt == 0) {
-		errx("%s: cannot be empty: node 0x%" PRIx32 "%s addr 0x%" PRIx32,
+		errx("%s: cannot be empty: node 0x%" PRIx32 " %s addr 0x%" PRIx32,
 			__func__, node->hdr.this, key_str(&elem->key), elem->addr);
 	}
 	
