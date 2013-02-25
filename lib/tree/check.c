@@ -136,15 +136,15 @@ struct check_result check_tree(uint32_t root_addr) {
 	return result;
 }
 
-void check_print(const struct check_result *result, bool fatal) {
-	if (result->type == RESULT_TYPE_OK) {
+void check_print(struct check_result result, bool fatal) {
+	if (result.type == RESULT_TYPE_OK) {
 		return;
-	} else if (result->type == RESULT_TYPE_TREE) {
-		//const struct tree_check_error *tree = &result->tree;
+	} else if (result.type == RESULT_TYPE_TREE) {
+		//const struct tree_check_error *tree = &result.tree;
 		
 		TODO("report for tree results");
-	} else if (result->type == RESULT_TYPE_NODE) {
-		const struct node_check_error *node = &result->node;
+	} else if (result.type == RESULT_TYPE_NODE) {
+		const struct node_check_error *node = &result.node;
 		
 		warnx("check_node on 0x%" PRIx32 " failed:", node->node_addr);
 		
@@ -180,20 +180,20 @@ void check_print(const struct check_result *result, bool fatal) {
 				node->elem_idx[1], key_str(&node->key[1]));
 			break;
 		}
-	} else if (result->type == RESULT_TYPE_BRANCH) {
-		//const struct branch_check_error *branch = &result->branch;
+	} else if (result.type == RESULT_TYPE_BRANCH) {
+		//const struct branch_check_error *branch = &result.branch;
 		
 		TODO("report for branch results");
-	} else if (result->type == RESULT_TYPE_LEAF) {
-		//const struct leaf_check_error *leaf = &result->leaf;
+	} else if (result.type == RESULT_TYPE_LEAF) {
+		//const struct leaf_check_error *leaf = &result.leaf;
 		
 		TODO("report for leaf results");
-	} else if (result->type == RESULT_TYPE_ITEM) {
-		//const struct item_check_error *item = &result->item;
+	} else if (result.type == RESULT_TYPE_ITEM) {
+		//const struct item_check_error *item = &result.item;
 		
 		TODO("report for item results");
 	} else {
-		errx("%s: result->type unknown: %" PRIu32, __func__, result->type);
+		errx("%s: result.type unknown: %" PRIu32, __func__, result.type);
 	}
 	
 	if (fatal) {

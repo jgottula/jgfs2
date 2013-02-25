@@ -102,7 +102,7 @@ struct check_result check_node_branch(branch_ptr node);
 struct check_result check_node_leaf(leaf_ptr node);
 struct check_result check_node(uint32_t node_addr);
 struct check_result check_tree(uint32_t root_addr);
-void check_print(const struct check_result *result, bool fatal);
+void check_print(struct check_result result, bool fatal);
 
 
 #endif
