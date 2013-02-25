@@ -23,6 +23,7 @@ int main(int argc, char **argv) { // void
 	param.zap_boot   = true;
 	
 	jgfs2_new(argv[1], &mount_opt, &param);
+	jgfs2_done();
 	
 	warnx("success");
 	
