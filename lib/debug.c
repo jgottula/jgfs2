@@ -14,25 +14,47 @@ void dump_mem(const void *ptr, size_t len) {
 		end += 0x10;
 	}
 	
+	size_t real_len = end - start;
+	
 	const uint8_t *ptr_b = (const uint8_t *)start;
 	const uint8_t *end_b = (const uint8_t *)end;
 	
-	uint8_t i = 0;
-	
+	uint32_t i = 0;
+	bool skip = false;
 	while (ptr_b != end_b) {
-		if (i == 0) {
+		if (i % 16 == 0) {
+			if (i >= 0x10 && real_len >= 0x10) {
+				if (memcmp(ptr_b - 0x10, ptr_b, 0x10) == 0) {
+					if (!skip) {
+						fputs("*\n", stderr);
+						skip = true;
+					}
+					
+					ptr_b    += 0x10;
+					real_len -= 0x10;
+					
+					continue;
+				} else {
+					skip = false;
+				}
+			} else {
+				skip = false;
+			}
+		}
+		
+		if (i % 16 == 0) {
 			fprintf(stderr, "%p:  ", ptr_b);
-		} else if (i == 8) {
+		} else if (i % 16 == 8) {
 			fputc(' ', stderr);
 		}
 		
 		fprintf(stderr, " %02" PRIu8, *ptr_b);
 		
-		if (++i == 16) {
+		if (++i % 16 == 0) {
 			fputc('\n', stderr);
-			i = 0;
 		}
 		
 		++ptr_b;
+		--real_len;
 	}
 }
