@@ -26,9 +26,9 @@ enum check_error_code {
 	ERR_TREE_PREV_SKIP  = 3, // prev->prev skips a node
 	ERR_TREE_PREV_ORDER = 4, // prev->prev goes forwards
 	
-	ERR_NODE_SORT  = 1,      // key[n] > key[n+1]
-	ERR_NODE_EMPTY = 2,      // !root and no elems
-	ERR_NODE_DUPE  = 3,      // key[a] == key[b]
+	ERR_NODE_SORT  = 1,      // key[0] > key[1]
+	ERR_NODE_DUPE  = 2,      // key @ elem_idx[0] == key @ elem_idx[1]
+	ERR_NODE_EMPTY = 3,      // !root and no elems
 	ERR_NODE_THIS  = 4,      // hdr.this is wrong
 	
 	ERR_BRANCH_KEY      = 1, // elem.key != child.keys[0]
@@ -45,50 +45,53 @@ enum check_error_code {
 
 
 struct tree_check_error {
-	uint32_t error_code;
+	uint32_t code;
 	
 	uint32_t root_addr;
 	uint32_t node_addr;
-	key key;
+	key      key;
 };
 
 struct node_check_error {
-	uint32_t error_code;
+	uint32_t code;
 	
 	uint32_t node_addr;
-	key key;
+	uint16_t elem_idx[2];
+	key      key[2];
 };
 
 struct branch_check_error {
-	uint32_t error_code;
+	uint32_t code;
 	
 	uint32_t node_addr;
+	uint16_t elem_idx;
 	node_ref elem;
 };
 
 struct leaf_check_error {
-	uint32_t error_code;
+	uint32_t code;
 	
 	uint32_t node_addr;
+	uint16_t elem_idx;
 	item_ref elem;
 };
 
 struct item_check_error {
-	uint32_t error_code;
+	uint32_t code;
 	
 	key key;
 	struct item_data item;
 };
 
 struct check_result {
-	uint32_t result_type;
+	uint32_t type;
 	
 	union {
-		struct tree_check_error   tree_error;
-		struct node_check_error   node_error;
-		struct branch_check_error branch_error;
-		struct leaf_check_error   leaf_error;
-		struct item_check_error   item_error;
+		struct tree_check_error   tree;
+		struct node_check_error   node;
+		struct branch_check_error branch;
+		struct leaf_check_error   leaf;
+		struct item_check_error   item;
 	};
 };
 
