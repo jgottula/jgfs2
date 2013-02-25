@@ -12,7 +12,7 @@
 
 
 #define TODO(_s) \
-	fprintf(stderr, "\e[37;1mTODO(%s:%d) %s: %s\n\e[0m", \
+	fprintf(stderr, "\e[37;1mTODO @ %s:%d [%s] %s\n\e[0m", \
 		__FILE__, __LINE__, __func__, (_s))
 
 
