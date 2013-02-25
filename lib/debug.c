@@ -58,7 +58,7 @@ void dump_mem(const void *ptr, size_t len) {
 						fputc(' ', stderr);
 					}
 					
-					fprintf(stderr, " %02" PRIu8, *ptr_line);
+					fprintf(stderr, " %02" PRIx8, *ptr_line);
 				}
 			}
 			
