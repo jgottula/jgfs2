@@ -1,4 +1,5 @@
 #include "check.h"
+#include "../debug.h"
 
 
 struct check_result check_item(const key *key, struct item_data item) {
@@ -109,4 +110,56 @@ struct check_result check_tree(uint32_t root_addr) {
 	
 //done:
 	return result;
+}
+
+void check_print(const struct check_result *result, bool fatal) {
+	if (result->type == RESULT_TYPE_OK) {
+		return;
+	} else if (result->type == RESULT_TYPE_TREE) {
+		const struct tree_check_error *tree = &result->tree;
+		
+		TODO("report for tree results");
+	} else if (result->type == RESULT_TYPE_NODE) {
+		const struct node_check_error *node = &result->node;
+		
+		warnx("check_node on %08" PRIx32 " failed:", node->node_addr);
+		
+		const char *err_desc;
+		switch (node->code) {
+		case ERR_NODE_SORT:
+			err_desc = "key sort violation";
+			break;
+		case ERR_NODE_DUPE:
+			err_desc = "key dupe";
+			break;
+		default:
+			err_desc = "unknown error";
+		}
+		
+		warnx("[%" PRId32 "] %s", node->code, err_desc);
+		
+		switch (node->code) {
+		case ERR_NODE_SORT:
+		case ERR_NODE_DUPE:
+			warnx("[elem %" PRIu16 "] key %s",
+				node->elem_idx[0], key_str(&node->key[0]));
+			warnx("[elem %" PRIu16 "] key %s",
+				node->elem_idx[1], key_str(&node->key[1]));
+			break;
+		}
+	} else if (result->type == RESULT_TYPE_BRANCH) {
+		const struct branch_check_error *branch = &result->branch;
+		
+		TODO("report for branch results");
+	} else if (result->type == RESULT_TYPE_LEAF) {
+		const struct leaf_check_error *leaf = &result->leaf;
+		
+		TODO("report for leaf results");
+	} else if (result->type == RESULT_TYPE_ITEM) {
+		const struct item_check_error *item = &result->item;
+		
+		TODO("report for item results");
+	} else {
+		errx(1, "%s: result->type unknown: %" PRIu32, __func__, result->type);
+	}
 }

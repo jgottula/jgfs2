@@ -46,32 +46,32 @@ enum check_error_code {
 
 struct tree_check_error {
 	uint32_t code;
-	
 	uint32_t root_addr;
+	
 	uint32_t node_addr;
 	key      key;
 };
 
 struct node_check_error {
 	uint32_t code;
-	
 	uint32_t node_addr;
+	
 	uint16_t elem_idx[2];
 	key      key[2];
 };
 
 struct branch_check_error {
 	uint32_t code;
-	
 	uint32_t node_addr;
+	
 	uint16_t elem_idx;
 	node_ref elem;
 };
 
 struct leaf_check_error {
 	uint32_t code;
-	
 	uint32_t node_addr;
+	
 	uint16_t elem_idx;
 	item_ref elem;
 };
@@ -101,6 +101,7 @@ struct check_result check_node_branch(branch_ptr node);
 struct check_result check_node_leaf(leaf_ptr node);
 struct check_result check_node(uint32_t node_addr);
 struct check_result check_tree(uint32_t root_addr);
+void check_print(const struct check_result *result, bool fatal);
 
 
 #endif
