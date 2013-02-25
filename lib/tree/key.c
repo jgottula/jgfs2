@@ -28,7 +28,7 @@ const char *key_str(const key *key) {
 	static char buf[1024];
 	
 	snprintf(buf, sizeof(buf),
-		"[ id %" PRIu32 " type %" PRIu8 " off %" PRIu32 "]",
+		"[ id %" PRIx32 " type %" PRIx8 " off %" PRIx32 " ]",
 		key->id, key->type, key->off);
 	
 	return buf;
