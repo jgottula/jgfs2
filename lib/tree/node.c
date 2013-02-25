@@ -33,6 +33,14 @@ void node_unmap(const node_ptr node) {
 	fs_unmap_blk(node, hdr->this, node_size_blk());
 }
 
+bool node_is_root(uint32_t node_addr) {
+	const node_ptr node = node_map(node_addr);
+	bool is_root = (node->hdr.parent == 0);
+	node_unmap(node);
+	
+	return is_root;
+}
+
 void node_zero_data(node_ptr node) {
 	uint8_t *zero_ptr = (uint8_t *)node + sizeof(struct node_hdr);
 	size_t   zero_len = node_size_usable();
