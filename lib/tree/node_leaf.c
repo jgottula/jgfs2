@@ -91,6 +91,12 @@ void leaf_zero(leaf_ptr node, uint16_t first) {
 void leaf_xfer_half(leaf_ptr dst, leaf_ptr src) {
 	uint16_t half = leaf_half(src);
 	
+	if (half == 0) {
+		errx(1, "%s: half == 0", __func__);
+	} else if (half == src->hdr.cnt) {
+		errx(1, "%s: half == src->hdr.cnt", __func__);
+	}
+	
 	const item_ref *elem_end = src->elems + src->hdr.cnt;
 	for (const item_ref *elem = src->elems + half; elem < elem_end; ++elem) {
 		uint8_t *data_ptr = (uint8_t *)src + elem->off;
@@ -160,9 +166,21 @@ bool leaf_insert(leaf_ptr node, const key *key, struct item_data item) {
 }
 
 void leaf_split_post(leaf_ptr this, leaf_ptr new) {
+#if 0
+	/* attempt to split down the middle in terms of item+data size */
+	split_at = node_split_point(node_addr);
 	
+	/* TODO: set new_node->hdr.leaf */
 	
+	/* copy items to the new node */
+	for (uint16_t i = split_at; i < node->hdr.item_qty; ++i) {
+		node_xfer(new_node, node, i);
+	}
 	
+	/* zero out the transferred items and data */
+	node_item_zero(node, split_at);
 	
-	/* update new->hdr.key */
+	first_key  = &node->items[0].key;
+	second_key = &new_node->items[0].key;
+#endif
 }

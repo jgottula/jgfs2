@@ -53,6 +53,12 @@ void branch_zero(branch_ptr node, uint16_t first) {
 void branch_xfer_half(branch_ptr dst, branch_ptr src) {
 	uint16_t half = branch_half(src);
 	
+	if (half == 0) {
+		errx(1, "%s: half == 0", __func__);
+	} else if (half == src->hdr.cnt) {
+		errx(1, "%s: half == src->hdr.cnt", __func__);
+	}
+	
 	const node_ref *elem_end = src->elems + src->hdr.cnt;
 	for (const node_ref *elem = src->elems + half; elem < elem_end; ++elem) {
 		branch_append_naive(dst, elem);
@@ -109,13 +115,47 @@ bool branch_insert(branch_ptr node, const node_ref *elem) {
 	return true;
 }
 
+void branch_ref(branch_ptr node, node_ptr child) {
+	if (branch_free(node) < sizeof(node_ref)) {
+		errx(1, "%s: no space: node %08" PRIx32 " child %08" PRIx32,
+			__func__, node->hdr.this, child->hdr.this);
+	}
+	
+	if (child->hdr.cnt == 0) {
+		errx(1, "%s: empty child: node %08" PRIx32 " child %08" PRIx32,
+			__func__, node->hdr.this, child->hdr.this);
+	}
+	
+	node_ref elem;
+	if (child->hdr.leaf) {
+		elem.key = ((leaf_ptr)child)->elems[0].key;
+	} else {
+		elem.key = ((branch_ptr)child)->elems[0].key;
+	}
+	elem.addr = child->hdr.this;
+	
+	branch_insert(node, &elem);
+}
+
 void branch_split_post(branch_ptr this, branch_ptr new, bool was_root) {
+#if 0
+	uint16_t new_idx = 0;
+	for (uint16_t i = split_at; i < node->hdr.item_qty; ++i) {
+		new_node->children[new_idx] = node->children[i];
+		
+		++new_idx;
+	}
 	
+	/* zero out the transferred node ptrs */
+	uint8_t *zero_begin = (uint8_t *)&node->children[split_at];
+	uint8_t *zero_end   = (uint8_t *)node + fs.blk_size;
 	
+	memset(zero_begin, 0, zero_end - zero_begin);
 	
+	first_key  = &node->children[0].key;
+	second_key = &new_node->children[0].key;
+#endif
 	
-	/* always update the parent value of new's children */
+	/* always call branch_assert_parenthood on new */
 	/* do the same for this if was_root is true */
-	
-	/* update new->hdr.key */
 }
