@@ -11,7 +11,7 @@ void leaf_dump(const leaf_ptr node) {
 	
 	const item_ref *elem_end = node->elems + node->hdr.cnt;
 	for (const item_ref *elem = node->elems; elem < elem_end; ++elem) {
-		fprintf(stderr, "item %3" PRIdPTR ": %s len %" PRIu32 "\n",
+		fprintf(stderr, "        item %-4" PRIdPTR " %s len %" PRIu32 "\n",
 			(elem - node->elems), key_str(&elem->key), elem->len);
 	}
 	
