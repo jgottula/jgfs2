@@ -87,14 +87,9 @@ bool branch_insert(branch_ptr node, const node_ref *elem) {
 		return false;
 	}
 	
-	if (node->hdr.cnt == 0) {
-		errx("%s: cannot be empty: node 0x%" PRIx32 " %s addr 0x%" PRIx32,
-			__func__, node->hdr.this, key_str(&elem->key), elem->addr);
-	}
-	
-	/* default insert at position 0 if lowest key */
+	/* default insert at position 0 for empty branch or lowest key */
 	uint16_t insert_at = 0;
-	if (key_cmp(&elem->key, &node->elems[0].key) > 0) {
+	if (node->hdr.cnt != 0 && key_cmp(&elem->key, &node->elems[0].key) > 0) {
 		for (uint16_t i = node->hdr.cnt; i > 0; --i) {
 			if (key_cmp(&elem->key, &node->elems[i - 1].key) > 0) {
 				insert_at = i;
