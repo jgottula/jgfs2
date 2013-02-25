@@ -14,6 +14,7 @@ typedef struct __attribute__((__packed__)) {
 
 
 int8_t key_cmp(const key *lhs, const key *rhs);
+const char *key_str(const key *key);
 
 
 #endif
