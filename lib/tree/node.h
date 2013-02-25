@@ -63,7 +63,7 @@ void branch_zero(branch_ptr node, uint16_t first);
 void branch_xfer_half(branch_ptr dst, branch_ptr src);
 void branch_assert_parenthood(branch_ptr node);
 void branch_append_naive(branch_ptr node, const node_ref *elem);
-bool branch_insert(branch_ptr node, uint16_t cnt, const node_ref *elems);
+bool branch_insert(branch_ptr node, const node_ref *elem);
 void branch_split_post(branch_ptr this, branch_ptr new, bool was_root);
 
 void leaf_dump(const leaf_ptr node);
@@ -77,8 +77,7 @@ void leaf_xfer_half(leaf_ptr dst, leaf_ptr src);
 void leaf_insert_naive(leaf_ptr node, uint16_t at, const key *key,
 	struct item_data item);
 void leaf_append_naive(leaf_ptr node, const key *key, struct item_data item);
-bool leaf_insert(leaf_ptr node, uint16_t cnt, const key *keys,
-	const struct item_data *items);
+bool leaf_insert(leaf_ptr node, const key *key, struct item_data item);
 void leaf_split_post(leaf_ptr this, leaf_ptr new);
 
 
