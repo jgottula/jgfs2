@@ -33,6 +33,11 @@ TEST_SRC=(src/test/*.c)
 TEST_OBJS=${TEST_SRC[@]//.c/.o}
 TEST_LIBS=(-lbsd)
 
+TREE_OUT="bin/jgfs2tree"
+TREE_SRC=(src/tree/*.c)
+TREE_OBJS=${TREE_SRC[@]//.c/.o}
+TREE_LIBS=()
+
 FUSE_OUT="bin/jgfs2fuse"
 FUSE_SRC=(src/fuse/*.c)
 FUSE_OBJS=${FUSE_SRC[@]//.c/.o}
@@ -91,11 +96,13 @@ function target_lib {
 
 case "$TARGET" in
 all)
-	redo lib test fuse mkfs fsck defrag fsctl attr ;;
+	redo lib test tree fuse mkfs fsck defrag fsctl attr ;;
 lib)
 	redo-ifchange $LIB_OUT ;;
 test)
 	redo-ifchange $TEST_OUT ;;
+tree)
+	redo-ifchange $TREE_OUT ;;
 fuse)
 	redo-ifchange $FUSE_OUT ;;
 mkfs)
@@ -116,6 +123,11 @@ $LIB_OUT)
 $TEST_OUT)
 	LIBS="${TEST_LIBS[@]}"
 	OBJS="${TEST_OBJS[@]} $LIB_OUT"
+	target_link
+	;;
+$TREE_OUT)
+	LIBS="${TREE_LIBS[@]}"
+	OBJS="${TREE_OBJS[@]} $LIB_OUT"
 	target_link
 	;;
 $FUSE_OUT)
