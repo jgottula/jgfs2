@@ -124,7 +124,9 @@ void fs_init(const char *dev_path,
 	
 	fs.boot = fs_map_sect(JGFS2_BOOT_SECT, fs.sblk->s_boot_sect);
 	
-	fs_new_post();
+	if (new_sblk != NULL) {
+		fs_new_post();
+	}
 	
 	if (fs.sblk->s_mtime > time(NULL)) {
 		warnx("last mount time is in the future: %s",
