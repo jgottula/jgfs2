@@ -10,14 +10,14 @@ void tree_init(uint32_t root_addr) {
 void tree_insert(uint32_t root_addr, const key *key, struct item_data item) {
 	bool done = false;
 	do {
-		leaf_ptr leaf = tree_search(root_addr, key);
+		leaf_ptr leaf      = tree_search(root_addr, key);
+		uint32_t leaf_addr = leaf->hdr.this;
 		
 		if (leaf_insert(leaf, key, item)) {
 			done = true;
 		} else {
 			node_unmap((node_ptr)leaf);
-			
-			TODO("split the node");
+			node_split(leaf_addr);
 		}
 	} while (!done);
 }
