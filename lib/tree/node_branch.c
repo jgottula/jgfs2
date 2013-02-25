@@ -86,10 +86,15 @@ bool branch_insert(branch_ptr node, const node_ref *elem) {
 		return false;
 	}
 	
-	/* insert at the end if node is empty or if highest key */
+	if (node->hdr.cnt == 0) {
+		errx(1, "%s: cannot be empty: node %08" PRIx32,
+			__func__, node->hdr.this);
+	}
+	
+	/* insert at the end if highest key */
 	uint16_t insert_at;
 	const node_ref *elem_last = node->elems + (node->hdr.cnt - 1);
-	if (node->hdr.cnt == 0 || key_cmp(&elem->key, &elem_last->key) > 0) {
+	if (key_cmp(&elem->key, &elem_last->key) > 0) {
 		insert_at = node->hdr.cnt;
 	} else {
 		uint16_t i = node->hdr.cnt;
@@ -109,7 +114,9 @@ bool branch_insert(branch_ptr node, const node_ref *elem) {
 	/* if we are not root and we just inserted the element in position 0, we
 	 * need to update the node_ref to us in our parent */
 	if (insert_at == 0 && node->hdr.parent != 0) {
-		TODO("update parent ref key");
+		branch_ptr parent = (branch_ptr)node_map(node->hdr.parent);
+		branch_ref_update(parent, (node_ptr)node);
+		node_unmap((node_ptr)parent);
 	}
 	
 	return true;
@@ -135,6 +142,34 @@ void branch_ref(branch_ptr node, node_ptr child) {
 	elem.addr = child->hdr.this;
 	
 	branch_insert(node, &elem);
+}
+
+void branch_ref_update(branch_ptr node, node_ptr child) {
+	if (child->hdr.cnt == 0) {
+		errx(1, "%s: empty child: node %08" PRIx32 " child %08" PRIx32,
+			__func__, node->hdr.this, child->hdr.this);
+	}
+	
+	bool found = false;
+	
+	const node_ref *elem_end = node->elems + node->hdr.cnt;
+	for (node_ref *elem = node->elems; elem < elem_end; ++elem) {
+		if (elem->addr == child->hdr.this) {
+			if (child->hdr.leaf) {
+				elem->key = ((leaf_ptr)child)->elems[0].key;
+			} else {
+				elem->key = ((branch_ptr)child)->elems[0].key;
+			}
+			
+			found = true;
+			break;
+		}
+	}
+	
+	if (!found) {
+		errx(1, "%s: not found: node %08" PRIx32 " child %08" PRIx32,
+			__func__, node->hdr.this, child->hdr.this);
+	}
 }
 
 void branch_split_post(branch_ptr this, branch_ptr new, bool was_root) {

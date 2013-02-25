@@ -159,7 +159,9 @@ bool leaf_insert(leaf_ptr node, const key *key, struct item_data item) {
 	/* if we are not root and we just inserted the element in position 0, we
 	 * need to update the node_ref to us in our parent */
 	if (insert_at == 0 && node->hdr.parent != 0) {
-		TODO("update parent ref key");
+		branch_ptr parent = (branch_ptr)node_map(node->hdr.parent);
+		branch_ref_update(parent, (node_ptr)node);
+		node_unmap((node_ptr)parent);
 	}
 	
 	return true;

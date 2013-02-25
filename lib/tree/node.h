@@ -66,6 +66,7 @@ void branch_assert_parenthood(branch_ptr node);
 void branch_append_naive(branch_ptr node, const node_ref *elem);
 bool branch_insert(branch_ptr node, const node_ref *elem);
 void branch_ref(branch_ptr node, node_ptr child);
+void branch_ref_update(branch_ptr node, node_ptr child);
 void branch_split_post(branch_ptr this, branch_ptr new, bool was_root);
 
 void leaf_dump(const leaf_ptr node);
