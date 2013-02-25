@@ -1,32 +1,6 @@
 #include "debug.h"
-#include <execinfo.h>
-#include <limits.h>
-#include <signal.h>
-#include <unistd.h>
 #include "fs.h"
 
-
-void sig_handle(int sig_num) {
-	if (sig_num == SIGSEGV) {
-		warnx("%s: caught SIGSEGV", __func__);
-		
-		void *bt_buf[1024];
-		int   bt_num = backtrace(bt_buf, sizeof(bt_buf) / sizeof(void *));
-		backtrace_symbols_fd(bt_buf, bt_num, STDERR_FILENO);
-		
-		char prog_path[PATH_MAX];
-		if (readlink("/proc/self/exe", prog_path, sizeof(prog_path)) < 0) {
-			warnx("%s: could not read /proc/self/exe", __func__);
-			abort();
-		}
-		
-		char cmd_buf[1024];
-		snprintf(cmd_buf, sizeof(cmd_buf), "gdb %s %d", prog_path, getpid());
-		system(cmd_buf);
-		
-		abort();
-	}
-}
 
 void dump_mem(const void *ptr, size_t len) {
 	warnx("%s: %zu bytes @ %p", __func__, len, ptr);

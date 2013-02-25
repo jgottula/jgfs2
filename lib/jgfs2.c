@@ -1,5 +1,4 @@
 #include "jgfs2.h"
-#include <signal.h>
 #include "debug.h"
 #include "fs.h"
 #include "new.h"
@@ -9,8 +8,6 @@ static void jgfs2_clean_up(void) {
 	warnx("cleaning up");
 	
 	fs_done();
-	
-	signal(SIGSEGV, SIG_DFL);
 }
 
 void jgfs2_stat(uint32_t *blk_size, uint32_t *blk_total, uint32_t *blk_used) {
@@ -35,7 +32,6 @@ void jgfs2_init(const char *dev_path,
 	warnx("version 0x%04x", JGFS2_VER_TOTAL);
 	
 	atexit(jgfs2_clean_up);
-	signal(SIGSEGV, sig_handle);
 	
 	fs_init(dev_path, mount_opt, NULL);
 }
