@@ -1,12 +1,15 @@
 #include "debug.h"
+#include "jgfs2.h"
 
 
 void dump_mem(const void *ptr, size_t len) {
-	uintptr_t start = (uintptr_t)ptr;
+	warnx("%s: %zu bytes @ %p", __func__, len, ptr);
+	
+	uintptr_t begin = (uintptr_t)ptr;
 	uintptr_t end   = (uintptr_t)((uint8_t *)ptr + len);
 	
 	/* round down to 16 bytes */
-	start &= ~0xf;
+	begin &= ~0xf;
 	
 	/* round up to 16 bytes */
 	if ((end & 0xf) != 0) {
@@ -14,47 +17,54 @@ void dump_mem(const void *ptr, size_t len) {
 		end += 0x10;
 	}
 	
-	size_t real_len = end - start;
+	/* get base 2 log of len for display purposes */
+	len = (end - begin) - 1;
+	uint8_t log2_len = 0;
+	while (len != 0) {
+		len >>= 1;
+		++log2_len;
+	}
+	log2_len = CEIL(log2_len, 4);
 	
-	const uint8_t *ptr_b = (const uint8_t *)start;
-	const uint8_t *end_b = (const uint8_t *)end;
+	/* set len correctly */
+	len = (end - begin);
 	
-	uint32_t i = 0;
-	bool skip = false;
-	while (ptr_b != end_b) {
-		if (i % 16 == 0) {
-			if (i >= 0x10 && real_len >= 0x10) {
-				if (memcmp(ptr_b - 0x10, ptr_b, 0x10) == 0) {
-					if (!skip) {
-						fputs("*\n", stderr);
-						skip = true;
-					}
-					
-					ptr_b    += 0x10;
-					real_len -= 0x10;
-					
-					continue;
-				} else {
-					skip = false;
+	warnx("%" PRIu8, log2_len);
+	
+	const uint8_t *begin_b = (const uint8_t *)begin;
+	const uint8_t *end_b   = (const uint8_t *)end;
+	
+	const uint8_t *ptr_b = begin_b;
+	
+	bool skip = false, skip_prev = false;
+	while (ptr_b < end_b) {
+		if (ptr_b - begin_b >= 0x10 && end_b - ptr_b > 0x10) {
+			if (memcmp(ptr_b - 0x10, ptr_b, 0x10) == 0) {
+				if (!skip_prev) {
+					fputs(" *\n", stderr);
+					skip = true;
 				}
-			} else {
-				skip = false;
 			}
+		} else {
+			skip = false;
 		}
 		
-		if (i % 16 == 0) {
-			fprintf(stderr, "%p:  ", ptr_b);
-		} else if (i % 16 == 8) {
-			fputc(' ', stderr);
-		}
-		
-		fprintf(stderr, " %02" PRIu8, *ptr_b);
-		
-		if (++i % 16 == 0) {
+		if (!skip) {
+			fprintf(stderr, "%0*" PRIxPTR ": ", log2_len, ptr_b - begin_b);
+			
+			for (const uint8_t *ptr_line = ptr_b;
+				ptr_line < ptr_b + 0x10; ++ptr_line) {
+				if (ptr_line == ptr_b + 8) {
+					fputc(' ', stderr);
+				}
+				
+				fprintf(stderr, " %02" PRIu8, *ptr_line);
+			}
+			
 			fputc('\n', stderr);
 		}
 		
-		++ptr_b;
-		--real_len;
+		skip_prev = skip;
+		ptr_b += 0x10;
 	}
 }
