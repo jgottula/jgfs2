@@ -12,16 +12,22 @@ void tree_init(uint32_t root_addr) {
 }
 
 void tree_insert(uint32_t root_addr, const key *key, struct item_data item) {
-	bool done = false;
+	bool done = false, retried = false;
 	do {
 		leaf_ptr leaf      = tree_search(root_addr, key);
 		uint32_t leaf_addr = leaf->hdr.this;
 		
 		if (leaf_insert(leaf, key, item)) {
 			done = true;
-		} else {
+		} else if (!retried) {
 			node_unmap((node_ptr)leaf);
 			node_split(leaf_addr);
+			
+			retried = true;
+		} else {
+			errx(1, "%s: leaf_insert loop: root 0x%" PRIx32 " leaf 0x%" PRIx32
+				" %s len %" PRId32, __func__, root_addr, leaf_addr,
+				key_str(key), item.len);
 		}
 	} while (!done);
 }
