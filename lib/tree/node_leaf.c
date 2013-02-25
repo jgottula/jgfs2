@@ -159,7 +159,7 @@ bool leaf_insert(leaf_ptr node, const key *key, struct item_data item) {
 	return true;
 }
 
-void leaf_split(leaf_ptr this, leaf_ptr new) {
+void leaf_split_post(leaf_ptr this, leaf_ptr new) {
 	
 	
 	

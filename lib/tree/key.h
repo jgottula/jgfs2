@@ -3,7 +3,6 @@
 
 
 #include "../jgfs2.h"
-#include "common.h"
 
 
 typedef struct __attribute__((__packed__)) {

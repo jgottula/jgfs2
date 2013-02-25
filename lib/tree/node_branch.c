@@ -103,7 +103,7 @@ bool branch_insert(branch_ptr node, const node_ref *elem) {
 	return true;
 }
 
-void branch_split(branch_ptr this, branch_ptr new, bool was_root) {
+void branch_split_post(branch_ptr this, branch_ptr new, bool was_root) {
 	
 	
 	

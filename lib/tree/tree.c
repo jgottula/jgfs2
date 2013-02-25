@@ -1,5 +1,6 @@
 #include "tree.h"
 #include "../debug.h"
+#include "check.h"
 
 
 void tree_init(uint32_t root_addr) {
@@ -26,7 +27,7 @@ static leaf_ptr tree_search_r(uint32_t root_addr, uint32_t node_addr,
 	node_ptr node = node_map(node_addr);
 	
 	/* remove this later for performance */
-	node_check(node_addr);
+	check_node(node_addr);
 	
 	if (node->hdr.leaf) {
 		return (leaf_ptr)node;

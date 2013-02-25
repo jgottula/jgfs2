@@ -3,7 +3,6 @@
 
 
 #include "../jgfs2.h"
-#include "common.h"
 #include "key.h"
 #include "item.h"
 #include "node.h"

@@ -4,7 +4,6 @@
 
 #include "../jgfs2.h"
 #include "../fs.h"
-#include "common.h"
 #include "key.h"
 #include "item.h"
 
@@ -49,7 +48,6 @@ typedef struct leaf_node   *leaf_ptr;
 
 
 void node_dump(uint32_t node_addr);
-struct check_result node_check(uint32_t node_addr);
 uint32_t node_alloc(void);
 node_ptr node_map(uint32_t node_addr);
 void node_unmap(const node_ptr node);
@@ -66,7 +64,7 @@ void branch_xfer_half(branch_ptr dst, branch_ptr src);
 void branch_assert_parenthood(branch_ptr node);
 void branch_append_naive(branch_ptr node, const node_ref *elem);
 bool branch_insert(branch_ptr node, const node_ref *elem);
-void branch_split(branch_ptr this, branch_ptr new, bool was_root);
+void branch_split_post(branch_ptr this, branch_ptr new, bool was_root);
 
 void leaf_dump(const leaf_ptr node);
 leaf_ptr leaf_init(uint32_t node_addr, uint32_t parent, uint32_t next);
@@ -80,7 +78,7 @@ void leaf_insert_naive(leaf_ptr node, uint16_t at, const key *key,
 	struct item_data item);
 void leaf_append_naive(leaf_ptr node, const key *key, struct item_data item);
 bool leaf_insert(leaf_ptr node, const key *key, struct item_data item);
-void leaf_split(leaf_ptr this, leaf_ptr new);
+void leaf_split_post(leaf_ptr this, leaf_ptr new);
 
 
 inline uint32_t node_size_blk(void) {

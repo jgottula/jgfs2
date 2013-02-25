@@ -15,20 +15,6 @@ void node_dump(uint32_t node_addr) {
 	fs_unmap_blk(hdr, node_addr, node_size_blk());
 }
 
-struct check_result node_check(uint32_t node_addr) {
-	// check: sort order
-	// check: not empty (ok for root only)
-	// check: no dupes
-	
-	// branch: elem->key == elem->addr->elems[0].key
-	
-	// leaf: no overlaps
-	// leaf: size valid for type
-	
-	// put branch checks in branch_check
-	// put leaf checks in leaf_check
-}
-
 uint32_t node_alloc(void) {
 	/* allocating a block should be okay because the ext tree does not insert
 	 * items on allocations; otherwise, we could deadlock, since extent
@@ -55,15 +41,14 @@ void node_copy_data(node_ptr dst, const node_ptr src) {
 	memcpy(copy_dst, copy_src, copy_len);
 }
 
-void node_split(uint32_t node_addr) {
-	uint32_t new_addr = node_alloc();
-	
-	node_ptr this = node_map(node_addr);
+void node_split(uint32_t this_addr) {
+	node_ptr this = node_map(this_addr);
 	node_ptr new;
 	
 	bool was_root = (this->hdr.parent == 0);
 	
-	TODO("test this");
+	uint32_t parent_addr = this->hdr.parent;
+	uint32_t new_addr    = node_alloc();
 	
 	/* if we are root, allocate *two* new nodes to be children of root, leaving
 	 * this as the new root, so the addr of the tree's root doesn't change;
@@ -81,7 +66,7 @@ void node_split(uint32_t node_addr) {
 		}
 		
 		node_copy_data(this2, this);
-		this2->hdr.parent = node_addr;
+		this2->hdr.parent = this_addr;
 		
 		root->hdr.parent = 0;*/
 		
@@ -104,20 +89,33 @@ void node_split(uint32_t node_addr) {
 		 * non-root block so that subsequent code need not know about the
 		 * shenanigans we had to pull here */
 	} else {
+		/* we handle possible parent splits first so that the recursion will
+		 * go cleanly, without worry for partial changes down at this level */
+		branch_ptr parent = (branch_ptr)node_map(parent_addr);
+		if (branch_free(parent) < sizeof(node_ref)) {
+			/* remap the parent in case it was moved in the split */
+			node_unmap((node_ptr)parent);
+			node_split(parent_addr);
+			parent = (branch_ptr)node_map(parent_addr);
+		}
+		
 		if (this->hdr.leaf) {
-			new = (node_ptr)leaf_init(new_addr, this->hdr.parent,
-				this->hdr.next);
+			new = (node_ptr)leaf_init(new_addr, parent_addr, this->hdr.next);
 		} else {
-			new = (node_ptr)branch_init(new_addr, this->hdr.parent);
+			new = (node_ptr)branch_init(new_addr, parent_addr);
 		}
 		
 		this->hdr.next = new_addr;
+		
+		/* now: insert new into parent */
+		TODO("insert new into parent");
+		node_unmap((node_ptr)parent);
 	}
 	
 	if (this->hdr.leaf) {
-		leaf_split((leaf_ptr)this, (leaf_ptr)new);
+		leaf_split_post((leaf_ptr)this, (leaf_ptr)new);
 	} else {
-		branch_split((branch_ptr)this, (branch_ptr)new, was_root);
+		branch_split_post((branch_ptr)this, (branch_ptr)new, was_root);
 	}
 }
 
@@ -126,14 +124,6 @@ void node_split(uint32_t node_addr) {
  * or addressed! */
 
 #if 0
-	/* if this is a branch, new's children's parent values need to be updated;
-	 * if was_root, then the same needs to done for this's children */
-	
-	
-	/* allocating a block should be okay because the ext tree does not insert
-	 * items on allocations; otherwise, we could deadlock */
-	uint32_t new_addr = ext_alloc(1);
-	struct jgfs2_node *new_node = fs_map_blk(new_addr, 1);
 	
 	const struct jgfs2_key *first_key, *second_key;
 	
