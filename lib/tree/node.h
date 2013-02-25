@@ -23,6 +23,7 @@ struct __attribute__((__packed__)) node_hdr {
 	bool leaf;
 	uint16_t cnt;
 	uint32_t this;
+	uint32_t prev;
 	uint32_t next;
 	uint32_t parent;
 };
@@ -70,7 +71,8 @@ void branch_ref_update(branch_ptr node, node_ptr child);
 void branch_split_post(branch_ptr this, branch_ptr new, bool was_root);
 
 void leaf_dump(const leaf_ptr node);
-leaf_ptr leaf_init(uint32_t node_addr, uint32_t parent, uint32_t next);
+leaf_ptr leaf_init(uint32_t node_addr, uint32_t parent, uint32_t prev,
+	uint32_t next);
 uint32_t leaf_used(const leaf_ptr node);
 uint32_t leaf_free(const leaf_ptr node);
 uint16_t leaf_half(const leaf_ptr node);

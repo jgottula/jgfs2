@@ -72,7 +72,7 @@ void node_split(uint32_t this_addr) {
 		
 		if (this->hdr.leaf) {
 			this = (node_ptr)leaf_init(this_addr, parent_addr,
-				parent->hdr.next);
+				parent->hdr.prev, new_addr);
 		} else {
 			this = (node_ptr)branch_init(this_addr, parent_addr);
 		}
@@ -81,6 +81,7 @@ void node_split(uint32_t this_addr) {
 		this->hdr.cnt = parent->hdr.cnt;
 		
 		parent->hdr.parent = 0;
+		parent->hdr.prev   = 0;
 		parent->hdr.next   = 0;
 		parent->hdr.cnt    = 0;
 		parent->hdr.leaf   = false;
@@ -98,9 +99,9 @@ void node_split(uint32_t this_addr) {
 		}
 	}
 	
-	this->hdr.next = new_addr;
 	if (this->hdr.leaf) {
-		new = (node_ptr)leaf_init(new_addr, parent_addr, this->hdr.next);
+		new = (node_ptr)leaf_init(new_addr, parent_addr, this_addr,
+			this->hdr.next);
 		leaf_split_post((leaf_ptr)this, (leaf_ptr)new);
 	} else {
 		new = (node_ptr)branch_init(new_addr, parent_addr);

@@ -5,8 +5,9 @@
 void leaf_dump(const leaf_ptr node) {
 	const struct node_hdr *hdr = &node->hdr;
 	
-	warnx("%s: this 0x%08" PRIx32 " parent 0x%08" PRIx32 " next 0x%80" PRIx32
-		" cnt %" PRIu16, __func__, hdr->this, hdr->parent, hdr->next, hdr->cnt);
+	warnx("%s: this 0x%08" PRIx32 " parent 0x%08" PRIx32 " prev 0x%08" PRIx32
+		"next 0x%08" PRIx32 " cnt %" PRIu16,
+		__func__, hdr->this, hdr->parent, hdr->prev, hdr->next, hdr->cnt);
 	
 	const item_ref *elem_end = node->elems + node->hdr.cnt;
 	for (const item_ref *elem = node->elems; elem < elem_end; ++elem) {
@@ -17,12 +18,14 @@ void leaf_dump(const leaf_ptr node) {
 	dump_mem(node, sizeof(*node));
 }
 
-leaf_ptr leaf_init(uint32_t node_addr, uint32_t parent, uint32_t next) {
+leaf_ptr leaf_init(uint32_t node_addr, uint32_t parent, uint32_t prev,
+	uint32_t next) {
 	leaf_ptr node = (leaf_ptr)node_map(node_addr);
 	
 	node->hdr.leaf   = true;
 	node->hdr.cnt    = 0;
 	node->hdr.this   = node_addr;
+	node->hdr.prev   = prev;
 	node->hdr.next   = next;
 	node->hdr.parent = parent;
 	

@@ -23,6 +23,8 @@ enum check_error_code {
 	ERR_TREE_DUPE       = 2, // key[a] == key[b]
 	ERR_TREE_NEXT_SKIP  = 3, // next->next skips a node
 	ERR_TREE_NEXT_ORDER = 4, // next->next goes backwards
+	ERR_TREE_PREV_SKIP  = 3, // prev->prev skips a node
+	ERR_TREE_PREV_ORDER = 4, // prev->prev goes forwards
 	
 	ERR_NODE_SORT  = 1,      // key[n] > key[n+1]
 	ERR_NODE_EMPTY = 2,      // !root and no elems
@@ -40,6 +42,7 @@ enum check_error_code {
 	ERR_ITEM_KEY  = 1,       // inappropriate id or off for item type
 	ERR_ITEM_SIZE = 2,       // inappropriate size for item type
 };
+
 
 struct tree_check_error {
 	uint32_t error_code;

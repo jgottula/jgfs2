@@ -23,6 +23,7 @@ branch_ptr branch_init(uint32_t node_addr, uint32_t parent) {
 	node->hdr.leaf   = false;
 	node->hdr.cnt    = 0;
 	node->hdr.this   = node_addr;
+	node->hdr.prev   = 0;
 	node->hdr.next   = 0;
 	node->hdr.parent = parent;
 	

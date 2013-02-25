@@ -4,7 +4,7 @@
 
 
 void tree_init(uint32_t root_addr) {
-	node_unmap((node_ptr)leaf_init(root_addr, 0, 0));
+	node_unmap((node_ptr)leaf_init(root_addr, 0, 0, 0));
 }
 
 void tree_insert(uint32_t root_addr, const key *key, struct item_data item) {
