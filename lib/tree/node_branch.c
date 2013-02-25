@@ -88,24 +88,31 @@ bool branch_insert(branch_ptr node, const node_ref *elem) {
 	}
 	
 	if (node->hdr.cnt == 0) {
-		errx("%s: cannot be empty: node 0x%" PRIx32, __func__, node->hdr.this);
+		errx("%s: cannot be empty: node 0x%" PRIx32 "%s addr 0x%" PRIx32,
+			__func__, node->hdr.this, key_str(&elem->key), elem->addr);
 	}
 	
-	/* insert at the end if highest key */
-	uint16_t insert_at;
-	const node_ref *elem_last = node->elems + (node->hdr.cnt - 1);
-	if (key_cmp(&elem->key, &elem_last->key) > 0) {
-		insert_at = node->hdr.cnt;
-	} else {
-		uint16_t i = node->hdr.cnt;
-		while (i-- != 0) {
-			if (key_cmp(&elem->key, &node->elems[i].key) < 0) {
-				insert_at = i;
+	/* default insert at position 0 if lowest key */
+	uint16_t insert_at = 0;
+	if (key_cmp(&elem->key, &node->elems[0].key) > 0) {
+		for (uint16_t i = 0; i < node->hdr.cnt; ++i) {
+			if (key_cmp(&elem->key, &node->elems[i].key) > 0) {
+				insert_at = i + 1;
 				break;
 			}
-			
-			node->elems[i + 1] = node->elems[i];
 		}
+		
+		if (insert_at == 0) {
+			errx("%s: can't find spot: node 0x%" PRIx32 "%s addr 0x%" PRIx32,
+				__func__, node->hdr.this, key_str(&elem->key), elem->addr);
+		}
+	}
+	
+	/* shift elements above the insertion point over by one */
+	node_ref *elem_last = node->elems + (node->hdr.cnt - 1);
+	for (node_ref *elem = elem_last; elem >= node->elems + insert_at; --elem) {
+		node_ref *elem_next = elem + 1;
+		*elem_next = *elem;
 	}
 	
 	node->elems[insert_at] = *elem;
