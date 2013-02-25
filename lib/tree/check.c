@@ -36,6 +36,28 @@ struct check_result check_node(uint32_t node_addr) {
 	struct check_result result = { RESULT_TYPE_OK };
 	node_ptr node = node_map(node_addr);
 	
+	if (node->hdr.this != node_addr) {
+		result.type = RESULT_TYPE_NODE;
+		result.node = (struct node_check_error){
+			.code        = ERR_NODE_THIS,
+			.node_addr   = node_addr,
+			
+			.hdr = node->hdr,
+		};
+		
+		goto done;
+	}
+	
+	if (node->hdr.parent != 0 && node->hdr.cnt == 0) {
+		result.type = RESULT_TYPE_NODE;
+		result.node = (struct node_check_error){
+			.code        = ERR_NODE_EMPTY,
+			.node_addr   = node_addr,
+		};
+		
+		goto done;
+	}
+	
 	if (node->hdr.leaf) {
 		leaf_ptr node_leaf = (leaf_ptr)node;
 		
@@ -51,6 +73,7 @@ struct check_result check_node(uint32_t node_addr) {
 				result.node = (struct node_check_error){
 					.code        = (cmp > 0 ? ERR_NODE_SORT : ERR_NODE_DUPE),
 					.node_addr   = node_addr,
+					
 					.elem_idx[0] = elem_prev - node_leaf->elems,
 					.elem_idx[1] = elem - node_leaf->elems,
 					.key[0]      = elem_prev->key,
@@ -75,6 +98,7 @@ struct check_result check_node(uint32_t node_addr) {
 				result.node = (struct node_check_error){
 					.code        = (cmp > 0 ? ERR_NODE_SORT : ERR_NODE_DUPE),
 					.node_addr   = node_addr,
+					
 					.elem_idx[0] = elem_prev - node_branch->elems,
 					.elem_idx[1] = elem - node_branch->elems,
 					.key[0]      = elem_prev->key,
@@ -116,7 +140,7 @@ void check_print(const struct check_result *result, bool fatal) {
 	if (result->type == RESULT_TYPE_OK) {
 		return;
 	} else if (result->type == RESULT_TYPE_TREE) {
-		const struct tree_check_error *tree = &result->tree;
+		//const struct tree_check_error *tree = &result->tree;
 		
 		TODO("report for tree results");
 	} else if (result->type == RESULT_TYPE_NODE) {
@@ -126,6 +150,12 @@ void check_print(const struct check_result *result, bool fatal) {
 		
 		const char *err_desc;
 		switch (node->code) {
+		case ERR_NODE_THIS:
+			err_desc = "hdr.this != node_addr";
+			break;
+		case ERR_NODE_EMPTY:
+			err_desc = "empty non-root node";
+			break;
 		case ERR_NODE_SORT:
 			err_desc = "key sort violation";
 			break;
@@ -139,6 +169,9 @@ void check_print(const struct check_result *result, bool fatal) {
 		warnx("[%" PRId32 "] %s", node->code, err_desc);
 		
 		switch (node->code) {
+		case ERR_NODE_THIS:
+			warnx("hdr.this 0x%" PRIx32, node->hdr.this);
+			break;
 		case ERR_NODE_SORT:
 		case ERR_NODE_DUPE:
 			warnx("[elem %" PRIu16 "] key %s",
@@ -148,15 +181,15 @@ void check_print(const struct check_result *result, bool fatal) {
 			break;
 		}
 	} else if (result->type == RESULT_TYPE_BRANCH) {
-		const struct branch_check_error *branch = &result->branch;
+		//const struct branch_check_error *branch = &result->branch;
 		
 		TODO("report for branch results");
 	} else if (result->type == RESULT_TYPE_LEAF) {
-		const struct leaf_check_error *leaf = &result->leaf;
+		//const struct leaf_check_error *leaf = &result->leaf;
 		
 		TODO("report for leaf results");
 	} else if (result->type == RESULT_TYPE_ITEM) {
-		const struct item_check_error *item = &result->item;
+		//const struct item_check_error *item = &result->item;
 		
 		TODO("report for item results");
 	} else {

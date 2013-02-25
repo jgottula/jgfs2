@@ -26,10 +26,10 @@ enum check_error_code {
 	ERR_TREE_PREV_SKIP  = 3, // prev->prev skips a node
 	ERR_TREE_PREV_ORDER = 4, // prev->prev goes forwards
 	
-	ERR_NODE_SORT  = 1,      // key[0] > key[1]
-	ERR_NODE_DUPE  = 2,      // key @ elem_idx[0] == key @ elem_idx[1]
-	ERR_NODE_EMPTY = 3,      // !root and no elems
-	ERR_NODE_THIS  = 4,      // hdr.this is wrong
+	ERR_NODE_THIS  = 0,      // hdr.this is wrong
+	ERR_NODE_EMPTY = 1,      // !root and no elems
+	ERR_NODE_SORT  = 2,      // key[0] > key[1]
+	ERR_NODE_DUPE  = 3,      // key @ elem_idx[0] == key @ elem_idx[1]
 	
 	ERR_BRANCH_KEY      = 1, // elem.key != child.keys[0]
 	ERR_BRANCH_PARENT   = 2, // hdr.this != child.parent
@@ -56,6 +56,7 @@ struct node_check_error {
 	uint32_t code;
 	uint32_t node_addr;
 	
+	struct node_hdr hdr;
 	uint16_t elem_idx[2];
 	key      key[2];
 };
