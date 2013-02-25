@@ -1,6 +1,5 @@
 #include "dev.h"
 #include <fcntl.h>
-#include <inttypes.h>
 #include <sys/mman.h>
 #include <unistd.h>
 #include "debug.h"

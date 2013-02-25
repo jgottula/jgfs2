@@ -1,5 +1,4 @@
 #include "debug.h"
-#include <inttypes.h>
 
 
 void dump_mem(const void *ptr, size_t len) {

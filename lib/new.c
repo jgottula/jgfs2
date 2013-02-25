@@ -1,6 +1,5 @@
 #include "new.h"
 #include <bsd/string.h>
-#include <inttypes.h>
 #include <sys/user.h>
 #include <time.h>
 #include "debug.h"

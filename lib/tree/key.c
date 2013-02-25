@@ -1,5 +1,5 @@
 #include "key.h"
-#include <inttypes.h>
+#include "../debug.h"
 
 
 int8_t key_cmp(const key *lhs, const key *rhs) {

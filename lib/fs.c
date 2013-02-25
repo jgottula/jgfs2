@@ -1,5 +1,4 @@
 #include "fs.h"
-#include <inttypes.h>
 #include <time.h>
 #include "debug.h"
 #include "dev.h"
