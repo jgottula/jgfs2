@@ -101,9 +101,9 @@ struct check_result check_node(uint32_t node_addr) {
 	
 	/* run specific branch- and leaf-specific checks */
 	if (node->hdr.leaf) {
-		result = check_node_branch((branch_ptr)node);
-	} else {
 		result = check_node_leaf((leaf_ptr)node);
+	} else {
+		result = check_node_branch((branch_ptr)node);
 	}
 	
 done:
