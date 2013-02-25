@@ -65,7 +65,7 @@ void node_split(uint32_t this_addr) {
 	uint32_t new_addr = node_alloc();
 	node_ptr new;
 	
-	bool was_root = (parent_addr == 0);
+	bool was_root = node_is_root(this);
 	
 	/* if we are root, allocate *two* new nodes to be children of root, leaving
 	 * this as the new root, so the addr of the tree's root doesn't change;
