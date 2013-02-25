@@ -2,19 +2,18 @@
 #include "../debug.h"
 
 
+#warning update headers
+
 void leaf_dump(const leaf_ptr node) {
 	const struct node_hdr *hdr = &node->hdr;
 	
 	warnx("%s: this 0x%08" PRIx32 " parent 0x%08" PRIx32 " next 0x%80" PRIx32
 		" cnt %" PRIu16, __func__, hdr->this, hdr->parent, hdr->next, hdr->cnt);
 	
-	const item_ref *elem_last = node->elems + node->hdr.cnt;
-	for (const item_ref *elem = node->elems; elem < elem_last; ++elem) {
-		const key *key = &elem->key;
-		
-		fprintf(stderr, "item %3" PRIdPTR ": [ id %" PRIu32 " type %" PRIu8
-			" off %" PRIu32 " ] len %" PRIu32 "\n", (elem - node->elems),
-			key->id, key->type, key->off, elem->len);
+	const item_ref *elem_end = node->elems + node->hdr.cnt;
+	for (const item_ref *elem = node->elems; elem < elem_end; ++elem) {
+		fprintf(stderr, "item %3" PRIdPTR ": %s len %" PRIu32 "\n",
+			(elem - node->elems), key_str(&elem->key), elem->len);
 	}
 	
 	dump_mem(node, sizeof(*node));
@@ -32,19 +31,15 @@ leaf_ptr leaf_init(uint32_t node_addr, uint32_t parent, uint32_t next) {
 	return node;
 }
 
-tree_result leaf_item_ptr(const leaf_ptr node, const key *key) {
-	tree_result result = { NULL, false };
-	
-	const item_ref *elem_last = node->elems + node->hdr.cnt;
-	for (const item_ref *elem = node->elems; elem < elem_last; ++elem) {
+void *leaf_item_ptr(const leaf_ptr node, const key *key) {
+	const item_ref *elem_end = node->elems + node->hdr.cnt;
+	for (const item_ref *elem = node->elems; elem < elem_end; ++elem) {
 		if (key_cmp(key, &elem->key) == 0) {
-			result.ptr = (uint8_t *)node + elem->off;
-			result.found = true;
-			break;
+			return (uint8_t *)node + elem->off;
 		}
 	}
 	
-	return result;
+	return NULL;
 }
 
 uint32_t leaf_used(const leaf_ptr node) {
@@ -61,7 +56,7 @@ uint32_t leaf_used(const leaf_ptr node) {
 }
 
 uint32_t leaf_free(const leaf_ptr node) {
-	return node_size_byte() - leaf_used(node);
+	return node_size_byte() - (sizeof(struct node_hdr) + leaf_used(node));
 }
 
 uint16_t leaf_half(const leaf_ptr node) {
@@ -95,17 +90,16 @@ void leaf_zero(leaf_ptr node, uint16_t first) {
 	memset(zero_begin, 0, (zero_end - zero_begin));
 }
 
-void leaf_append_naive(leaf_ptr node, const key *key, uint32_t len,
-	const void *data) {
-	uint32_t off = node->elems[node->hdr.cnt - 1].off - len;
+void leaf_append_naive(leaf_ptr node, const key *key, struct item_data item) {
+	uint32_t off = node->elems[node->hdr.cnt - 1].off - item.len;
 	uint8_t *data_ptr = (uint8_t *)node + off;
 	
-	memcpy(data_ptr, data, len);
+	memcpy(data_ptr, item.data, item.len);
 	
 	item_ref *elem = node->elems + node->hdr.cnt;
 	elem->key = *key;
 	elem->off = off;
-	elem->len = len;
+	elem->len = item.len;
 	
 	++node->hdr.cnt;
 }
@@ -113,11 +107,21 @@ void leaf_append_naive(leaf_ptr node, const key *key, uint32_t len,
 void leaf_xfer_half(leaf_ptr dst, leaf_ptr src) {
 	uint16_t half = leaf_half(src);
 	
-	const item_ref *elem_last = src->elems + src->hdr.cnt;
-	for (const item_ref *elem = src->elems + half; elem < elem_last; ++elem) {
-		const uint8_t *data_ptr = (const uint8_t *)src + elem->off;
-		leaf_append_naive(dst, &elem->key, elem->len, data_ptr);
+	const item_ref *elem_end = src->elems + src->hdr.cnt;
+	for (const item_ref *elem = src->elems + half; elem < elem_end; ++elem) {
+		uint8_t *data_ptr = (uint8_t *)src + elem->off;
+		leaf_append_naive(dst, &elem->key,
+			(struct item_data){ elem->len, data_ptr });
 	}
 	
 	leaf_zero(src, half);
+}
+
+bool leaf_insert(leaf_ptr node, const key *key, struct item_data item) {
+	
+	
+	/* if there is not enough space, FAIL */
+	
+	/* if we inserted the element in position 0, we need to update the node_ref
+	 * to us in our parent (if we are not root) */
 }

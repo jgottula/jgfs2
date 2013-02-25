@@ -7,7 +7,10 @@
 #include "key.h"
 
 
-
+struct item_data {
+	uint32_t len;
+	void *data;
+};
 
 
 #endif

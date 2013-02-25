@@ -8,13 +8,10 @@ void branch_dump(const branch_ptr node) {
 	warnx("%s: this 0x%08" PRIx32 " parent 0x%08" PRIx32 " cnt %" PRIu16,
 		__func__, hdr->this, hdr->parent, hdr->cnt);
 	
-	const node_ref *elem_last = node->elems + node->hdr.cnt;
-	for (const node_ref *elem = node->elems; elem < elem_last; ++elem) {
-		const key *key = &elem->key;
-		
-		fprintf(stderr, "node %3" PRIdPTR ": [ id %" PRIu32 " type %" PRIu8
-			" off %" PRIu32 "] addr 0x%08" PRIx32 "\n", (elem - node->elems),
-			key->id, key->type, key->off, elem->addr);
+	const node_ref *elem_end = node->elems + node->hdr.cnt;
+	for (const node_ref *elem = node->elems; elem < elem_end; ++elem) {
+		fprintf(stderr, "node %3" PRIdPTR ": %s addr 0x%08" PRIx32 "\n",
+			(elem - node->elems), key_str(&elem->key), elem->addr);
 	}
 	
 	dump_mem(node, sizeof(*node));
@@ -37,7 +34,7 @@ uint32_t branch_used(const branch_ptr node) {
 }
 
 uint32_t branch_free(const branch_ptr node) {
-	return node_size_byte() - branch_used(node);
+	return node_size_byte() - (sizeof(struct node_hdr) + branch_used(node));
 }
 
 uint16_t branch_half(const branch_ptr node) {
@@ -60,10 +57,38 @@ void branch_append_naive(branch_ptr node, const node_ref *elem) {
 void branch_xfer_half(branch_ptr dst, branch_ptr src) {
 	uint16_t half = branch_half(src);
 	
-	const node_ref *elem_last = src->elems + src->hdr.cnt;
-	for (const node_ref *elem = src->elems + half; elem < elem_last; ++elem) {
+	const node_ref *elem_end = src->elems + src->hdr.cnt;
+	for (const node_ref *elem = src->elems + half; elem < elem_end; ++elem) {
 		branch_append_naive(dst, elem);
 	}
 	
 	branch_zero(src, half);
+}
+
+bool branch_insert(branch_ptr node, const node_ref *elem) {
+	if (branch_free(node) < sizeof(node_ref)) {
+		return false;
+	}
+	
+	/* default insert at position 0 for empty branch or lowest key */
+	uint16_t insert_at = 0;
+	for (uint16_t i = node->hdr.cnt; i > 0; --i) {
+		if (key_cmp(&elem->key, &node->elems[i - 1].key) < 0) {
+			insert_at = i;
+			break;
+		} else {
+			node->elems[i] = node->elems[i - 1];
+		}
+	}
+	
+	node->elems[insert_at] = *elem;
+	++node->hdr.cnt;
+	
+	/* if we are not root and we just inserted the element in position 0, we
+	 * need to update the node_ref to us in our parent */
+	if (insert_at == 0 && node->hdr.parent != 0) {
+		TODO("update parent ref key");
+	}
+	
+	return true;
 }

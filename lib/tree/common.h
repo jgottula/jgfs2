@@ -5,10 +5,9 @@
 #include "../jgfs2.h"
 
 
-typedef struct {
-	void *ptr;
-	bool found;
-} tree_result;
+struct check_result {
+	
+};
 
 
 #endif

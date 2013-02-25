@@ -10,8 +10,8 @@
 
 
 void tree_init(uint32_t root_addr);
-void tree_split(uint32_t node_addr);
-uint32_t tree_search(uint32_t node_addr, const key *key);
+void tree_insert(uint32_t root_addr, const key *key, struct item_data item);
+leaf_ptr tree_search(uint32_t root_addr, const key *key);
 
 
 #endif
