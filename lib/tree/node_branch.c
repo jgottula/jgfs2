@@ -5,12 +5,12 @@
 void branch_dump(const branch_ptr node) {
 	const struct node_hdr *hdr = &node->hdr;
 	
-	warnx("%s: this 0x%08" PRIx32 " parent 0x%08" PRIx32 " cnt %" PRIu16,
+	warnx("%s: this 0x%" PRIx32 " parent 0x%" PRIx32 " cnt %" PRIu16,
 		__func__, hdr->this, hdr->parent, hdr->cnt);
 	
 	const node_ref *elem_end = node->elems + node->hdr.cnt;
 	for (const node_ref *elem = node->elems; elem < elem_end; ++elem) {
-		fprintf(stderr, "node %3" PRIdPTR ": %s addr 0x%08" PRIx32 "\n",
+		fprintf(stderr, "node %3" PRIdPTR ": %s addr 0x%" PRIx32 "\n",
 			(elem - node->elems), key_str(&elem->key), elem->addr);
 	}
 	
@@ -88,7 +88,7 @@ bool branch_insert(branch_ptr node, const node_ref *elem) {
 	}
 	
 	if (node->hdr.cnt == 0) {
-		errx(1, "%s: cannot be empty: node %08" PRIx32,
+		errx(1, "%s: cannot be empty: node 0x%" PRIx32,
 			__func__, node->hdr.this);
 	}
 	
@@ -125,12 +125,12 @@ bool branch_insert(branch_ptr node, const node_ref *elem) {
 
 void branch_ref(branch_ptr node, node_ptr child) {
 	if (branch_free(node) < sizeof(node_ref)) {
-		errx(1, "%s: no space: node %08" PRIx32 " child %08" PRIx32,
+		errx(1, "%s: no space: node 0x%" PRIx32 " child 0x%" PRIx32,
 			__func__, node->hdr.this, child->hdr.this);
 	}
 	
 	if (child->hdr.cnt == 0) {
-		errx(1, "%s: empty child: node %08" PRIx32 " child %08" PRIx32,
+		errx(1, "%s: empty child: node 0x%" PRIx32 " child 0x%" PRIx32,
 			__func__, node->hdr.this, child->hdr.this);
 	}
 	
@@ -147,7 +147,7 @@ void branch_ref(branch_ptr node, node_ptr child) {
 
 void branch_ref_update(branch_ptr node, node_ptr child) {
 	if (child->hdr.cnt == 0) {
-		errx(1, "%s: empty child: node %08" PRIx32 " child %08" PRIx32,
+		errx(1, "%s: empty child: node 0x%" PRIx32 " child 0x%" PRIx32,
 			__func__, node->hdr.this, child->hdr.this);
 	}
 	
@@ -168,7 +168,7 @@ void branch_ref_update(branch_ptr node, node_ptr child) {
 	}
 	
 	if (!found) {
-		errx(1, "%s: not found: node %08" PRIx32 " child %08" PRIx32,
+		errx(1, "%s: not found: node 0x%" PRIx32 " child 0x%" PRIx32,
 			__func__, node->hdr.this, child->hdr.this);
 	}
 }

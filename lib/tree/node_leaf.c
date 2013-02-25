@@ -5,8 +5,8 @@
 void leaf_dump(const leaf_ptr node) {
 	const struct node_hdr *hdr = &node->hdr;
 	
-	warnx("%s: this 0x%08" PRIx32 " parent 0x%08" PRIx32 " prev 0x%08" PRIx32
-		" next 0x%08" PRIx32 " cnt %" PRIu16,
+	warnx("%s: this 0x%" PRIx32 " parent 0x%" PRIx32 " prev 0x%" PRIx32
+		" next 0x%" PRIx32 " cnt %" PRIu16,
 		__func__, hdr->this, hdr->parent, hdr->prev, hdr->next, hdr->cnt);
 	
 	const item_ref *elem_end = node->elems + node->hdr.cnt;
@@ -138,7 +138,7 @@ void leaf_append_naive(leaf_ptr node, const key *key, struct item_data item) {
 bool leaf_insert(leaf_ptr node, const key *key, struct item_data item) {
 	if (sizeof(item_ref) + item.len >
 		node_size_byte() - sizeof(struct node_hdr)) {
-		errx(1, "%s: will never fit: node %08" PRIx32 " %s len %" PRIu32,
+		errx(1, "%s: will never fit: node 0x%" PRIx32 " %s len %" PRIu32,
 			__func__, node->hdr.this, key_str(key), item.len);
 	}
 	

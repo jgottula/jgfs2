@@ -122,7 +122,7 @@ void check_print(const struct check_result *result, bool fatal) {
 	} else if (result->type == RESULT_TYPE_NODE) {
 		const struct node_check_error *node = &result->node;
 		
-		warnx("check_node on %08" PRIx32 " failed:", node->node_addr);
+		warnx("check_node on 0x%" PRIx32 " failed:", node->node_addr);
 		
 		const char *err_desc;
 		switch (node->code) {
