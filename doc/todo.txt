@@ -8,6 +8,55 @@ license:
   - do this for the justix tree as well
 
 fs design:
+- extents
+  - do we need a maximum extent size?
+    - yes if we ever map the entire extent
+    - no if we only map the extent upon read/write, in which case we can only
+      map the requested region
+  - rename ext tree
+    - alloc tree?
+    - free space tree?
+  - what will ext tree keys be
+    - size
+      - allows for FAST lookup of just-large-enough extent
+    - block
+      - better for use of extent allocation hints (allocate this next to that)
+  - IMPORTANT: we need to make a used extent for the 'front matter' of the fs
+  - keep contiguous used regions merged as one extent
+  - allocation
+    - find the smallest free region that is large enough to fulfill the request
+    - allocate at the very beginning of a free region so that the number of
+      extents doesn't grow
+      - EXCEPTION: adding a 'used' extent to the start of the fs /would/ create
+        a new extent, but if we keep the fs front matter marked as used, then
+        this shouldn't happen
+      - if we totally use up a free extent, we delete the free extent
+        - and probably merge the used extent with the subsequent used extent
+  - seek locality measures
+    - better than hints: use separate chunks for meta, ext, data
+      - does this necessitate a chunk tree?
+      - simply try to allocate in the same chunk as parent/whatever
+      - failing that, allocate in a nearby chunk of same type
+    - it should be possible to provide a hint about where to allocate
+      - for new files, it should be the node of the meta tree in which the
+        file's metadata is stored
+      - for extending files, it should be the location of the previous extent
+      - for new tree nodes, it should be the sibling/parent's location
+- tree locking
+  - do this only in tree_* functions
+    - this way, we are safe from general tree insertion/deletion reentrancy
+    - normal internal tree functionality will still work normally
+  - turn trees into structs
+    - uint32_t for root node addr
+    - mutex
+    - ...
+- zeroed extents
+  - use mmap with an anonymous mapping
+    - this maps a single zeroed page in COW fashion to as large a region as we
+      want, but uses only ~4K of memory
+    - check other mmap flags as appropriate
+
+fs design (out of date):
 - replace free space bitmap with a tree/list of free regions
   - this makes it trivial to find a contiguous free region of a certain size
   - upon deallocation, we may need to merge contiguous free regions
@@ -57,23 +106,82 @@ fs design:
     - turn their compression off after writing them
 
 lib:
+- HIGH PRIORITY: only allow a given filesystem to be opened in ONE instance of
+  libjgfs2 (but different filesystems coexisting is OK)
+  - use fs uuid?
+  - better to use device path
+- public function for getting stats
+  - make a new struct for this
+    - fs superblock stats
+      - similar to legacy jgfs
+    - stats for each tree
+      - number of nodes
+      - tree depth
+      - avg fanout
+      - measure of tree balance?
+      - look for other measurements that can be taken of B trees
+  - use this in mkfs, defrag, ...
 - binary search within nodes
 - use 32-bit cnt in nodes (for 1MiB block size)
 - enforce character set in names
 
 mkfs:
+- restore to its original grandeur
 
 fsck:
 - come up with a more comprehensive list of checks
+- needs to check more than check_tree does
+  - example: ensure that no extents overlap
+  - another: ensure that inode nlink is correct
+  - etc etc etc
 - write it
 
 fuse:
-- implement multi-cluster directories
-- touch directory dir_ents whenever their contents are changed in any way
-  (need specifics on this)
+- implement all ops with at least stubs
+- invent more comprehensible debug messages
+  - wrap jg_* functions with oper_* functions
+  - dump structures in oper_*
+  - report return values with strerror
+    - no way to get 'EINVAL' etc from number, maybe do this ourselves?
+    - or hack the output of the 'errno' command
+- use argp
+- look at options again
+  - default_permissions
+- fuseblk?
+- touch directory when certain descendents are changed
 - fsync/msync on writes if possible
 
 defrag:
+- run offline
+- mode: zero free space
+  - need function for this in lib/extent.c
+  - need public function for this also
+  - maybe: afteward, show percent of free space that was not zeroed before
+    - this means the process should read extents before zeroing them
+    - would need to hook into lib functions, sounds like a dumb idea
+- mode: normal defrag
+  - analyze before & after
+    - general fs statistics
+    - average frags (extents) per file
+  - do multiple passes until a pass goes by with no changes; then we're done
+  - walk the meta tree (using leaf node links)
+    - find an inode
+    - if it has multiple contiguous extents (i.e. not holes):
+      - choose a pair of contiguous extents
+      - try to resize first extent to be large enough
+      - failing that, try to allocate a new extent the size of both
+      - if either succeeds, copy the extent data over
+      - deallocate extents as appropriate (one or both)
+    - loop over this inode until we can't defrag any extent pairs
+- mode: free space defrag
+  - that is, defrag the ext tree
+  - may require backrefs (extent->file rather than file->extent)
+  - or is it possible to just walk the whole meta tree, finding all extent items
+    and reading the keys backward
+  - because used extents in the ext tree may be merged, this search will need to
+    look for any file's extent that is within the larger merged used extent
+- mode: tree balance
+  - balance the whole B+ tree
 
 fsctl:
 - check that fs is unmounted
@@ -86,4 +194,17 @@ fsctl:
 attr:
 - be able to change any fs attribute currently defined
 
+tree:
+- interactively view trees
+- only when filesystem is unmounted
+- use ncurses
+  - behave like ncdu if possible
+
 test:
+- fs correctness test
+  - mount two filesystems: known good fs (e.g. ext2) and jgfs2
+  - file write/trunc test
+    - create one file on both filesystems
+    - do random writes and truncates to both files in mirror image fashion
+      - verify that file sizes are the same afterward
+      - checksum both files after each write/trunc and compare
