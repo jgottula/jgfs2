@@ -57,9 +57,8 @@ fs design:
     - turn their compression off after writing them
 
 lib:
-- reduce number of functions
-- abstract directories
-- consolidate dir functionality (ONE function, so multi-cluster dirs are easy)
+- binary search within nodes
+- use 32-bit cnt in nodes (for 1MiB block size)
 - enforce character set in names
 
 mkfs:
@@ -86,3 +85,5 @@ fsctl:
 
 attr:
 - be able to change any fs attribute currently defined
+
+test:
