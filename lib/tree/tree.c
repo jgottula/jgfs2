@@ -76,7 +76,7 @@ static leaf_ptr tree_search_r(uint32_t root_addr, uint32_t node_addr,
 leaf_ptr tree_search(uint32_t root_addr, const key *key) {
 	node_ptr node = node_map(root_addr);
 	if (node->hdr.parent != 0) {
-		errx("%s: node 0x%" PRIx32 " not root: parent 0x%" PRIx32,
+		errx("%s: not root: node 0x%" PRIx32 "parent 0x%" PRIx32,
 			__func__, root_addr, node->hdr.parent);
 	}
 	node_unmap(node);
