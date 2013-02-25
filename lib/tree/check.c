@@ -83,7 +83,9 @@ struct check_result check_node(uint32_t node_addr) {
 		goto done;
 	}
 	
-	if (node->hdr.parent != 0 && node->hdr.cnt == 0) {
+	/* if we are empty and not the root node, or if the root is an empty branch
+	 * node, then this check fails */
+	if (node->hdr.cnt == 0 && (node->hdr.parent != 0 || !node->hdr.leaf)) {
 		result.type = RESULT_TYPE_NODE;
 		result.node = (struct node_check_error){
 			.code        = ERR_NODE_EMPTY,
