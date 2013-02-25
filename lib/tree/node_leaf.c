@@ -150,9 +150,9 @@ bool leaf_insert(leaf_ptr node, const key *key, struct item_data item) {
 	/* default insert at position 0 for empty leaf or lowest key */
 	uint16_t insert_at = 0;
 	if (node->hdr.cnt != 0 && key_cmp(key, &node->elems[0].key) > 0) {
-		for (uint16_t i = 0; i < node->hdr.cnt; ++i) {
-			if (key_cmp(key, &node->elems[i].key) > 0) {
-				insert_at = i + 1;
+		for (uint16_t i = node->hdr.cnt; i > 0; --i) {
+			if (key_cmp(key, &node->elems[i - 1].key) > 0) {
+				insert_at = i;
 				break;
 			}
 		}

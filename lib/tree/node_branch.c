@@ -95,9 +95,9 @@ bool branch_insert(branch_ptr node, const node_ref *elem) {
 	/* default insert at position 0 if lowest key */
 	uint16_t insert_at = 0;
 	if (key_cmp(&elem->key, &node->elems[0].key) > 0) {
-		for (uint16_t i = 0; i < node->hdr.cnt; ++i) {
-			if (key_cmp(&elem->key, &node->elems[i].key) > 0) {
-				insert_at = i + 1;
+		for (uint16_t i = node->hdr.cnt; i > 0; --i) {
+			if (key_cmp(&elem->key, &node->elems[i - 1].key) > 0) {
+				insert_at = i;
 				break;
 			}
 		}
