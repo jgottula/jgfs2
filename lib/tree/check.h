@@ -27,9 +27,10 @@ enum check_error_code {
 	ERR_NODE_SORT  = 1,      // key[n] > key[n+1]
 	ERR_NODE_EMPTY = 2,      // !root and no elems
 	ERR_NODE_DUPE  = 3,      // key[a] == key[b]
+	ERR_NODE_THIS  = 4,      // hdr.this is wrong
 	
 	ERR_BRANCH_KEY      = 1, // elem.key != child.keys[0]
-	ERR_BRANCH_PARENT   = 2, // elem.this != child.parent
+	ERR_BRANCH_PARENT   = 2, // hdr.this != child.parent
 	ERR_BRANCH_OVERFLOW = 3, // cnt items wouldn't fit in a node
 	
 	ERR_LEAF_OVERLAP  = 1,   // elem data regions overlap
