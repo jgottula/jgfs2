@@ -73,6 +73,7 @@ static void warnx(const char *fmt, ...) {
 }
 
 
+void sig_handle(int sig_num);
 void dump_mem(const void *ptr, size_t len);
 void dump_sect(uint32_t sect_num, uint32_t sect_cnt);
 void dump_blk(uint32_t blk_num, uint32_t blk_cnt);
