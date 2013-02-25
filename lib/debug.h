@@ -13,6 +13,14 @@
 	fprintf(stderr, "\e[37;1mTODO: %s: %s\n\e[0m", __func__, (_s))
 
 
+static void err(int eval, const char *fmt, ...)
+	__attribute__((format(printf, 2, 3)));
+static void errx(int eval, const char *fmt, ...)
+	__attribute__((format(printf, 2, 3)));
+static void warn(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+static void warnx(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+
+
 static void err(int eval, const char *fmt, ...) {
 	fputs("jgfs2: ", stderr);
 	
