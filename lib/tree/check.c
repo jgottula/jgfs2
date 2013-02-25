@@ -148,6 +148,7 @@ void check_print(struct check_result result, bool fatal) {
 		
 		warnx("check_node on 0x%" PRIx32 " failed:", node->node_addr);
 		
+		bool have_desc = true;
 		const char *err_desc;
 		switch (node->code) {
 		case ERR_NODE_THIS:
@@ -163,10 +164,15 @@ void check_print(struct check_result result, bool fatal) {
 			err_desc = "key dupe";
 			break;
 		default:
-			err_desc = "unknown error";
+			have_desc = false;
 		}
 		
-		warnx("[%" PRId32 "] %s", node->code, err_desc);
+		if (have_desc) {
+			warnx("%s", err_desc);
+		} else {
+			warnx("unknown error (%" PRId32 ")", node->code);
+			err_desc = "unknown error";
+		}
 		
 		switch (node->code) {
 		case ERR_NODE_THIS:
