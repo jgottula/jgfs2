@@ -8,6 +8,7 @@
 #include "node.h"
 
 
+void tree_dump(uint32_t root_addr);
 void tree_init(uint32_t root_addr);
 void tree_insert(uint32_t root_addr, const key *key, struct item_data item);
 leaf_ptr tree_search(uint32_t root_addr, const key *key);
