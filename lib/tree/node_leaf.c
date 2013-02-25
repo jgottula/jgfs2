@@ -46,7 +46,7 @@ uint32_t leaf_used(const leaf_ptr node) {
 }
 
 uint32_t leaf_free(const leaf_ptr node) {
-	return node_size_byte() - (sizeof(struct node_hdr) + leaf_used(node));
+	return node_size_usable() - leaf_used(node);
 }
 
 uint16_t leaf_half(const leaf_ptr node) {
@@ -136,8 +136,7 @@ void leaf_append_naive(leaf_ptr node, const key *key, struct item_data item) {
 }
 
 bool leaf_insert(leaf_ptr node, const key *key, struct item_data item) {
-	if (sizeof(item_ref) + item.len >
-		node_size_byte() - sizeof(struct node_hdr)) {
+	if (sizeof(item_ref) + item.len > node_size_usable()) {
 		errx("%s: will never fit: node 0x%" PRIx32 " %s len %" PRIu32,
 			__func__, node->hdr.this, key_str(key), item.len);
 	}

@@ -94,5 +94,9 @@ static uint32_t node_size_byte(void) {
 	return node_size_blk() * fs.blk_size;
 }
 
+static uint32_t node_size_usable(void) {
+	return node_size_byte() - sizeof(struct node_hdr);
+}
+
 
 #endif

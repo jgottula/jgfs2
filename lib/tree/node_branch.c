@@ -35,7 +35,7 @@ uint32_t branch_used(const branch_ptr node) {
 }
 
 uint32_t branch_free(const branch_ptr node) {
-	return node_size_byte() - (sizeof(struct node_hdr) + branch_used(node));
+	return node_size_usable() - branch_used(node);
 }
 
 uint16_t branch_half(const branch_ptr node) {

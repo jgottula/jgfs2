@@ -35,7 +35,7 @@ void node_unmap(const node_ptr node) {
 
 void node_zero_data(node_ptr node) {
 	uint8_t *zero_ptr = (uint8_t *)node + sizeof(struct node_hdr);
-	size_t   zero_len = node_size_byte() - sizeof(struct node_hdr);
+	size_t   zero_len = node_size_usable();
 	
 	memset(zero_ptr, 0, zero_len);
 }
@@ -43,7 +43,7 @@ void node_zero_data(node_ptr node) {
 void node_copy_data(node_ptr dst, const node_ptr src) {
 	uint8_t       *copy_dst = (uint8_t *)dst + sizeof(struct node_hdr);
 	const uint8_t *copy_src = (const uint8_t *)src + sizeof(struct node_hdr);
-	size_t         copy_len = node_size_byte() - sizeof(struct node_hdr);
+	size_t         copy_len = node_size_usable();
 	
 	memcpy(copy_dst, copy_src, copy_len);
 }
