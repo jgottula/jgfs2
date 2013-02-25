@@ -6,6 +6,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdnoreturn.h>
 #include <string.h>
 
 
@@ -14,15 +15,15 @@
 		__FILE__, __LINE__, __func__, (_s))
 
 
-static void err(int eval, const char *fmt, ...)
+static noreturn void err(int eval, const char *fmt, ...)
 	__attribute__((format(printf, 2, 3)));
-static void errx(int eval, const char *fmt, ...)
+static noreturn void errx(int eval, const char *fmt, ...)
 	__attribute__((format(printf, 2, 3)));
 static void warn(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 static void warnx(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
 
 
-static void err(int eval, const char *fmt, ...) {
+static noreturn void err(int eval, const char *fmt, ...) {
 	fputs("jgfs2: ", stderr);
 	
 	va_list ap;
@@ -35,7 +36,7 @@ static void err(int eval, const char *fmt, ...) {
 	exit(eval);
 }
 
-static void errx(int eval, const char *fmt, ...) {
+static noreturn void errx(int eval, const char *fmt, ...) {
 	fputs("jgfs2: ", stderr);
 	
 	va_list ap;
