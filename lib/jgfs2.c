@@ -5,9 +5,15 @@
 
 
 static void jgfs2_clean_up(void) {
-	warnx("cleaning up");
+	static bool cleaned_up = false;
 	
-	fs_done();
+	if (!cleaned_up) {
+		warnx("cleaning up");
+		
+		fs_done();
+		
+		cleaned_up = true;
+	}
 }
 
 void jgfs2_stat(uint32_t *blk_size, uint32_t *blk_total, uint32_t *blk_used) {
@@ -37,5 +43,5 @@ void jgfs2_init(const char *dev_path,
 }
 
 void jgfs2_done(void) {
-	fs_done();
+	jgfs2_clean_up();
 }
