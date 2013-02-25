@@ -197,6 +197,6 @@ void check_print(struct check_result result, bool fatal) {
 	}
 	
 	if (fatal) {
-		exit(1);
+		errx("cannot continue");
 	}
 }
