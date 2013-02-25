@@ -40,8 +40,10 @@ enum check_error_code {
 	ERR_LEAF_UNCONTIG = 2,      // wasted space between item data
 	ERR_LEAF_OVERLAP  = 3,      // elem data regions overlap
 	
-	ERR_ITEM_KEY  = 1,          // inappropriate id or off for item type
-	ERR_ITEM_SIZE = 2,          // inappropriate size for item type
+	ERR_ITEM_TYPE    = 1,       // invalid item type
+	ERR_ITEM_KEY_ID  = 2,       // inappropriate key id for item type
+	ERR_ITEM_KEY_OFF = 3,       // inappropriate key off for item type
+	ERR_ITEM_SIZE    = 4,       // inappropriate size for item type
 };
 
 

@@ -213,6 +213,19 @@ struct check_result check_node_leaf(leaf_ptr node) {
 		}
 	}
 	
+	const item_ref *elem_end = node->elems + node->hdr.cnt;
+	for (const item_ref *elem = node->elems; elem < elem_end; ++elem) {
+		struct item_data item = {
+			.len  = elem->len,
+			.data = (uint8_t *)node + elem->off,
+		};
+		
+		result = check_item(&elem->key, item);
+		if (result.type != RESULT_TYPE_OK) {
+			goto done;
+		}
+	}
+	
 done:
 	return result;
 }
@@ -222,6 +235,12 @@ struct check_result check_item(const key *key, struct item_data item) {
 	
 	// test here
 	// when any test fails, set result and goto done
+	
+	// check: type validity
+	// check: key.id appropriateness
+	// check: key.off appropriateness
+	// check: size appropriateness
+	// check: contents of items by type
 	
 //done:
 	return result;
