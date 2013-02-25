@@ -3,6 +3,10 @@
 #include "check.h"
 
 
+void tree_dump(uint32_t root_addr) {
+	TODO("implement this");
+}
+
 void tree_init(uint32_t root_addr) {
 	node_unmap((node_ptr)leaf_init(root_addr, 0, 0, 0));
 }
