@@ -2,7 +2,13 @@
 
 
 struct check_result check_item(const key *key, struct item_data item) {
+	struct check_result result = { RESULT_TYPE_OK };
 	
+	// test here
+	// when any test fails, set result and goto done
+	
+//done:
+	return result;
 }
 
 struct check_result check_node_branch(branch_ptr node) {
@@ -11,10 +17,7 @@ struct check_result check_node_branch(branch_ptr node) {
 	// test here
 	// when any test fails, set result and goto done
 	
-	// ERR_BRANCH_KEY_MISMATCH means that a subbranch's key isn't equal to its
-	// first key, as it ought to be
-	
-done:
+//done:
 	return result;
 }
 
@@ -24,10 +27,7 @@ struct check_result check_node_leaf(leaf_ptr node) {
 	// test here
 	// when any test fails, set result and goto done
 	
-	// ERR_BRANCH_KEY_MISMATCH means that a subbranch's key isn't equal to its
-	// first key, as it ought to be
-	
-done:
+//done:
 	return result;
 }
 
@@ -99,9 +99,14 @@ done:
 }
 
 struct check_result check_tree(uint32_t root_addr) {
+	struct check_result result = { RESULT_TYPE_OK };
+	
 	// run node_check on each node in the tree
 	
 	// check for overall tree consistency:
 	// dupes between nodes
 	// node n's largest key not less than node n+1's smallest
+	
+//done:
+	return result;
 }
