@@ -20,24 +20,13 @@ void leaf_dump(const leaf_ptr node) {
 leaf_ptr leaf_init(uint32_t node_addr, uint32_t parent, uint32_t next) {
 	leaf_ptr node = (leaf_ptr)node_map(node_addr);
 	
-	node->hdr.this   = node_addr;
-	node->hdr.parent = parent;
-	node->hdr.next   = next;
-	node->hdr.cnt    = 0;
 	node->hdr.leaf   = true;
+	node->hdr.cnt    = 0;
+	node->hdr.this   = node_addr;
+	node->hdr.next   = next;
+	node->hdr.parent = parent;
 	
 	return node;
-}
-
-void *leaf_item_ptr(const leaf_ptr node, const key *key) {
-	const item_ref *elem_end = node->elems + node->hdr.cnt;
-	for (const item_ref *elem = node->elems; elem < elem_end; ++elem) {
-		if (key_cmp(key, &elem->key) == 0) {
-			return (uint8_t *)node + elem->off;
-		}
-	}
-	
-	return NULL;
 }
 
 uint32_t leaf_used(const leaf_ptr node) {
@@ -76,6 +65,17 @@ uint16_t leaf_half(const leaf_ptr node) {
 	
 	/* fallback algorithm: halfway by item number */
 	return node->hdr.cnt / 2;
+}
+
+void *leaf_item_ptr(const leaf_ptr node, const key *key) {
+	const item_ref *elem_end = node->elems + node->hdr.cnt;
+	for (const item_ref *elem = node->elems; elem < elem_end; ++elem) {
+		if (key_cmp(key, &elem->key) == 0) {
+			return (uint8_t *)node + elem->off;
+		}
+	}
+	
+	return NULL;
 }
 
 void leaf_zero(leaf_ptr node, uint16_t first) {
@@ -157,4 +157,12 @@ bool leaf_insert(leaf_ptr node, const key *key, struct item_data item) {
 	}
 	
 	return true;
+}
+
+void leaf_split(leaf_ptr this, leaf_ptr new) {
+	
+	
+	
+	
+	/* update new->hdr.key */
 }

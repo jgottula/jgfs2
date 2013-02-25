@@ -20,11 +20,11 @@ void branch_dump(const branch_ptr node) {
 branch_ptr branch_init(uint32_t node_addr, uint32_t parent) {
 	branch_ptr node = (branch_ptr)node_map(node_addr);
 	
-	node->hdr.this   = node_addr;
-	node->hdr.parent = parent;
-	node->hdr.next   = 0;
-	node->hdr.cnt    = 0;
 	node->hdr.leaf   = false;
+	node->hdr.cnt    = 0;
+	node->hdr.this   = node_addr;
+	node->hdr.next   = 0;
+	node->hdr.parent = parent;
 	
 	return node;
 }
@@ -61,6 +61,15 @@ void branch_xfer_half(branch_ptr dst, branch_ptr src) {
 	branch_zero(src, half);
 }
 
+void branch_assert_parenthood(branch_ptr node) {
+	const node_ref *elem_end = node->elems + node->hdr.cnt;
+	for (const node_ref *elem = node->elems; elem < elem_end; ++elem) {
+		node_ptr child = node_map(elem->addr);
+		child->hdr.parent = node->hdr.this;
+		node_unmap(child);
+	}
+}
+
 void branch_append_naive(branch_ptr node, const node_ref *elem) {
 	node->elems[node->hdr.cnt++] = *elem;
 }
@@ -92,4 +101,15 @@ bool branch_insert(branch_ptr node, const node_ref *elem) {
 	}
 	
 	return true;
+}
+
+void branch_split(branch_ptr this, branch_ptr new, bool was_root) {
+	
+	
+	
+	
+	/* always update the parent value of new's children */
+	/* do the same for this if was_root is true */
+	
+	/* update new->hdr.key */
 }

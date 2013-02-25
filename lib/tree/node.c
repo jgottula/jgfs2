@@ -1,5 +1,5 @@
 #include "node.h"
-#include <string.h>
+#include "../debug.h"
 #include "../extent.h"
 
 
@@ -56,13 +56,8 @@ void node_copy_data(node_ptr dst, const node_ptr src) {
 }
 
 void node_split(uint32_t node_addr) {
+	uint32_t new_addr = node_alloc();
 	
-	
-	
-}
-
-#if 0
-void tree_split(uint32_t node_addr) {
 	node_ptr this = node_map(node_addr);
 	node_ptr new;
 	
@@ -76,7 +71,7 @@ void tree_split(uint32_t node_addr) {
 	 * node, and if that fails, recurse!
 	 */
 	if (was_root) {
-		node_ptr root;
+		/*node_ptr root;
 		node_ptr this2;
 		
 		if (this->hdr.leaf) {
@@ -88,19 +83,49 @@ void tree_split(uint32_t node_addr) {
 		node_copy_data(this2, this);
 		this2->hdr.parent = node_addr;
 		
-		root->hdr.parent = 0;
-	} else {
+		root->hdr.parent = 0;*/
 		
+		
+		
+		
+	/*node->hdr.this   = node_addr;
+	node->hdr.parent = parent;
+	node->hdr.next   = 0;
+	node->hdr.cnt    = 0;
+	node->hdr.leaf   = false;*/
+	
+	/*node->hdr.this   = node_addr;
+	node->hdr.parent = parent;
+	node->hdr.next   = next;
+	node->hdr.cnt    = 0;
+	node->hdr.leaf   = true;*/
+		
+		/* at the end of this, we should be in the same situation as with the
+		 * non-root block so that subsequent code need not know about the
+		 * shenanigans we had to pull here */
+	} else {
+		if (this->hdr.leaf) {
+			new = (node_ptr)leaf_init(new_addr, this->hdr.parent,
+				this->hdr.next);
+		} else {
+			new = (node_ptr)branch_init(new_addr, this->hdr.parent);
+		}
+		
+		this->hdr.next = new_addr;
 	}
 	
-	/*struct __attribute__((__packed__)) node_hdr {
-	bool leaf;
-	uint16_t cnt;
-	uint32_t this;
-	uint32_t parent;
-	uint32_t next;
-};*/
-	
+	if (this->hdr.leaf) {
+		leaf_split((leaf_ptr)this, (leaf_ptr)new);
+	} else {
+		branch_split((branch_ptr)this, (branch_ptr)new, was_root);
+	}
+}
+
+
+/* DO NOT delete the block below until all comments/TODOs have been transferred
+ * or addressed! */
+
+#if 0
 	/* if this is a branch, new's children's parent values need to be updated;
 	 * if was_root, then the same needs to done for this's children */
 	

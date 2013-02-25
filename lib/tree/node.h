@@ -24,8 +24,8 @@ struct __attribute__((__packed__)) node_hdr {
 	bool leaf;
 	uint16_t cnt;
 	uint32_t this;
-	uint32_t parent;
 	uint32_t next;
+	uint32_t parent;
 };
 
 struct __attribute__((__packed__)) tree_node {
@@ -63,21 +63,24 @@ uint32_t branch_free(const branch_ptr node);
 uint16_t branch_half(const branch_ptr node);
 void branch_zero(branch_ptr node, uint16_t first);
 void branch_xfer_half(branch_ptr dst, branch_ptr src);
+void branch_assert_parenthood(branch_ptr node);
 void branch_append_naive(branch_ptr node, const node_ref *elem);
 bool branch_insert(branch_ptr node, const node_ref *elem);
+void branch_split(branch_ptr this, branch_ptr new, bool was_root);
 
 void leaf_dump(const leaf_ptr node);
 leaf_ptr leaf_init(uint32_t node_addr, uint32_t parent, uint32_t next);
-void *leaf_item_ptr(const leaf_ptr node, const key *key);
 uint32_t leaf_used(const leaf_ptr node);
 uint32_t leaf_free(const leaf_ptr node);
 uint16_t leaf_half(const leaf_ptr node);
+void *leaf_item_ptr(const leaf_ptr node, const key *key);
 void leaf_zero(leaf_ptr node, uint16_t first);
 void leaf_xfer_half(leaf_ptr dst, leaf_ptr src);
 void leaf_insert_naive(leaf_ptr node, uint16_t at, const key *key,
 	struct item_data item);
 void leaf_append_naive(leaf_ptr node, const key *key, struct item_data item);
 bool leaf_insert(leaf_ptr node, const key *key, struct item_data item);
+void leaf_split(leaf_ptr this, leaf_ptr new);
 
 
 inline uint32_t node_size_blk(void) {
