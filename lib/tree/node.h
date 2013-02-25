@@ -86,11 +86,11 @@ bool leaf_insert(leaf_ptr node, const key *key, struct item_data item);
 void leaf_split_post(leaf_ptr this, leaf_ptr new);
 
 
-inline uint32_t node_size_blk(void) {
+static uint32_t node_size_blk(void) {
 	return 1;
 }
 
-inline uint32_t node_size_byte(void) {
+static uint32_t node_size_byte(void) {
 	return node_size_blk() * fs.blk_size;
 }
 
