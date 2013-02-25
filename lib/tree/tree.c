@@ -3,7 +3,14 @@
 #include "check.h"
 
 
+#define ASSERT_ROOT(_node_addr) \
+	if (!node_is_root(_node_addr)) { \
+		errx("%s: not root: node 0x%" PRIx32, __func__, _node_addr); \
+	}
+
+
 void tree_dump(uint32_t root_addr) {
+	ASSERT_ROOT(root_addr);
 	TODO("implement this");
 }
 
@@ -12,6 +19,8 @@ void tree_init(uint32_t root_addr) {
 }
 
 void tree_insert(uint32_t root_addr, const key *key, struct item_data item) {
+	ASSERT_ROOT(root_addr);
+	
 	bool done = false, retried = false;
 	do {
 		leaf_ptr leaf      = tree_search(root_addr, key);
@@ -74,13 +83,7 @@ static leaf_ptr tree_search_r(uint32_t root_addr, uint32_t node_addr,
 }
 
 leaf_ptr tree_search(uint32_t root_addr, const key *key) {
-	node_ptr node = node_map(root_addr);
-	if (node->hdr.parent != 0) {
-		errx("%s: not root: node 0x%" PRIx32 "parent 0x%" PRIx32,
-			__func__, root_addr, node->hdr.parent);
-	}
-	node_unmap(node);
-	
+	ASSERT_ROOT(root_addr);
 	return tree_search_r(root_addr, root_addr, key);
 }
 
