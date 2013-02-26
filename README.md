@@ -9,6 +9,10 @@ contrasted with `btrfs`'s modified B-trees.
 The primary purpose of jgfs2 is to provide a relatively modern, but not overly
 complicated, filesystem for use with the `justix` operating system project.
 
+status
+------
+`jgfs2` is currently under heavy development and is not yet suitable for use.
+
 building
 --------
 This project uses Avery Pennarun's implementation of D. J. Bernstein's `redo`
