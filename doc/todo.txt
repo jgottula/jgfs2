@@ -204,6 +204,29 @@ tree:
 - use ncurses
   - behave like ncdu if possible
 
+view:
+- filesystem visualization tool
+  - GUI driven
+  - use GTK or Qt
+  - use D possibly?
+- show filesystem as a linear stretch of extents
+  - more like bittorrent file piece view than defrag visualization
+  - perhaps multiple lines that wrap so we use vertical space
+- colorize extents by type
+  - free
+  - boot
+  - sblk
+  - tree
+  - file
+- mousing over an extent:
+  - show its address and length
+  - show its identification information from the tree (key etc)
+  - indicate which file/tree it belongs to
+    - indicate the offset within the file
+    - indicate which node inside the tree
+- select a tree or enter a file path
+  - highlight all extents owned by that tree/file
+
 test:
 - fs correctness test
   - mount two filesystems: known good fs (e.g. ext2) and jgfs2

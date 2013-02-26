@@ -28,6 +28,11 @@ LIB_SRC=(lib/*.c lib/*/*.c)
 LIB_OBJS=${LIB_SRC[@]//.c/.o}
 LIB_LIBS=(-lbsd -luuid)
 
+FUSE_OUT="bin/fuse.jgfs2"
+FUSE_SRC=(src/fuse/*.c)
+FUSE_OBJS=${FUSE_SRC[@]//.c/.o}
+FUSE_LIBS=(-lbsd -lfuse)
+
 TEST_OUT="bin/test.jgfs2"
 TEST_SRC=(src/test/*.c)
 TEST_OBJS=${TEST_SRC[@]//.c/.o}
@@ -38,10 +43,10 @@ TREE_SRC=(src/tree/*.c)
 TREE_OBJS=${TREE_SRC[@]//.c/.o}
 TREE_LIBS=()
 
-FUSE_OUT="bin/fuse.jgfs2"
-FUSE_SRC=(src/fuse/*.c)
-FUSE_OBJS=${FUSE_SRC[@]//.c/.o}
-FUSE_LIBS=(-lbsd -lfuse)
+VIEW_OUT="bin/view.jgfs2"
+VIEW_SRC=(src/view/*.c)
+VIEW_OBJS=${VIEW_SRC[@]//.c/.o}
+VIEW_LIBS=()
 
 MKFS_OUT="bin/mkfs.jgfs2"
 MKFS_SRC=(src/mkfs/*.c)
@@ -96,15 +101,17 @@ function target_lib {
 
 case "$TARGET" in
 all)
-	redo lib test tree fuse mkfs fsck defrag fsctl attr ;;
+	redo lib fuse test tree view mkfs fsck defrag fsctl attr ;;
 lib)
 	redo-ifchange $LIB_OUT ;;
+fuse)
+	redo-ifchange $FUSE_OUT ;;
 test)
 	redo-ifchange $TEST_OUT ;;
 tree)
 	redo-ifchange $TREE_OUT ;;
-fuse)
-	redo-ifchange $FUSE_OUT ;;
+view)
+	redo-ifchange $VIEW_OUT ;;
 mkfs)
 	redo-ifchange $MKFS_OUT ;;
 fsck)
@@ -120,6 +127,11 @@ $LIB_OUT)
 	OBJS="${LIB_OBJS[@]}"
 	target_lib
 	;;
+$FUSE_OUT)
+	LIBS="${FUSE_LIBS[@]}"
+	OBJS="${FUSE_OBJS[@]} $LIB_OUT"
+	target_link
+	;;
 $TEST_OUT)
 	LIBS="${TEST_LIBS[@]}"
 	OBJS="${TEST_OBJS[@]} $LIB_OUT"
@@ -130,9 +142,9 @@ $TREE_OUT)
 	OBJS="${TREE_OBJS[@]} $LIB_OUT"
 	target_link
 	;;
-$FUSE_OUT)
-	LIBS="${FUSE_LIBS[@]}"
-	OBJS="${FUSE_OBJS[@]} $LIB_OUT"
+$VIEW_OUT)
+	LIBS="${VIEW_LIBS[@]}"
+	OBJS="${VIEW_OBJS[@]} $LIB_OUT"
 	target_link
 	;;
 $MKFS_OUT)
