@@ -175,11 +175,15 @@ defrag:
     - loop over this inode until we can't defrag any extent pairs
 - mode: free space defrag
   - that is, defrag the ext tree
-  - may require backrefs (extent->file rather than file->extent)
-  - or is it possible to just walk the whole meta tree, finding all extent items
-    and reading the keys backward
-  - because used extents in the ext tree may be merged, this search will need to
-    look for any file's extent that is within the larger merged used extent
+    - may require backrefs (extent->file rather than file->extent)
+    - or is it possible to just walk the whole meta tree, finding all extent
+      items and reading the keys backward
+    - because used extents in the ext tree may be merged, this search will need
+      to look for any file's extent that is within the larger merged used extent
+  - compaction
+    - find extents that have free space to their left
+      - move them as far left as possible, so that the free space is consumed
+    - do this for all extents, going in order of disk offset
 - mode: tree balance
   - balance the whole B+ tree
 
