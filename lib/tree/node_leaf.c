@@ -77,7 +77,7 @@ uint16_t leaf_half(const leaf_ptr node) {
 	return node->hdr.cnt / 2;
 }
 
-void *leaf_item_ptr(const leaf_ptr node, const key *key) {
+void *leaf_data_ptr(const leaf_ptr node, const key *key) {
 	const item_ref *elem_end = node->elems + node->hdr.cnt;
 	for (const item_ref *elem = node->elems; elem < elem_end; ++elem) {
 		if (key_cmp(key, &elem->key) == 0) {

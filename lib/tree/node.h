@@ -84,7 +84,7 @@ leaf_ptr leaf_init(uint32_t node_addr, uint32_t parent, uint32_t prev,
 uint32_t leaf_used(const leaf_ptr node);
 uint32_t leaf_free(const leaf_ptr node);
 uint16_t leaf_half(const leaf_ptr node);
-void *leaf_item_ptr(const leaf_ptr node, const key *key);
+void *leaf_data_ptr(const leaf_ptr node, const key *key);
 void leaf_zero(leaf_ptr node, uint16_t first);
 void leaf_xfer_half(leaf_ptr dst, leaf_ptr src);
 void leaf_insert_naive(leaf_ptr node, uint16_t at, const key *key,
