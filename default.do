@@ -39,7 +39,7 @@ TEST_LIBS=(-lbsd)
 TREE_OUT="bin/tree.jgfs2"
 TREE_SRC=(src/tree/*.c)
 TREE_OBJS=${TREE_SRC[@]//.c/.o}
-TREE_LIBS=()
+TREE_LIBS=(-lncurses)
 
 VIEW_OUT="bin/view.jgfs2"
 VIEW_SRC=(src/view/*.c)

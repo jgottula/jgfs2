@@ -4,17 +4,13 @@
  * simplified BSD license. See the LICENSE file for details.
  */
 
-#include "ncurses.h"
+#ifndef JGFS2_SRC_TREE_NCURSES_H
+#define JGFS2_SRC_TREE_NCURSES_H
 
 
-int main(int argc, char **argv) {
-	/* init the jgfs2 stuff */
-	
-	nc_init();
-	nc_loop();
-	nc_done();
-	
-	/* deinit the jgfs2 stuff */
-	
-	return 0;
-}
+void nc_init(void);
+void nc_done(void);
+void nc_loop(void);
+
+
+#endif
