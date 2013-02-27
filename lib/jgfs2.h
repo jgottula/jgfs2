@@ -7,6 +7,10 @@
 #ifndef JGFS2_LIB_JGFS2_H
 #define JGFS2_LIB_JGFS2_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 #define CEIL(_x, _step) \
 	((_x) == 0 ? 0 : ((((_x) - 1) / (_step)) + 1))
@@ -116,9 +120,13 @@ struct jgfs2_mount_options {
 };
 
 
-_Static_assert(sizeof(struct jgfs2_sect) == 0x200,
+#ifndef __cplusplus
+#define static_assert _Static_assert
+#endif
+
+static_assert(sizeof(struct jgfs2_sect) == 0x200,
 	"struct jgfs2_sect must be 512 bytes");
-_Static_assert(sizeof(struct jgfs2_super_block) == 0x200,
+static_assert(sizeof(struct jgfs2_super_block) == 0x200,
 	"struct jgfs2_super_block must be 512 bytes");
 
 
@@ -221,5 +229,9 @@ void jgfs_zero_span(struct jgfs_dir_ent *dir_ent, uint32_t off, uint32_t size);
 extern struct jgfs jgfs;
 #endif
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
