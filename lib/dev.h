@@ -4,6 +4,7 @@
  * simplified BSD license. See the LICENSE file for details.
  */
 
+
 #ifndef JGFS2_LIB_DEV_H
 #define JGFS2_LIB_DEV_H
 

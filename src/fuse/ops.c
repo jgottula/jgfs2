@@ -4,6 +4,7 @@
  * simplified BSD license. See the LICENSE file for details.
  */
 
+
 #include <bsd/string.h>
 #include <err.h>
 #include <errno.h>
