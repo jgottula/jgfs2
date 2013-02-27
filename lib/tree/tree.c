@@ -43,9 +43,9 @@ void tree_insert(uint32_t root_addr, const key *key, struct item_data item) {
 			
 			retried = true;
 		} else {
-			errx("%s: leaf_insert loop: root 0x%" PRIx32 " leaf 0x%" PRIx32
-				" %s len %" PRId32, __func__, root_addr, leaf_addr,
-				key_str(key), item.len);
+			errx("%s: leaf_insert split ineffective: root 0x%" PRIx32
+				" leaf 0x%" PRIx32 " %s len %" PRId32,
+				__func__, root_addr, leaf_addr, key_str(key), item.len);
 		}
 	} while (!done);
 }
