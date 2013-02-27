@@ -12,11 +12,14 @@ OUTPUT=$3
 
 
 export CC="ccache gcc"
+export CXX="ccache g++"
 export AR=ar
 
 export CFLAGS="-std=gnu11 -O0 -ggdb -Wall -Wextra -Wno-unused-parameter \
 -Wno-unused-function -include stddef.h -include stdbool.h -include stdint.h \
 -Isrc"
+export CXXFLAGS="-std=c++11 -O0 -ggdb -Wall -Wextra -Wno-unused-parameter \
+-Wno-unused-function -include cstddef -include cstdint -Isrc"
 
 
 DEFINES="-D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -DFUSE_USE_VERSION=26"
@@ -37,9 +40,9 @@ TEST_OBJS=${TEST_SRC[@]//.c/.o}
 TEST_LIBS=(-lbsd)
 
 TREE_OUT="bin/tree.jgfs2"
-TREE_SRC=(src/tree/*.c)
-TREE_OBJS=${TREE_SRC[@]//.c/.o}
-TREE_LIBS=(-lncurses)
+TREE_SRC=(src/tree/*.cxx)
+TREE_OBJS=${TREE_SRC[@]//.cxx/.o}
+TREE_LIBS=(-lQtCore)
 
 VIEW_OUT="bin/view.jgfs2"
 VIEW_SRC=(src/view/*.c)
@@ -72,19 +75,37 @@ ATTR_OBJS=${ATTR_SRC[@]//.c/.o}
 ATTR_LIBS=()
 
 
-function target_gcc_dep {
+function target_cxx_dep {
+	$CXX $CXXFLAGS $DEFINES -o${TARGET//.o/.dep} -MM -MG ${TARGET//.o/.cxx}
+}
+
+function target_cxx {
+	target_cxx_dep
+	read DEPS <${TARGET//.o/.dep}
+	redo-ifchange ${DEPS#*:}
+	
+	$CXX $CXXFLAGS $DEFINES -o$OUTPUT -c ${TARGET//.o/.cxx}
+}
+
+function target_cxx_link {
+	redo-ifchange $OBJS
+	
+	$CXX $CFXXLAGS $LIBS -o$OUTPUT $OBJS
+}
+
+function target_c_dep {
 	$CC $CFLAGS $DEFINES -o${TARGET//.o/.dep} -MM -MG ${TARGET//.o/.c}
 }
 
-function target_gcc {
-	target_gcc_dep
+function target_c {
+	target_c_dep
 	read DEPS <${TARGET//.o/.dep}
 	redo-ifchange ${DEPS#*:}
 	
 	$CC $CFLAGS $DEFINES -o$OUTPUT -c ${TARGET//.o/.c}
 }
 
-function target_link {
+function target_c_link {
 	redo-ifchange $OBJS
 	
 	$CC $CFLAGS $LIBS -o$OUTPUT $OBJS
@@ -128,50 +149,57 @@ $LIB_OUT)
 $FUSE_OUT)
 	LIBS="${FUSE_LIBS[@]}"
 	OBJS="${FUSE_OBJS[@]} $LIB_OUT"
-	target_link
+	target_c_link
 	;;
 $TEST_OUT)
 	LIBS="${TEST_LIBS[@]}"
 	OBJS="${TEST_OBJS[@]} $LIB_OUT"
-	target_link
+	target_c_link
 	;;
 $TREE_OUT)
 	LIBS="${TREE_LIBS[@]}"
 	OBJS="${TREE_OBJS[@]} $LIB_OUT"
-	target_link
+	target_cxx_link
 	;;
 $VIEW_OUT)
 	LIBS="${VIEW_LIBS[@]}"
 	OBJS="${VIEW_OBJS[@]} $LIB_OUT"
-	target_link
+	target_c_link
 	;;
 $MKFS_OUT)
 	LIBS="${MKFS_LIBS[@]}"
 	OBJS="${MKFS_OBJS[@]} $LIB_OUT"
-	target_link
+	target_c_link
 	;;
 $FSCK_OUT)
 	LIBS="${FSCK_LIBS[@]}"
 	OBJS="${FSCK_OBJS[@]} $LIB_OUT"
-	target_link
+	target_c_link
 	;;
 $DEFRAG_OUT)
 	LIBS="${DEFRAG_LIBS[@]}"
 	OBJS="${DEFRAG_OBJS[@]} $LIB_OUT"
-	target_link
+	target_c_link
 	;;
 $FSCTL_OUT)
 	LIBS="${FSCTL_LIBS[@]}"
 	OBJS="${FSCTL_OBJS[@]} $LIB_OUT"
-	target_link
+	target_c_link
 	;;
 $ATTR_OUT)
 	LIBS="${ATTR_LIBS[@]}"
 	OBJS="${ATTR_OBJS[@]} $LIB_OUT"
-	target_link
+	target_c_link
 	;;
 *.o)
-	target_gcc
+	if [[ -e "${TARGET//.o/.cxx}" ]]; then
+		target_cxx
+	elif [[ -e "${TARGET//.o/.c}" ]]; then
+		target_c
+	else
+		echo "cannot find source file for '$TARGET'"
+		exit 1
+	fi
 	;;
 clean)
 	rm -rf $(find bin/ -type f)
