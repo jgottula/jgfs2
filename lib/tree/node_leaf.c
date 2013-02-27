@@ -77,15 +77,34 @@ uint16_t leaf_half(const leaf_ptr node) {
 	return node->hdr.cnt / 2;
 }
 
-void *leaf_data_ptr(const leaf_ptr node, const key *key) {
-	const item_ref *elem_end = node->elems + node->hdr.cnt;
-	for (const item_ref *elem = node->elems; elem < elem_end; ++elem) {
-		if (key_cmp(key, &elem->key) == 0) {
-			return (uint8_t *)node + elem->off;
+item_ref *leaf_search(const leaf_ptr node, const key *key) {
+	uint16_t first = 0;
+	uint16_t last  = node->hdr.cnt - 1;
+	uint16_t middle;
+	
+	TODO("test this for 1-3 items with sought item in each position");
+	
+	while (first <= last) {
+		middle = (first + last) / 2;
+		
+		int8_t cmp = key_cmp(key, &node->elems[middle].key);
+		
+		if (cmp > 0) {
+			first = middle + 1;
+		} else if (cmp < 0) {
+			last = middle - 1;
+		} else {
+			/* found */
+			return &node->elems[middle];
 		}
 	}
 	
+	/* not found */
 	return NULL;
+}
+
+void *leaf_data_ptr(const leaf_ptr node, const item_ref *item) {
+	return (uint8_t *)node + item->off;
 }
 
 void leaf_zero(leaf_ptr node, uint16_t first) {
