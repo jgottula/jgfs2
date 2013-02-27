@@ -1,5 +1,6 @@
 *.sublime-*
 *.o
 *.dep
+.redo/
 bin/
 test/*.img
