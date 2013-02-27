@@ -172,6 +172,8 @@ bool leaf_insert(leaf_ptr node, const key *key, struct item_data item) {
 		return false;
 	}
 	
+	TODO("use binary search to determine insertion index");
+	
 	/* default insert at position 0 for empty leaf or lowest key */
 	uint16_t insert_at = 0;
 	if (node->hdr.cnt != 0 && key_cmp(key, &node->elems[0].key) > 0) {

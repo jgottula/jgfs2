@@ -118,6 +118,8 @@ bool branch_insert(branch_ptr node, const node_ref *elem) {
 		return false;
 	}
 	
+	TODO("use binary search to determine insertion index");
+	
 	/* default insert at position 0 for empty branch or lowest key */
 	uint16_t insert_at = 0;
 	if (node->hdr.cnt != 0 && key_cmp(&elem->key, &node->elems[0].key) > 0) {
@@ -185,6 +187,8 @@ void branch_ref_update(branch_ptr node, node_ptr child) {
 	
 	bool found = false;
 	
+	/* must do a linear search because the key we are updating would already
+	 * need to be correct for a binary search to be possible */
 	const node_ref *elem_end = node->elems + node->hdr.cnt;
 	for (node_ref *elem = node->elems; elem < elem_end; ++elem) {
 		if (elem->addr == child->hdr.this) {
