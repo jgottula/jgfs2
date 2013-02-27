@@ -4,13 +4,12 @@
  * simplified BSD license. See the LICENSE file for details.
  */
 
-#ifndef JGFS2_SRC_TREE_NCURSES_H
-#define JGFS2_SRC_TREE_NCURSES_H
+#include <cstdio>
+#include "../../lib/jgfs2.h"
 
 
-void nc_init(void);
-void nc_done(void);
-void nc_loop(void);
-
-
-#endif
+int main(int argc, char **argv) {
+	puts("hello world");
+	
+	return 0;
+}
