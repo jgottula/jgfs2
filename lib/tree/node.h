@@ -60,6 +60,7 @@ uint32_t node_alloc(void);
 node_ptr node_map(uint32_t node_addr);
 void node_unmap(const node_ptr node);
 bool node_is_root(uint32_t node_addr);
+uint32_t node_find_root(uint32_t node_addr);
 void node_zero_data(node_ptr node);
 void node_copy_data(node_ptr dst, const node_ptr src);
 void node_split(uint32_t node_addr);

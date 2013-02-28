@@ -48,6 +48,20 @@ bool node_is_root(uint32_t node_addr) {
 	return is_root;
 }
 
+uint32_t node_find_root(uint32_t node_addr) {
+	uint32_t parent_addr = node_addr;
+	
+	do {
+		node_addr = parent_addr;
+		
+		node_ptr node = node_map(node_addr);
+		parent_addr = node->hdr.parent;
+		node_unmap(node);
+	} while (parent_addr != 0);
+	
+	return node_addr;
+}
+
 void node_zero_data(node_ptr node) {
 	uint8_t *zero_ptr = (uint8_t *)node + sizeof(struct node_hdr);
 	size_t   zero_len = node_size_usable();

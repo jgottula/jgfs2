@@ -93,17 +93,3 @@ leaf_ptr tree_search(uint32_t root_addr, const key *key) {
 	ASSERT_ROOT(root_addr);
 	return tree_search_r(root_addr, root_addr, key);
 }
-
-uint32_t tree_find_root(uint32_t node_addr) {
-	uint32_t parent_addr = node_addr;
-	
-	do {
-		node_addr = parent_addr;
-		
-		node_ptr node = node_map(node_addr);
-		parent_addr = node->hdr.parent;
-		node_unmap(node);
-	} while (parent_addr != 0);
-	
-	return node_addr;
-}
