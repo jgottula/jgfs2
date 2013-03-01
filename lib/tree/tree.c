@@ -62,6 +62,10 @@ static leaf_ptr tree_search_r(uint32_t root_addr, uint32_t node_addr,
 				__func__, root_addr, node_addr);
 		}
 		
+		/* need to implement a 'hypothetical' binary search that doesn't look
+		 * for exact matches, but instead, for 
+		TODO("use binary search in recursion"); */
+		
 		/* if smaller than any other key, recurse through the first subnode */
 		const node_ref *elem_first = branch->elems;
 		if (key_cmp(key, &elem_first->key) < 0) {
