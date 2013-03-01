@@ -111,6 +111,45 @@ void *node_search(const node_ptr node, const key *key) {
 	return NULL;
 }
 
+uint16_t node_search_hypo(const node_ptr node, const key *key) {
+	/* for empty node, return first index; for largest key, return very last
+	 * possible index */
+	if (node->hdr.cnt == 0) {
+		return 0;
+	} else if (key_cmp(key, node_key(node, node->hdr.cnt - 1)) > 0) {
+		return node->hdr.cnt;
+	}
+	
+	uint16_t first = 0;
+	uint16_t last  = node->hdr.cnt - 1;
+	uint16_t middle;
+	
+	TODO("test this for 0-4 items with dest idx in each position");
+	TODO("test for proper handling of dupe insertion in all cases");
+	
+	while (first <= last) {
+		middle = CEIL(first + last, 2);
+		
+		int8_t cmp = key_cmp(key, node_key(node, middle));
+		
+		if (cmp > 0) {
+			first = middle + 1;
+		} else if (cmp < 0) {
+			if (middle == 0 || key_cmp(key, node_key(node, middle - 1)) > 0) {
+				return middle;
+			} else {
+				last = middle - 1;
+			}
+		} else {
+			errx("%s: key already present: node 0x%" PRIx32 " key %s",
+				__func__, node->hdr.this, key_str(key));
+		}
+	}
+	
+	errx("%s: total failure: node 0x%" PRIx32 " key %s",
+		__func__, node->hdr.this, key_str(key));
+}
+
 void node_zero_data(node_ptr node) {
 	uint8_t *zero_ptr = (uint8_t *)node + sizeof(struct node_hdr);
 	size_t   zero_len = node_size_usable();

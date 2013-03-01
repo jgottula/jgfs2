@@ -92,6 +92,7 @@ const key *node_key(const node_ptr node, uint16_t idx);
 const key *node_first_key(const node_ptr node);
 
 void *node_search(const node_ptr node, const key *key);
+uint16_t node_search_hypo(const node_ptr node, const key *key);
 
 void node_zero_data(node_ptr node);
 void node_copy_data(node_ptr dst, const node_ptr src);
