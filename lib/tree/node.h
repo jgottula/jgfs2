@@ -30,6 +30,11 @@
 		errx("%s: not leaf: node 0x%" PRIx32, \
 			__func__, _node_ptr->hdr.this); \
 	}
+#define ASSERT_NONEMPTY(_node_ptr) \
+	if (_node_ptr->hdr.cnt == 0) { \
+		errx("%s: empty node: node 0x%" PRIx32, \
+			__func__, _node_ptr->hdr.this); \
+	}
 
 
 typedef struct __attribute__((__packed__)) {
@@ -83,6 +88,8 @@ void node_dump(uint32_t node_addr);
 bool node_is_root(uint32_t node_addr);
 uint32_t node_find_root(uint32_t node_addr);
 
+const key *node_first_key(const node_ptr node);
+
 void node_zero_data(node_ptr node);
 void node_copy_data(node_ptr dst, const node_ptr src);
 
@@ -99,6 +106,7 @@ uint32_t branch_free(const branch_ptr node);
 uint16_t branch_half(const branch_ptr node);
 
 node_ref *branch_search(const branch_ptr node, const key *key);
+node_ref *branch_search_addr(const branch_ptr node, uint32_t addr);
 
 void branch_zero(branch_ptr node, uint16_t first);
 void branch_xfer_half(branch_ptr dst, branch_ptr src);

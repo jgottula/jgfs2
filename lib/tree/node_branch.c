@@ -82,6 +82,22 @@ node_ref *branch_search(const branch_ptr node, const key *key) {
 	return NULL;
 }
 
+node_ref *branch_search_addr(const branch_ptr node, uint32_t addr) {
+	ASSERT_BRANCH(node);
+	
+	/* this is not an optimized search because the node's elements are not
+	 * sorted by address */
+	const node_ref *elem_end = node->elems + node->hdr.cnt;
+	for (node_ref *elem = node->elems; elem < elem_end; ++elem) {
+		if (elem->addr == addr) {
+			return elem;
+		}
+	}
+	
+	/* not found */
+	return NULL;
+}
+
 void branch_zero(branch_ptr node, uint16_t first) {
 	ASSERT_BRANCH(node);
 	
@@ -185,17 +201,8 @@ void branch_ref(branch_ptr node, node_ptr child) {
 			__func__, node->hdr.this, child->hdr.this);
 	}
 	
-	if (child->hdr.cnt == 0) {
-		errx("%s: empty child: node 0x%" PRIx32 " child 0x%" PRIx32,
-			__func__, node->hdr.this, child->hdr.this);
-	}
-	
 	node_ref elem;
-	if (child->hdr.leaf) {
-		elem.key = ((leaf_ptr)child)->elems[0].key;
-	} else {
-		elem.key = ((branch_ptr)child)->elems[0].key;
-	}
+	elem.key = *node_first_key(child);
 	elem.addr = child->hdr.this;
 	
 	branch_insert(node, &elem);
@@ -204,30 +211,10 @@ void branch_ref(branch_ptr node, node_ptr child) {
 void branch_ref_update(branch_ptr node, node_ptr child) {
 	ASSERT_BRANCH(node);
 	
-	if (child->hdr.cnt == 0) {
-		errx("%s: empty child: node 0x%" PRIx32 " child 0x%" PRIx32,
-			__func__, node->hdr.this, child->hdr.this);
-	}
-	
-	bool found = false;
-	
-	/* must do a linear search because the key we are updating would already
-	 * need to be correct for a binary search to be possible */
-	const node_ref *elem_end = node->elems + node->hdr.cnt;
-	for (node_ref *elem = node->elems; elem < elem_end; ++elem) {
-		if (elem->addr == child->hdr.this) {
-			if (child->hdr.leaf) {
-				elem->key = ((leaf_ptr)child)->elems[0].key;
-			} else {
-				elem->key = ((branch_ptr)child)->elems[0].key;
-			}
-			
-			found = true;
-			break;
-		}
-	}
-	
-	if (!found) {
+	node_ref *elem = branch_search_addr(node, child->hdr.this);
+	if (elem != NULL) {
+		elem->key = *node_first_key(child);
+	} else {
 		errx("%s: not found: node 0x%" PRIx32 " child 0x%" PRIx32,
 			__func__, node->hdr.this, child->hdr.this);
 	}

@@ -57,14 +57,10 @@ static leaf_ptr tree_search_r(uint32_t root_addr, uint32_t node_addr,
 		branch_ptr branch = (branch_ptr)node;
 		leaf_ptr   result = NULL;
 		
-		if (node->hdr.cnt == 0) {
-			errx("%s: cannot be empty: root 0x%" PRIx32 " node 0x%" PRIx32,
-				__func__, root_addr, node_addr);
-		}
+		ASSERT_NONEMPTY(branch);
 		
-		/* need to implement a 'hypothetical' binary search that doesn't look
-		 * for exact matches, but instead, for 
-		TODO("use binary search in recursion"); */
+		/* in the else branch, use branch_search_hypo */
+		TODO("use binary search in recursion");
 		
 		/* if smaller than any other key, recurse through the first subnode */
 		const node_ref *elem_first = branch->elems;

@@ -62,6 +62,16 @@ uint32_t node_find_root(uint32_t node_addr) {
 	return node_addr;
 }
 
+const key *node_first_key(const node_ptr node) {
+	ASSERT_NONEMPTY(node);
+	
+	if (node->hdr.leaf) {
+		return &((leaf_ptr)node)->elems[0].key;
+	} else {
+		return &((branch_ptr)node)->elems[0].key;
+	}
+}
+
 void node_zero_data(node_ptr node) {
 	uint8_t *zero_ptr = (uint8_t *)node + sizeof(struct node_hdr);
 	size_t   zero_len = node_size_usable();
