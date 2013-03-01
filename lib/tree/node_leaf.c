@@ -10,8 +10,9 @@
 
 
 void leaf_dump(const leaf_ptr node) {
-	const struct node_hdr *hdr = &node->hdr;
+	ASSERT_LEAF(node);
 	
+	const struct node_hdr *hdr = &node->hdr;
 	warnx("%s: this 0x%" PRIx32 " parent 0x%" PRIx32 " prev 0x%" PRIx32
 		" next 0x%" PRIx32 " cnt %" PRIu16,
 		__func__, hdr->this, hdr->parent, hdr->prev, hdr->next, hdr->cnt);
@@ -40,6 +41,8 @@ leaf_ptr leaf_init(uint32_t node_addr, uint32_t parent, uint32_t prev,
 }
 
 uint32_t leaf_used(const leaf_ptr node) {
+	ASSERT_LEAF(node);
+	
 	if (node->hdr.cnt != 0) {
 		uint32_t used_ref = node->hdr.cnt * sizeof(item_ref);
 		
@@ -53,10 +56,14 @@ uint32_t leaf_used(const leaf_ptr node) {
 }
 
 uint32_t leaf_free(const leaf_ptr node) {
+	ASSERT_LEAF(node);
+	
 	return node_size_usable() - leaf_used(node);
 }
 
 uint16_t leaf_half(const leaf_ptr node) {
+	ASSERT_LEAF(node);
+	
 	uint32_t used_half = leaf_used(node) / 2;
 	uint32_t used_incr = 0;
 	
@@ -78,6 +85,8 @@ uint16_t leaf_half(const leaf_ptr node) {
 }
 
 item_ref *leaf_search(const leaf_ptr node, const key *key) {
+	ASSERT_LEAF(node);
+	
 	uint16_t first = 0;
 	uint16_t last  = node->hdr.cnt - 1;
 	uint16_t middle;
@@ -104,10 +113,14 @@ item_ref *leaf_search(const leaf_ptr node, const key *key) {
 }
 
 void *leaf_data_ptr(const leaf_ptr node, const item_ref *item) {
+	ASSERT_LEAF(node);
+	
 	return (uint8_t *)node + item->off;
 }
 
 void leaf_zero(leaf_ptr node, uint16_t first) {
+	ASSERT_LEAF(node);
+	
 	const item_ref *elem = node->elems + first;
 	uint8_t *data_ptr = (uint8_t *)node + elem->off;
 	
@@ -118,6 +131,9 @@ void leaf_zero(leaf_ptr node, uint16_t first) {
 }
 
 void leaf_xfer_half(leaf_ptr dst, leaf_ptr src) {
+	ASSERT_LEAF(dst);
+	ASSERT_LEAF(src);
+	
 	uint16_t half = leaf_half(src);
 	
 	if (half == 0) {
@@ -138,6 +154,8 @@ void leaf_xfer_half(leaf_ptr dst, leaf_ptr src) {
 
 void leaf_insert_naive(leaf_ptr node, uint16_t at, const key *key,
 	struct item_data item) {
+	ASSERT_LEAF(node);
+	
 	item_ref *elem = node->elems + at;
 	
 	uint32_t off;
@@ -157,11 +175,15 @@ void leaf_insert_naive(leaf_ptr node, uint16_t at, const key *key,
 }
 
 void leaf_append_naive(leaf_ptr node, const key *key, struct item_data item) {
+	ASSERT_LEAF(node);
+	
 	leaf_insert_naive(node, node->hdr.cnt, key, item);
 	++node->hdr.cnt;
 }
 
 bool leaf_insert(leaf_ptr node, const key *key, struct item_data item) {
+	ASSERT_LEAF(node);
+	
 	if (sizeof(item_ref) + item.len > node_size_usable()) {
 		errx("%s: will never fit: node 0x%" PRIx32 " %s len %" PRIu32,
 			__func__, node->hdr.this, key_str(key), item.len);
@@ -218,5 +240,8 @@ bool leaf_insert(leaf_ptr node, const key *key, struct item_data item) {
 }
 
 void leaf_split_post(leaf_ptr this, leaf_ptr new) {
+	ASSERT_LEAF(this);
+	ASSERT_LEAF(new);
+	
 	leaf_xfer_half(new, this);
 }

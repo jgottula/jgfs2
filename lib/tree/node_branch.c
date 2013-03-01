@@ -10,8 +10,9 @@
 
 
 void branch_dump(const branch_ptr node) {
-	const struct node_hdr *hdr = &node->hdr;
+	ASSERT_BRANCH(node);
 	
+	const struct node_hdr *hdr = &node->hdr;
 	warnx("%s: this 0x%" PRIx32 " parent 0x%" PRIx32 " cnt %" PRIu16,
 		__func__, hdr->this, hdr->parent, hdr->cnt);
 	
@@ -38,18 +39,26 @@ branch_ptr branch_init(uint32_t node_addr, uint32_t parent) {
 }
 
 uint32_t branch_used(const branch_ptr node) {
+	ASSERT_BRANCH(node);
+	
 	return node->hdr.cnt * sizeof(node_ref);
 }
 
 uint32_t branch_free(const branch_ptr node) {
+	ASSERT_BRANCH(node);
+	
 	return node_size_usable() - branch_used(node);
 }
 
 uint16_t branch_half(const branch_ptr node) {
+	ASSERT_BRANCH(node);
+	
 	return node->hdr.cnt / 2;
 }
 
 node_ref *branch_search(const branch_ptr node, const key *key) {
+	ASSERT_BRANCH(node);
+	
 	uint16_t first = 0;
 	uint16_t last  = node->hdr.cnt - 1;
 	uint16_t middle;
@@ -74,6 +83,8 @@ node_ref *branch_search(const branch_ptr node, const key *key) {
 }
 
 void branch_zero(branch_ptr node, uint16_t first) {
+	ASSERT_BRANCH(node);
+	
 	const node_ref *elem = node->elems + first;
 	
 	uint8_t *zero_begin = (uint8_t *)elem;
@@ -83,6 +94,9 @@ void branch_zero(branch_ptr node, uint16_t first) {
 }
 
 void branch_xfer_half(branch_ptr dst, branch_ptr src) {
+	ASSERT_BRANCH(dst);
+	ASSERT_BRANCH(src);
+	
 	uint16_t half = branch_half(src);
 	
 	if (half == 0) {
@@ -100,6 +114,8 @@ void branch_xfer_half(branch_ptr dst, branch_ptr src) {
 }
 
 void branch_assert_parenthood(branch_ptr node) {
+	ASSERT_BRANCH(node);
+	
 	const node_ref *elem_end = node->elems + node->hdr.cnt;
 	for (const node_ref *elem = node->elems; elem < elem_end; ++elem) {
 		node_ptr child = node_map(elem->addr);
@@ -109,10 +125,14 @@ void branch_assert_parenthood(branch_ptr node) {
 }
 
 void branch_append_naive(branch_ptr node, const node_ref *elem) {
+	ASSERT_BRANCH(node);
+	
 	node->elems[node->hdr.cnt++] = *elem;
 }
 
 bool branch_insert(branch_ptr node, const node_ref *elem) {
+	ASSERT_BRANCH(node);
+	
 	/* the caller needs to make space if necessary */
 	if (branch_free(node) < sizeof(node_ref)) {
 		return false;
@@ -158,6 +178,8 @@ bool branch_insert(branch_ptr node, const node_ref *elem) {
 }
 
 void branch_ref(branch_ptr node, node_ptr child) {
+	ASSERT_BRANCH(node);
+	
 	if (branch_free(node) < sizeof(node_ref)) {
 		errx("%s: no space: node 0x%" PRIx32 " child 0x%" PRIx32,
 			__func__, node->hdr.this, child->hdr.this);
@@ -180,6 +202,8 @@ void branch_ref(branch_ptr node, node_ptr child) {
 }
 
 void branch_ref_update(branch_ptr node, node_ptr child) {
+	ASSERT_BRANCH(node);
+	
 	if (child->hdr.cnt == 0) {
 		errx("%s: empty child: node 0x%" PRIx32 " child 0x%" PRIx32,
 			__func__, node->hdr.this, child->hdr.this);
@@ -210,6 +234,9 @@ void branch_ref_update(branch_ptr node, node_ptr child) {
 }
 
 void branch_split_post(branch_ptr this, branch_ptr new, bool was_root) {
+	ASSERT_BRANCH(this);
+	ASSERT_BRANCH(new);
+	
 	branch_xfer_half(new, this);
 	
 	/* our children don't know who their parent is anymore */

@@ -15,6 +15,23 @@
 #include "item.h"
 
 
+#define ASSERT_ROOT(_node_addr) \
+	if (!node_is_root(_node_addr)) { \
+		errx("%s: not root: node 0x%" PRIx32, \
+			__func__, _node_addr); \
+	}
+#define ASSERT_BRANCH(_node_ptr) \
+	if (_node_ptr->hdr.leaf) { \
+		errx("%s: not branch: node 0x%" PRIx32, \
+			__func__, _node_ptr->hdr.this); \
+	}
+#define ASSERT_LEAF(_node_ptr) \
+	if (!_node_ptr->hdr.leaf) { \
+		errx("%s: not leaf: node 0x%" PRIx32, \
+			__func__, _node_ptr->hdr.this); \
+	}
+
+
 typedef struct __attribute__((__packed__)) {
 	key key;
 	uint32_t off;
