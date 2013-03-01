@@ -59,8 +59,9 @@ static leaf_ptr tree_search_r(uint32_t root_addr, uint32_t node_addr,
 		
 		ASSERT_NONEMPTY(branch);
 		
-		/* in the else branch, use branch_search_hypo */
-		TODO("use binary search in recursion");
+		/* need a binary search that gives the element with key <= the key we
+		 * are looking for, not == */
+		TODO("binary search");
 		
 		/* if smaller than any other key, recurse through the first subnode */
 		const node_ref *elem_first = branch->elems;
