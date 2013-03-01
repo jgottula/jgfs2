@@ -9,6 +9,19 @@
 #include "../debug.h"
 
 
+branch_ptr branch_init(uint32_t node_addr, uint32_t parent) {
+	branch_ptr node = (branch_ptr)node_map(node_addr);
+	
+	node->hdr.leaf   = false;
+	node->hdr.cnt    = 0;
+	node->hdr.this   = node_addr;
+	node->hdr.prev   = 0;
+	node->hdr.next   = 0;
+	node->hdr.parent = parent;
+	
+	return node;
+}
+
 void branch_dump(const branch_ptr node) {
 	ASSERT_BRANCH(node);
 	
@@ -23,19 +36,6 @@ void branch_dump(const branch_ptr node) {
 	}
 	
 	dump_mem(node, node_size_byte());
-}
-
-branch_ptr branch_init(uint32_t node_addr, uint32_t parent) {
-	branch_ptr node = (branch_ptr)node_map(node_addr);
-	
-	node->hdr.leaf   = false;
-	node->hdr.cnt    = 0;
-	node->hdr.this   = node_addr;
-	node->hdr.prev   = 0;
-	node->hdr.next   = 0;
-	node->hdr.parent = parent;
-	
-	return node;
 }
 
 uint32_t branch_used(const branch_ptr node) {

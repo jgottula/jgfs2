@@ -9,6 +9,20 @@
 #include "../debug.h"
 
 
+leaf_ptr leaf_init(uint32_t node_addr, uint32_t parent, uint32_t prev,
+	uint32_t next) {
+	leaf_ptr node = (leaf_ptr)node_map(node_addr);
+	
+	node->hdr.leaf   = true;
+	node->hdr.cnt    = 0;
+	node->hdr.this   = node_addr;
+	node->hdr.prev   = prev;
+	node->hdr.next   = next;
+	node->hdr.parent = parent;
+	
+	return node;
+}
+
 void leaf_dump(const leaf_ptr node) {
 	ASSERT_LEAF(node);
 	
@@ -24,20 +38,6 @@ void leaf_dump(const leaf_ptr node) {
 	}
 	
 	dump_mem(node, node_size_byte());
-}
-
-leaf_ptr leaf_init(uint32_t node_addr, uint32_t parent, uint32_t prev,
-	uint32_t next) {
-	leaf_ptr node = (leaf_ptr)node_map(node_addr);
-	
-	node->hdr.leaf   = true;
-	node->hdr.cnt    = 0;
-	node->hdr.this   = node_addr;
-	node->hdr.prev   = prev;
-	node->hdr.next   = next;
-	node->hdr.parent = parent;
-	
-	return node;
 }
 
 uint32_t leaf_used(const leaf_ptr node) {

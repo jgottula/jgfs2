@@ -10,18 +10,6 @@
 #include "../extent.h"
 
 
-void node_dump(uint32_t node_addr) {
-	struct node_hdr *hdr = fs_map_blk(node_addr, node_size_blk());
-	
-	if (hdr->leaf) {
-		leaf_dump((leaf_ptr)hdr);
-	} else {
-		branch_dump((branch_ptr)hdr);
-	}
-	
-	fs_unmap_blk(hdr, node_addr, node_size_blk());
-}
-
 uint32_t node_alloc(void) {
 	/* allocating a block should be okay because the ext tree does not insert
 	 * items on allocations; otherwise, we could deadlock, since extent
@@ -38,6 +26,18 @@ void node_unmap(const node_ptr node) {
 	const struct node_hdr *hdr = (const struct node_hdr *)node;
 	
 	fs_unmap_blk(node, hdr->this, node_size_blk());
+}
+
+void node_dump(uint32_t node_addr) {
+	struct node_hdr *hdr = fs_map_blk(node_addr, node_size_blk());
+	
+	if (hdr->leaf) {
+		leaf_dump((leaf_ptr)hdr);
+	} else {
+		branch_dump((branch_ptr)hdr);
+	}
+	
+	fs_unmap_blk(hdr, node_addr, node_size_blk());
 }
 
 bool node_is_root(uint32_t node_addr) {
