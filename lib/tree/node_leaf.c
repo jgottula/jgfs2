@@ -166,23 +166,7 @@ bool leaf_insert(leaf_ptr node, const key *key, struct item_data item) {
 		return false;
 	}
 	
-	TODO("use binary search to determine insertion index");
-	
-	/* default insert at position 0 for empty leaf or lowest key */
-	uint16_t insert_at = 0;
-	if (node->hdr.cnt != 0 && key_cmp(key, &node->elems[0].key) > 0) {
-		for (uint16_t i = node->hdr.cnt; i > 0; --i) {
-			if (key_cmp(key, &node->elems[i - 1].key) > 0) {
-				insert_at = i;
-				break;
-			}
-		}
-		
-		if (insert_at == 0) {
-			errx("%s: can't find spot: node 0x%" PRIx32 " %s len %" PRIu32,
-				__func__, node->hdr.this, key_str(key), item.len);
-		}
-	}
+	uint16_t insert_at = node_search_hypo((node_ptr)node, key);
 	
 	/* shift elements above the insertion point over by one; this includes the
 	 * data buffers to which they point */
