@@ -62,14 +62,23 @@ uint32_t node_find_root(uint32_t node_addr) {
 	return node_addr;
 }
 
+const key *node_key(const node_ptr node, uint16_t idx) {
+	if (idx >= node->hdr.cnt) {
+		errx("%s: idx exceeds bounds: node 0x%" PRIx32 ", %" PRId16
+			" >= %" PRId16, __func__, node->hdr.this, idx, node->hdr.cnt);
+	}
+	
+	if (node->hdr.leaf) {
+		return &((leaf_ptr)node)->elems[idx].key;
+	} else {
+		return &((branch_ptr)node)->elems[idx].key;
+	}
+}
+
 const key *node_first_key(const node_ptr node) {
 	ASSERT_NONEMPTY(node);
 	
-	if (node->hdr.leaf) {
-		return &((leaf_ptr)node)->elems[0].key;
-	} else {
-		return &((branch_ptr)node)->elems[0].key;
-	}
+	return node_key(node, 0);
 }
 
 void node_zero_data(node_ptr node) {

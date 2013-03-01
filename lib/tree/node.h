@@ -88,6 +88,7 @@ void node_dump(uint32_t node_addr);
 bool node_is_root(uint32_t node_addr);
 uint32_t node_find_root(uint32_t node_addr);
 
+const key *node_key(const node_ptr node, uint16_t idx);
 const key *node_first_key(const node_ptr node);
 
 void node_zero_data(node_ptr node);
