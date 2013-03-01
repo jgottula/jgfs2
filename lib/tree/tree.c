@@ -10,12 +10,6 @@
 #include "check.h"
 
 
-#define ASSERT_ROOT(_node_addr) \
-	if (!node_is_root(_node_addr)) { \
-		errx("%s: not root: node 0x%" PRIx32, __func__, _node_addr); \
-	}
-
-
 void tree_dump(uint32_t root_addr) {
 	ASSERT_ROOT(root_addr);
 	TODO("implement this");
