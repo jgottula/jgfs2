@@ -146,10 +146,7 @@ struct check_result check_node_branch(branch_ptr node) {
 		} else if (child->hdr.cnt == 0) {
 			bad = true;
 			code = ERR_BRANCH_EMPTY_CHILD;
-		} else if ((child->hdr.leaf && key_cmp(&elem->key,
-			&((leaf_ptr)child)->elems[0].key) != 0) ||
-			(!child->hdr.leaf && key_cmp(&elem->key,
-			&((branch_ptr)child)->elems[0].key) != 0)) {
+		} else if (key_cmp(&elem->key, node_first_key(child)) != 0) {
 			bad = true;
 			code = ERR_BRANCH_KEY;
 		}
@@ -353,16 +350,8 @@ void check_print(struct check_result result, bool fatal) {
 			warnx("child believes its parent is 0x%" PRIx32, child->hdr.parent);
 			break;
 		case ERR_BRANCH_KEY:
-		{
-			const char *key;
-			if (child->hdr.leaf) {
-				key = key_str(&((leaf_ptr)child)->elems[0].key);
-			} else {
-				key = key_str(&((branch_ptr)child)->elems[0].key);
-			}
-			warnx("actual first key: %s", key);
+			warnx("actual first key: %s", key_str(node_first_key(child)));
 			break;
-		}
 		}
 		
 		if (err->elem_cnt > 0) {
