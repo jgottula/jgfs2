@@ -56,32 +56,6 @@ uint16_t branch_half(const branch_ptr node) {
 	return node->hdr.cnt / 2;
 }
 
-node_ref *branch_search(const branch_ptr node, const key *key) {
-	ASSERT_BRANCH(node);
-	
-	uint16_t first = 0;
-	uint16_t last  = node->hdr.cnt - 1;
-	uint16_t middle;
-	
-	while (first <= last) {
-		middle = (first + last) / 2;
-		
-		int8_t cmp = key_cmp(key, &node->elems[middle].key);
-		
-		if (cmp > 0) {
-			first = middle + 1;
-		} else if (cmp < 0) {
-			last = middle - 1;
-		} else {
-			/* found */
-			return &node->elems[middle];
-		}
-	}
-	
-	/* not found */
-	return NULL;
-}
-
 node_ref *branch_search_addr(const branch_ptr node, uint32_t addr) {
 	ASSERT_BRANCH(node);
 	

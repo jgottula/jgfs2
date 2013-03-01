@@ -81,6 +81,36 @@ const key *node_first_key(const node_ptr node) {
 	return node_key(node, 0);
 }
 
+void *node_search(const node_ptr node, const key *key) {
+	uint16_t first = 0;
+	uint16_t last  = node->hdr.cnt - 1;
+	uint16_t middle;
+	
+	TODO("test this for 1-3 items with sought item in each position");
+	
+	while (first <= last) {
+		middle = (first + last) / 2;
+		
+		int8_t cmp = key_cmp(key, node_key(node, middle));
+		
+		if (cmp > 0) {
+			first = middle + 1;
+		} else if (cmp < 0) {
+			last = middle - 1;
+		} else {
+			/* found */
+			if (node->hdr.leaf) {
+				return &((leaf_ptr)node)->elems[middle];
+			} else {
+				return &((branch_ptr)node)->elems[middle];
+			}
+		}
+	}
+	
+	/* not found */
+	return NULL;
+}
+
 void node_zero_data(node_ptr node) {
 	uint8_t *zero_ptr = (uint8_t *)node + sizeof(struct node_hdr);
 	size_t   zero_len = node_size_usable();

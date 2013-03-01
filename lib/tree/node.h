@@ -91,6 +91,8 @@ uint32_t node_find_root(uint32_t node_addr);
 const key *node_key(const node_ptr node, uint16_t idx);
 const key *node_first_key(const node_ptr node);
 
+void *node_search(const node_ptr node, const key *key);
+
 void node_zero_data(node_ptr node);
 void node_copy_data(node_ptr dst, const node_ptr src);
 
@@ -106,7 +108,6 @@ uint32_t branch_used(const branch_ptr node);
 uint32_t branch_free(const branch_ptr node);
 uint16_t branch_half(const branch_ptr node);
 
-node_ref *branch_search(const branch_ptr node, const key *key);
 node_ref *branch_search_addr(const branch_ptr node, uint32_t addr);
 
 void branch_zero(branch_ptr node, uint16_t first);
@@ -133,7 +134,6 @@ uint32_t leaf_used(const leaf_ptr node);
 uint32_t leaf_free(const leaf_ptr node);
 uint16_t leaf_half(const leaf_ptr node);
 
-item_ref *leaf_search(const leaf_ptr node, const key *key);
 void *leaf_data_ptr(const leaf_ptr node, const item_ref *item);
 
 void leaf_zero(leaf_ptr node, uint16_t first);
