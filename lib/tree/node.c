@@ -28,13 +28,23 @@ void node_unmap(const node_ptr node) {
 	fs_unmap_blk(node, hdr->this, node_size_blk());
 }
 
-void node_dump(uint32_t node_addr) {
+void node_dump(uint32_t node_addr, bool recurse) {
 	struct node_hdr *hdr = fs_map_blk(node_addr, node_size_blk());
 	
 	if (hdr->leaf) {
 		leaf_dump((leaf_ptr)hdr);
 	} else {
 		branch_dump((branch_ptr)hdr);
+		
+		if (recurse) {
+			const branch_ptr branch = (branch_ptr)hdr;
+			
+			const node_ref *elem_end = branch->elems + branch->hdr.cnt;
+			for (const node_ref *elem = branch->elems;
+				elem < elem_end; ++elem) {
+				node_dump(elem->addr, true);
+			}
+		}
 	}
 	
 	fs_unmap_blk(hdr, node_addr, node_size_blk());
