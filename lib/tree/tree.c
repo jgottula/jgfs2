@@ -49,7 +49,7 @@ static leaf_ptr tree_search_r(uint32_t root_addr, uint32_t node_addr,
 	node_ptr node = node_map(node_addr);
 	
 	/* remove this later for performance */
-	check_node(node_addr);
+	check_node(node_addr, false);
 	
 	if (node->hdr.leaf) {
 		return (leaf_ptr)node;

@@ -12,17 +12,146 @@
 struct check_result check_tree(uint32_t root_addr) {
 	struct check_result result = { RESULT_TYPE_OK };
 	
-	// run node_check on each node in the tree
-	
+	TODO("tree-specific checks");
 	// check for overall tree consistency:
 	// dupes between nodes
 	// node n's largest key not less than node n+1's smallest
 	
-//done:
+	result = check_node(root_addr, true);
+	if (result.type != RESULT_TYPE_OK) {
+		goto done;
+	}
+	
+done:
 	return result;
 }
 
-struct check_result check_node(uint32_t node_addr) {
+static struct check_result check_node_branch(branch_ptr node, bool recurse) {
+	struct check_result result = { RESULT_TYPE_OK };
+	
+	if (branch_used(node) > node_size_usable()) {
+		result.type = RESULT_TYPE_BRANCH;
+		result.branch = (struct branch_check_error){
+			.code      = ERR_BRANCH_OVERFLOW,
+			.node_addr = node->hdr.this,
+			
+			.elem_cnt = 0,
+		};
+		
+		goto done;
+	}
+	
+	for (uint16_t i = 0; i < node->hdr.cnt; ++i) {
+		const node_ref *elem = node->elems + i;
+		node_ptr child = node_map(elem->addr);
+		
+		bool bad = false;
+		uint32_t code = 0;
+		if (child->hdr.parent != node->hdr.this) {
+			bad = true;
+			code = ERR_BRANCH_PARENT;
+		} else if (child->hdr.cnt == 0) {
+			bad = true;
+			code = ERR_BRANCH_EMPTY_CHILD;
+		} else if (key_cmp(&elem->key, node_first_key(child)) != 0) {
+			bad = true;
+			code = ERR_BRANCH_KEY;
+		}
+		
+		node_unmap(child);
+		
+		if (bad) {
+			result.type = RESULT_TYPE_BRANCH;
+			result.branch = (struct branch_check_error){
+				.code      = code,
+				.node_addr = node->hdr.this,
+				
+				.elem_cnt = 1,
+				.elem_idx = i,
+				.elem     = *elem,
+			};
+			
+			goto done;
+		}
+	}
+	
+	if (recurse) {
+		const node_ref *elem_end = node->elems + node->hdr.cnt;
+		for (const node_ref *elem = node->elems; elem < elem_end; ++elem) {
+			result = check_node(elem->addr, true);
+			if (result.type != RESULT_TYPE_OK) {
+				goto done;
+			}
+		}
+	}
+	
+done:
+	return result;
+}
+
+static struct check_result check_node_leaf(leaf_ptr node) {
+	struct check_result result = { RESULT_TYPE_OK };
+	
+	if (node->hdr.cnt > 0) {
+		if (leaf_used(node) > node_size_usable()) {
+			result.type = RESULT_TYPE_LEAF;
+			result.leaf = (struct leaf_check_error){
+				.code      = ERR_LEAF_OVERFLOW,
+				.node_addr = node->hdr.this,
+				
+				.elem_cnt = 0,
+			};
+			
+			goto done;
+		}
+		
+		uint32_t last_off = node_size_byte();
+		for (uint16_t i = 0; i < node->hdr.cnt; ++i) {
+			const item_ref *elem = node->elems + i;
+			
+			if (last_off != elem->off + elem->len) {
+				result.type = RESULT_TYPE_LEAF;
+				result.leaf = (struct leaf_check_error){
+					.code      = (last_off < elem->off + elem->len ?
+						ERR_LEAF_UNCONTIG : ERR_LEAF_OVERLAP),
+					.node_addr = node->hdr.this,
+					
+					.elem_cnt    = 1,
+					.elem_idx[0] = i,
+					.elem[0]     = *elem,
+				};
+				
+				if (i < node->hdr.cnt - 1) {
+					result.leaf.elem_cnt    = 2;
+					result.leaf.elem_idx[1] = i + 1;
+					result.leaf.elem[1]     = *(elem + 1);
+				}
+				
+				goto done;
+			}
+			
+			last_off -= elem->len;
+		}
+	}
+	
+	const item_ref *elem_end = node->elems + node->hdr.cnt;
+	for (const item_ref *elem = node->elems; elem < elem_end; ++elem) {
+		struct item_data item = {
+			.len  = elem->len,
+			.data = (uint8_t *)node + elem->off,
+		};
+		
+		result = check_item(&elem->key, item);
+		if (result.type != RESULT_TYPE_OK) {
+			goto done;
+		}
+	}
+	
+done:
+	return result;
+}
+
+struct check_result check_node(uint32_t node_addr, bool recurse) {
 	struct check_result result = { RESULT_TYPE_OK };
 	node_ptr node = node_map(node_addr);
 	
@@ -110,127 +239,12 @@ struct check_result check_node(uint32_t node_addr) {
 	if (node->hdr.leaf) {
 		result = check_node_leaf((leaf_ptr)node);
 	} else {
-		result = check_node_branch((branch_ptr)node);
+		result = check_node_branch((branch_ptr)node, recurse);
 	}
 	
 done:
 	node_unmap(node);
 	
-	return result;
-}
-
-struct check_result check_node_branch(branch_ptr node) {
-	struct check_result result = { RESULT_TYPE_OK };
-	
-	if (branch_used(node) > node_size_usable()) {
-		result.type = RESULT_TYPE_BRANCH;
-		result.branch = (struct branch_check_error){
-			.code      = ERR_BRANCH_OVERFLOW,
-			.node_addr = node->hdr.this,
-			
-			.elem_cnt = 0,
-		};
-		
-		goto done;
-	}
-	
-	for (uint16_t i = 0; i < node->hdr.cnt; ++i) {
-		const node_ref *elem = node->elems + i;
-		node_ptr child = node_map(elem->addr);
-		
-		bool bad = false;
-		uint32_t code = 0;
-		if (child->hdr.parent != node->hdr.this) {
-			bad = true;
-			code = ERR_BRANCH_PARENT;
-		} else if (child->hdr.cnt == 0) {
-			bad = true;
-			code = ERR_BRANCH_EMPTY_CHILD;
-		} else if (key_cmp(&elem->key, node_first_key(child)) != 0) {
-			bad = true;
-			code = ERR_BRANCH_KEY;
-		}
-		
-		node_unmap(child);
-		
-		if (bad) {
-			result.type = RESULT_TYPE_BRANCH;
-			result.branch = (struct branch_check_error){
-				.code      = code,
-				.node_addr = node->hdr.this,
-				
-				.elem_cnt = 1,
-				.elem_idx = i,
-				.elem     = *elem,
-			};
-			
-			goto done;
-		}
-	}
-	
-done:
-	return result;
-}
-
-struct check_result check_node_leaf(leaf_ptr node) {
-	struct check_result result = { RESULT_TYPE_OK };
-	
-	if (node->hdr.cnt > 0) {
-		if (leaf_used(node) > node_size_usable()) {
-			result.type = RESULT_TYPE_LEAF;
-			result.leaf = (struct leaf_check_error){
-				.code      = ERR_LEAF_OVERFLOW,
-				.node_addr = node->hdr.this,
-				
-				.elem_cnt = 0,
-			};
-			
-			goto done;
-		}
-		
-		uint32_t last_off = node_size_byte();
-		for (uint16_t i = 0; i < node->hdr.cnt; ++i) {
-			const item_ref *elem = node->elems + i;
-			
-			if (last_off != elem->off + elem->len) {
-				result.type = RESULT_TYPE_LEAF;
-				result.leaf = (struct leaf_check_error){
-					.code      = (last_off < elem->off + elem->len ?
-						ERR_LEAF_UNCONTIG : ERR_LEAF_OVERLAP),
-					.node_addr = node->hdr.this,
-					
-					.elem_cnt    = 1,
-					.elem_idx[0] = i,
-					.elem[0]     = *elem,
-				};
-				
-				if (i < node->hdr.cnt - 1) {
-					result.leaf.elem_cnt    = 2;
-					result.leaf.elem_idx[1] = i + 1;
-					result.leaf.elem[1]     = *(elem + 1);
-				}
-				
-				goto done;
-			}
-			
-			last_off -= elem->len;
-		}
-	}
-	
-	const item_ref *elem_end = node->elems + node->hdr.cnt;
-	for (const item_ref *elem = node->elems; elem < elem_end; ++elem) {
-		struct item_data item = {
-			.len  = elem->len,
-			.data = (uint8_t *)node + elem->off,
-		};
-		
-		result = check_item(&elem->key, item);
-		if (result.type != RESULT_TYPE_OK) {
-			goto done;
-		}
-	}
-	
-done:
 	return result;
 }
 
