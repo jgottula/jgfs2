@@ -29,16 +29,15 @@ void node_unmap(const node_ptr node) {
 }
 
 void node_dump(uint32_t node_addr, bool recurse) {
-	struct node_hdr *hdr = fs_map_blk(node_addr, node_size_blk());
+	node_ptr node = node_map(node_addr);
 	
-	if (hdr->leaf) {
-		leaf_dump((leaf_ptr)hdr);
+	if (node->hdr.leaf) {
+		leaf_dump((leaf_ptr)node);
 	} else {
-		branch_dump((branch_ptr)hdr);
+		branch_ptr branch = (branch_ptr)node;
+		branch_dump(branch);
 		
 		if (recurse) {
-			const branch_ptr branch = (branch_ptr)hdr;
-			
 			const node_ref *elem_end = branch->elems + branch->hdr.cnt;
 			for (const node_ref *elem = branch->elems;
 				elem < elem_end; ++elem) {
@@ -47,7 +46,7 @@ void node_dump(uint32_t node_addr, bool recurse) {
 		}
 	}
 	
-	fs_unmap_blk(hdr, node_addr, node_size_blk());
+	node_unmap(node);
 }
 
 bool node_is_root(uint32_t node_addr) {
