@@ -3,6 +3,11 @@ todo list
 
 
 fs design:
+- tree merging/splitting: need hysteresis tuning
+  - for example, split when we surpass 90% usage, but merge when the combined
+    usage of the pair of nodes is under 60% of a single node
+  - this technique will avoid needless splitting/merging of nodes when near the
+    split/merge threshold
 - extents
   - do we need a maximum extent size?
     - yes if we ever map the entire extent
