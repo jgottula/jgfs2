@@ -202,10 +202,10 @@ void node_split(uint32_t this_addr) {
 	node_ptr this = node_map(this_addr);
 	
 	uint32_t parent_addr = this->hdr.parent;
-	branch_ptr parent;
+	branch_ptr parent = NULL;
 	
 	uint32_t new_addr = node_alloc();
-	node_ptr new;
+	node_ptr new = NULL;
 	
 	bool was_root = node_is_root(this_addr);
 	
@@ -216,7 +216,7 @@ void node_split(uint32_t this_addr) {
 	 */
 	if (was_root) {
 		parent_addr = this_addr;
-		parent      = (branch_ptr)this;
+		parent = (branch_ptr)this;
 		
 		this_addr = node_alloc();
 		
