@@ -104,8 +104,7 @@ void tree_insert(uint32_t root_addr, const key *key, struct item_data item) {
 	} while (!done);
 }
 
-static leaf_ptr tree_search_r(uint32_t root_addr, uint32_t node_addr,
-	const key *key) {
+static leaf_ptr tree_search_r(uint32_t node_addr, const key *key) {
 	node_ptr node = node_map(node_addr);
 	
 	/* remove this later for performance */
@@ -126,13 +125,13 @@ static leaf_ptr tree_search_r(uint32_t root_addr, uint32_t node_addr,
 		/* if smaller than any other key, recurse through the first subnode */
 		const node_ref *elem_first = branch->elems;
 		if (key_cmp(key, &elem_first->key) < 0) {
-			result = tree_search_r(root_addr, elem_first->addr, key);
+			result = tree_search_r(elem_first->addr, key);
 		} else {
 			const node_ref *elem_end = branch->elems + branch->hdr.cnt;
 			for (const node_ref *elem = branch->elems;
 				elem < elem_end; ++elem) {
 				if (key_cmp(key, &elem->key) > 0) {
-					result = tree_search_r(root_addr, elem->addr, key);
+					result = tree_search_r(elem->addr, key);
 					break;
 				}
 			}
@@ -146,5 +145,5 @@ static leaf_ptr tree_search_r(uint32_t root_addr, uint32_t node_addr,
 
 leaf_ptr tree_search(uint32_t root_addr, const key *key) {
 	ASSERT_ROOT(root_addr);
-	return tree_search_r(root_addr, root_addr, key);
+	return tree_search_r(root_addr, key);
 }
