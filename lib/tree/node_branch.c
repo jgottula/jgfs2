@@ -153,6 +153,16 @@ bool branch_insert(branch_ptr node, const node_ref *elem) {
 	return true;
 }
 
+void branch_xfer(branch_ptr dst, const branch_ptr src, uint16_t dst_idx,
+	uint16_t src_idx, uint16_t cnt) {
+	ASSERT_BRANCH(dst);
+	ASSERT_BRANCH(src);
+	
+	for (uint16_t i = 0; i < cnt; ++i) {
+		branch_insert_naive(dst, dst_idx + i, src->elems + (src_idx + i));
+	}
+}
+
 void branch_ref(branch_ptr node, node_ptr child) {
 	ASSERT_BRANCH(node);
 	
@@ -200,11 +210,7 @@ void branch_split_post(branch_ptr this, branch_ptr new, bool was_root) {
 		errx("%s: half == this->hdr.cnt", __func__);
 	}
 	
-	const node_ref *elem_end = this->elems + this->hdr.cnt;
-	for (const node_ref *elem = this->elems + half; elem < elem_end; ++elem) {
-		branch_append_naive(new, elem);
-	}
-	
+	branch_xfer(new, this, 0, half, this->hdr.cnt - half);
 	branch_zero(this, half);
 	this->hdr.cnt = half;
 	

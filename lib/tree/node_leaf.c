@@ -203,6 +203,22 @@ bool leaf_insert(leaf_ptr node, const key *key, struct item_data item) {
 	return true;
 }
 
+void leaf_xfer(leaf_ptr dst, const leaf_ptr src, uint16_t dst_idx,
+	uint16_t src_idx, uint16_t cnt) {
+	ASSERT_LEAF(dst);
+	ASSERT_LEAF(src);
+	
+	for (uint16_t i = 0; i < cnt; ++i) {
+		const item_ref *elem_src = src->elems + (src_idx + i);
+		
+		leaf_insert_naive(dst, dst_idx + i, &elem_src->key,
+			(struct item_data){
+				.len  = elem_src->len,
+				.data = leaf_data_ptr(src, elem_src),
+			});
+	}
+}
+
 void leaf_split_post(leaf_ptr this, leaf_ptr new) {
 	ASSERT_LEAF(this);
 	ASSERT_LEAF(new);
@@ -215,11 +231,7 @@ void leaf_split_post(leaf_ptr this, leaf_ptr new) {
 		errx("%s: half == this->hdr.cnt", __func__);
 	}
 	
-	const item_ref *elem_end = this->elems + this->hdr.cnt;
-	for (const item_ref *elem = this->elems + half; elem < elem_end; ++elem) {
-		leaf_append_naive(new, &elem->key,
-			(struct item_data){ elem->len, leaf_data_ptr(this, elem) });
-	}
+	leaf_xfer(new, this, 0, half, this->hdr.cnt - half);
 	
 	leaf_zero(this, half);
 	this->hdr.cnt = half;
