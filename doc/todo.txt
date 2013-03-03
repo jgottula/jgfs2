@@ -101,10 +101,6 @@ fs design (out of date):
     - turn their compression off after writing them
 
 lib:
-- HIGH PRIORITY: only allow a given filesystem to be opened in ONE instance of
-  libjgfs2 (but different filesystems coexisting is OK)
-  - use fs uuid?
-  - better to use device path
 - public function for getting stats
   - make a new struct for this
     - fs superblock stats
