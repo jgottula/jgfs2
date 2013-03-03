@@ -11,13 +11,54 @@
 #include "check.h"
 
 
+struct tree_lock_node *lock_list = NULL;
+
+
+static void tree_lock(uint32_t root_addr) {
+	struct tree_lock_node *node = lock_list;
+	while (node != NULL) {
+		if (node->root_addr == root_addr) {
+			errx("%s: tree 0x%" PRIx32 " already locked", __func__, root_addr);
+		}
+		
+		node = node->next;
+	}
+	
+	struct tree_lock_node *new = malloc(sizeof(struct tree_lock_node));
+	new->next = lock_list;
+	lock_list = new;
+	
+	new->root_addr = root_addr;
+}
+
+static void tree_unlock(uint32_t root_addr) {
+	struct tree_lock_node **prev = &lock_list, *node = lock_list;
+	while (node != NULL) {
+		if (node->root_addr == root_addr) {
+			*prev = node->next;
+			free(node);
+			
+			return;
+		}
+		
+		prev = &node->next;
+		node = node->next;
+	}
+	
+	errx("%s: tree 0x%" PRIx32 " was not locked", __func__, root_addr);
+}
+
 void tree_init(uint32_t root_addr) {
+	tree_lock(root_addr);
 	node_unmap((node_ptr)leaf_init(root_addr, 0, 0, 0));
+	tree_unlock(root_addr);
 }
 
 void tree_dump(uint32_t root_addr) {
 	ASSERT_ROOT(root_addr);
+	tree_lock(root_addr);
 	node_dump(root_addr, true);
+	tree_unlock(root_addr);
 }
 
 static void tree_graph_r(uint32_t node_addr, uint32_t level,
@@ -105,6 +146,7 @@ static void tree_graph_r(uint32_t node_addr, uint32_t level,
 
 void tree_graph(uint32_t root_addr) {
 	ASSERT_ROOT(root_addr);
+	tree_lock(root_addr);
 	
 	warnx("%s: root 0x%" PRIx32, __func__, root_addr);
 	
@@ -115,10 +157,13 @@ void tree_graph(uint32_t root_addr) {
 	
 	warnx("%s: node_qty %" PRIu32 " max_level %" PRIu32 " avg_fill %.1f%%",
 		__func__, node_qty, max_level, avg_fill * 100.);
+	
+	tree_unlock(root_addr);
 }
 
 void tree_insert(uint32_t root_addr, const key *key, struct item_data item) {
 	ASSERT_ROOT(root_addr);
+	tree_lock(root_addr);
 	
 	bool done = false, retried = false;
 	do {
@@ -140,6 +185,8 @@ void tree_insert(uint32_t root_addr, const key *key, struct item_data item) {
 				__func__, root_addr, leaf_addr, key_str(key), item.len);
 		}
 	} while (!done);
+	
+	tree_unlock(root_addr);
 }
 
 static leaf_ptr tree_search_r(uint32_t root_addr, uint32_t node_addr,
@@ -187,5 +234,10 @@ static leaf_ptr tree_search_r(uint32_t root_addr, uint32_t node_addr,
 
 leaf_ptr tree_search(uint32_t root_addr, const key *key) {
 	ASSERT_ROOT(root_addr);
-	return tree_search_r(root_addr, root_addr, key);
+	
+	tree_lock(root_addr);
+	leaf_ptr result = tree_search_r(root_addr, root_addr, key);
+	tree_unlock(root_addr);
+	
+	return result;
 }

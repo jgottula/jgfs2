@@ -15,6 +15,13 @@
 #include "node.h"
 
 
+struct tree_lock_node {
+	struct tree_lock_node *next;
+	
+	uint32_t root_addr;
+};
+
+
 void tree_init(uint32_t root_addr);
 void tree_dump(uint32_t root_addr);
 void tree_graph(uint32_t root_addr);
