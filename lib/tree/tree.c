@@ -20,7 +20,8 @@ void tree_dump(uint32_t root_addr) {
 	node_dump(root_addr, true);
 }
 
-static void tree_graph_r(uint32_t node_addr, uint32_t level, uint32_t *max) {
+static void tree_graph_r(uint32_t node_addr, uint32_t level,
+	uint32_t *max_level, uint32_t *node_qty, double *avg_fill) {
 	node_ptr node = node_map(node_addr);
 	
 	/* draw the node space usage bar */
@@ -81,8 +82,8 @@ static void tree_graph_r(uint32_t node_addr, uint32_t level, uint32_t *max) {
 	
 	if (node->hdr.leaf) {
 		/* set this only in leaves since branches are, obviously, internal */
-		if (level > *max) {
-			*max = level;
+		if (level > *max_level) {
+			*max_level = level;
 		}
 	} else {
 		branch_ptr branch = (branch_ptr)node;
@@ -90,9 +91,14 @@ static void tree_graph_r(uint32_t node_addr, uint32_t level, uint32_t *max) {
 		/* recurse through child nodes */
 		const node_ref *elem_end = branch->elems + branch->hdr.cnt;
 		for (const node_ref *elem = branch->elems; elem < elem_end; ++elem) {
-			tree_graph_r(elem->addr, level + 1, max);
+			tree_graph_r(elem->addr, level + 1, max_level, node_qty, avg_fill);
 		}
 	}
+	
+	++(*node_qty);
+	*avg_fill = (*avg_fill * ((double)(*node_qty - 1) / (double)*node_qty)) +
+		(((double)node_used(node) / (double)node_size_usable()) /
+		(double)*node_qty);
 	
 	node_unmap(node);
 }
@@ -102,10 +108,13 @@ void tree_graph(uint32_t root_addr) {
 	
 	warnx("%s: root 0x%" PRIx32, __func__, root_addr);
 	
-	uint32_t max = 0;
-	tree_graph_r(root_addr, 0, &max);
+	uint32_t max_level = 1;
+	uint32_t node_qty = 0;
+	double avg_fill = 0.;
+	tree_graph_r(root_addr, 1, &max_level, &node_qty, &avg_fill);
 	
-	warnx("%s: max depth: %" PRIu32, __func__, max + 1);
+	warnx("%s: node_qty %" PRIu32 " max_level %" PRIu32 " avg_fill %.1f%%",
+		__func__, node_qty, max_level, avg_fill * 100.);
 }
 
 void tree_insert(uint32_t root_addr, const key *key, struct item_data item) {
