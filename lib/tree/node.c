@@ -106,7 +106,7 @@ const key *node_first_key(const node_ptr node) {
 	return node_key(node, 0);
 }
 
-void *node_search(const node_ptr node, const key *key) {
+bool node_search(const node_ptr node, const key *key, uint16_t *out) {
 	uint16_t first = 0;
 	uint16_t last  = node->hdr.cnt - 1;
 	uint16_t middle;
@@ -124,16 +124,13 @@ void *node_search(const node_ptr node, const key *key) {
 			last = middle - 1;
 		} else {
 			/* found */
-			if (node->hdr.leaf) {
-				return &((leaf_ptr)node)->elems[middle];
-			} else {
-				return &((branch_ptr)node)->elems[middle];
-			}
+			*out = middle;
+			return true;
 		}
 	}
 	
 	/* not found */
-	return NULL;
+	return false;
 }
 
 uint16_t node_search_hypo(const node_ptr node, const key *key) {
