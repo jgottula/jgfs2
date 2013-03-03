@@ -73,10 +73,8 @@ node_ref *branch_search_addr(const branch_ptr node, uint32_t addr) {
 void branch_zero(branch_ptr node, uint16_t first) {
 	ASSERT_BRANCH(node);
 	
-	const node_ref *elem = node->elems + first;
-	
-	uint8_t *zero_begin = (uint8_t *)elem;
-	uint8_t *zero_end   = (uint8_t *)node + node_size_byte();
+	uint8_t *zero_begin = (uint8_t *)(node->elems + first);
+	uint8_t *zero_end   = (uint8_t *)(node->elems + node->hdr.cnt);
 	
 	memset(zero_begin, 0, (zero_end - zero_begin));
 }
