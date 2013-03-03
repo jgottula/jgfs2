@@ -47,7 +47,8 @@ static void tree_graph_r(uint32_t node_addr, uint32_t level, uint32_t *max) {
 		}
 	}
 	use_bar[sizeof(use_bar) - 1] = '\0';
-	fprintf_right(stderr, "[%s]\n", use_bar);
+	fprintf_right(stderr, "%" PRIu32"/%" PRIu32 " [%s]\n",
+		node_used(node), node_size_usable(), use_bar);
 	
 	if (node->hdr.leaf) {
 		/* set this only in leaves since branches are, obviously, internal */
