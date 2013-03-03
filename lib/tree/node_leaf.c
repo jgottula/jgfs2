@@ -123,6 +123,7 @@ void leaf_xfer_half(leaf_ptr dst, leaf_ptr src) {
 	}
 	
 	leaf_zero(src, half);
+	src->hdr.cnt = half;
 }
 
 void leaf_insert_naive(leaf_ptr node, uint16_t at, const key *key,

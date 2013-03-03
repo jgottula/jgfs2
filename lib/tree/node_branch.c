@@ -99,6 +99,7 @@ void branch_xfer_half(branch_ptr dst, branch_ptr src) {
 	}
 	
 	branch_zero(src, half);
+	src->hdr.cnt = half;
 }
 
 void branch_paternalize(branch_ptr node) {
