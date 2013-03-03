@@ -213,7 +213,7 @@ void node_split(uint32_t this_addr) {
 		this_addr = node_alloc();
 		
 		if (this->hdr.leaf) {
-			this = (node_ptr)leaf_init(this_addr, parent_addr, 0, new_addr);
+			this = (node_ptr)leaf_init(this_addr, parent_addr, 0, 0);
 		} else {
 			this = (node_ptr)branch_init(this_addr, parent_addr);
 		}
@@ -243,9 +243,12 @@ void node_split(uint32_t this_addr) {
 	if (this->hdr.leaf) {
 		new = (node_ptr)leaf_init(new_addr, parent_addr, this_addr,
 			this->hdr.next);
+		this->hdr.next = new_addr;
+		
 		leaf_split_post((leaf_ptr)this, (leaf_ptr)new);
 	} else {
 		new = (node_ptr)branch_init(new_addr, parent_addr);
+		
 		branch_split_post((branch_ptr)this, (branch_ptr)new, was_root);
 	}
 	
