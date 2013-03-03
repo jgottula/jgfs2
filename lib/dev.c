@@ -144,11 +144,10 @@ void dev_close(void) {
 		}
 		
 		if (flock(dev.fd, LOCK_NB | LOCK_UN) < 0) {
-			err("could not unlock '%s'", dev.path);
+			warn("could not unlock '%s'", dev.path);
 		}
-		
 		if (close(dev.fd) < 0) {
-			warn("close failed");
+			warn("failed to close '%s'", dev.path);
 		}
 		
 		dev.fd = -1;
