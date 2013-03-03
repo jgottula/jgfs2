@@ -22,7 +22,7 @@ int main(int argc, char **argv) { // void
 	
 	struct jgfs2_mkfs_param param;
 	strcpy(param.label, "justix");
-	uuid_generate(param.uuid);
+	uuid_clear(param.uuid);
 	param.total_sect = 0;
 	param.boot_sect  = 14;
 	param.blk_size   = 0;
