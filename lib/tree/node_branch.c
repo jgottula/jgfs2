@@ -31,7 +31,7 @@ void branch_dump(const branch_ptr node) {
 	
 	const node_ref *elem_end = node->elems + node->hdr.cnt;
 	for (const node_ref *elem = node->elems; elem < elem_end; ++elem) {
-		fprintf(stderr, "        node %-4" PRIdPTR ": %s addr 0x%" PRIx32 "\n",
+		fprintf(stderr, "        node %-4" PRIdPTR " %s addr 0x%" PRIx32 "\n",
 			(elem - node->elems), key_str(&elem->key), elem->addr);
 	}
 }
