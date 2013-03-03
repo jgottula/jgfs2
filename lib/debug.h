@@ -92,7 +92,7 @@ static void warnx(const char *fmt, ...) {
 }
 
 
-int fprintf_right(FILE *stream, const char *format, ...);
+int fprintf_col(FILE *stream, int col, const char *format, ...);
 
 void debug_map_push(const void *addr, uint32_t sect_num, uint32_t sect_cnt);
 void debug_map_pop(const void *addr, uint32_t sect_num, uint32_t sect_cnt);

@@ -14,17 +14,8 @@
 struct map_node *map_list = NULL;
 
 
-int fprintf_right(FILE *stream, const char *format, ...) {
-	char buf[4096];
-	
-	va_list ap;
-	va_start(ap, format);
-	vsnprintf(buf, sizeof(buf), format, ap);
-	va_end(ap);
-	
-	size_t len = strlen(buf);
-	
-	static size_t cols = 0;
+int fprintf_col(FILE *stream, int col, const char *format, ...) {
+	static int cols = 0;
 	if (cols == 0) {
 		/* fall back to 80 columns if this fails */
 		struct winsize ws;
@@ -34,7 +25,19 @@ int fprintf_right(FILE *stream, const char *format, ...) {
 		}
 	}
 	
-	return fprintf(stream, "\r\e[%zuC%s", cols - len, buf);
+	/* interpret negative columns as right-aligned */
+	if (col < 0) {
+		col = cols + col;
+	}
+	
+	int result = fprintf(stream, "\r\e[%dC", col);
+	
+	va_list ap;
+	va_start(ap, format);
+	result += vfprintf(stream, format, ap);
+	va_end(ap);
+	
+	return result;
 }
 
 void debug_map_push(const void *addr, uint32_t sect_num, uint32_t sect_cnt) {
