@@ -7,6 +7,7 @@
 
 #include "dev.h"
 #include <fcntl.h>
+#include <sys/file.h>
 #include <sys/mman.h>
 #include <unistd.h>
 #include "debug.h"
@@ -120,6 +121,10 @@ void dev_open(const char *dev_path, bool read_only, bool debug_map) {
 		err("failed to open '%s'", dev.path);
 	}
 	
+	if (flock(dev.fd, LOCK_NB | LOCK_EX) < 0) {
+		err("could not lock '%s'", dev.path);
+	}
+	
 	dev.size_byte = lseek(dev.fd, 0, SEEK_END);
 	lseek(dev.fd, 0, SEEK_SET);
 	
@@ -136,6 +141,10 @@ void dev_close(void) {
 			if (dev.debug_map) {
 				debug_map_dump();
 			}
+		}
+		
+		if (flock(dev.fd, LOCK_NB | LOCK_UN) < 0) {
+			err("could not unlock '%s'", dev.path);
 		}
 		
 		if (close(dev.fd) < 0) {
