@@ -114,8 +114,12 @@ static void tree_graph_r(uint32_t node_addr, uint32_t level,
 	fprintf(stderr, "%s 0x%" PRIx32,
 		(node->hdr.leaf ? "leaf" : "branch"), node_addr);
 	
-	fprintf_col(stderr, col_id, "%0*" PRIx32,
-		width_id, node_first_key(node)->id);
+	if (node->hdr.cnt != 0) {
+		fprintf_col(stderr, col_id, "%0*" PRIx32,
+			width_id, node_first_key(node)->id);
+	} else {
+		fprintf_col(stderr, col_id, "%*s", width_id, "<empty>");
+	}
 	fprintf_col(stderr, col_cnt, "%*" PRIu16, width_cnt, node->hdr.cnt);
 	fprintf_col(stderr, col_free, "%*" PRIu32,
 		width_free, node_free(node_addr));
