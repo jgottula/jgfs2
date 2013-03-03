@@ -64,7 +64,7 @@ uint32_t leaf_free(const leaf_ptr node) {
 uint16_t leaf_half(const leaf_ptr node) {
 	ASSERT_LEAF(node);
 	
-	uint32_t used_half = leaf_used(node) / 2;
+	uint32_t used_half = CEIL(leaf_used(node), 2);
 	uint32_t used_incr = 0;
 	
 	/* find out how many items take up half the node space, and tell the caller
