@@ -193,6 +193,10 @@ tree:
 - only when filesystem is unmounted
 - use ncurses
   - behave like ncdu if possible
+- search by:
+  - key.id
+  - key.type
+  - key.off
 
 view:
 - filesystem visualization tool
