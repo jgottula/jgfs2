@@ -149,9 +149,6 @@ uint16_t node_search_hypo(const node_ptr node, const key *key) {
 	uint16_t last  = node->hdr.cnt - 1;
 	uint16_t middle;
 	
-	TODO("test this for 0-4 items with dest idx in each position");
-	TODO("test for proper handling of dupe insertion in all cases");
-	
 	while (first <= last) {
 		middle = CEIL(first + last, 2);
 		
