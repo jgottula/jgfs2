@@ -122,8 +122,8 @@ void fs_new_post(void) {
 	tree_init(fs.sblk->s_addr_ext_tree);
 	tree_init(fs.sblk->s_addr_meta_tree);
 	
-	node_dump(fs.sblk->s_addr_ext_tree);
-	node_dump(fs.sblk->s_addr_meta_tree);
+	tree_dump(fs.sblk->s_addr_ext_tree);
+	tree_dump(fs.sblk->s_addr_meta_tree);
 	
 	/* init tree roots */
 	/* set used areas as allocated */
