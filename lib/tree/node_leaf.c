@@ -95,7 +95,7 @@ void *leaf_data_ptr(const leaf_ptr node, const item_ref *item) {
 void leaf_zero(leaf_ptr node, uint16_t first) {
 	ASSERT_LEAF(node);
 	
-	const item_ref *elem = node->elems[first];
+	const item_ref *elem = node->elems + first;
 	
 	uint8_t *zero_begin = (uint8_t *)elem;
 	uint8_t *zero_end   = leaf_data_ptr(node, elem) + elem->len;
