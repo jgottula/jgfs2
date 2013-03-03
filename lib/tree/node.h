@@ -143,6 +143,7 @@ void branch_shift_backward(branch_ptr node, uint16_t first, uint16_t diff);
 void branch_paternalize(branch_ptr node);
 
 void branch_append_naive(branch_ptr node, const node_ref *elem);
+void branch_insert_naive(branch_ptr node, uint16_t at, const node_ref *elem);
 bool branch_insert(branch_ptr node, const node_ref *elem);
 
 void branch_ref(branch_ptr node, node_ptr child);

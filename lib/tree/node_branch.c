@@ -122,6 +122,12 @@ void branch_append_naive(branch_ptr node, const node_ref *elem) {
 	node->elems[node->hdr.cnt++] = *elem;
 }
 
+void branch_insert_naive(branch_ptr node, uint16_t at, const node_ref *elem) {
+	ASSERT_BRANCH(node);
+	
+	*(node->elems + at) = *elem;
+}
+
 bool branch_insert(branch_ptr node, const node_ref *elem) {
 	ASSERT_BRANCH(node);
 	
@@ -133,7 +139,7 @@ bool branch_insert(branch_ptr node, const node_ref *elem) {
 	uint16_t insert_at = node_search_hypo((node_ptr)node, &elem->key);
 	
 	branch_shift_forward(node, insert_at, 1);
-	node->elems[insert_at] = *elem;
+	branch_insert_naive(node, insert_at, elem);
 	++node->hdr.cnt;
 	
 	/* if we are not root and we just inserted the element in position 0, we
