@@ -95,7 +95,9 @@ static struct check_result check_node_leaf(leaf_ptr node) {
 	if (node->hdr.cnt > 0) {
 		if (node->hdr.prev != 0) {
 			node_ptr prev = node_map(node->hdr.prev);
-			if (!prev->hdr.leaf) {
+			bool is_leaf = prev->hdr.leaf;
+			node_unmap(prev);
+			if (!is_leaf) {
 				result.type = RESULT_TYPE_LEAF;
 				result.leaf = (struct leaf_check_error){
 					.code      = ERR_LEAF_PREV_BRANCH,
@@ -106,11 +108,12 @@ static struct check_result check_node_leaf(leaf_ptr node) {
 				
 				goto done;
 			}
-			node_unmap(prev);
 		}
 		if (node->hdr.next != 0) {
 			node_ptr next = node_map(node->hdr.next);
-			if (!next->hdr.leaf) {
+			bool is_leaf = next->hdr.leaf;
+			node_unmap(next);
+			if (!is_leaf) {
 				result.type = RESULT_TYPE_LEAF;
 				result.leaf = (struct leaf_check_error){
 					.code      = ERR_LEAF_NEXT_BRANCH,
@@ -121,7 +124,6 @@ static struct check_result check_node_leaf(leaf_ptr node) {
 				
 				goto done;
 			}
-			node_unmap(next);
 		}
 		
 		if (leaf_used(node) > node_size_usable()) {
