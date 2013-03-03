@@ -116,9 +116,8 @@ void leaf_xfer_half(leaf_ptr dst, leaf_ptr src) {
 	
 	const item_ref *elem_end = src->elems + src->hdr.cnt;
 	for (const item_ref *elem = src->elems + half; elem < elem_end; ++elem) {
-		uint8_t *data_ptr = (uint8_t *)src + elem->off;
 		leaf_append_naive(dst, &elem->key,
-			(struct item_data){ elem->len, data_ptr });
+			(struct item_data){ elem->len, leaf_data_ptr(src, elem) });
 	}
 	
 	leaf_zero(src, half);
