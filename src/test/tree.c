@@ -30,11 +30,17 @@ static bool test_check_nonfatal(void) {
 void test_tree(void) {
 	fprintf(stderr, "%s\n", __func__);
 	
-	jgfs2_init("/dev/loop0p1",
+	jgfs2_new("/dev/loop0p1",
 		&(struct jgfs2_mount_options){
 			.read_only = false,
 			.debug_map = false,
-		});
+		},
+		&(struct jgfs2_mkfs_param){
+			.boot_sect = 14,
+			.zap_vbr = true,
+			.zap_boot = true,
+		}
+	);
 	test_check();
 	
 	fprintf(stderr, "%s: inserting inode\n", __func__);
