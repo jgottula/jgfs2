@@ -73,7 +73,7 @@ uint16_t leaf_half(const leaf_ptr node) {
 		used_incr += sizeof(item_ref);
 		used_incr += node->elems[i].len;
 		
-		if (used_incr > used_half) {
+		if (used_incr >= used_half) {
 			return i + 1;
 		}
 	}
