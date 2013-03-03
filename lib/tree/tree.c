@@ -24,10 +24,10 @@ static void tree_graph_r(uint32_t node_addr, uint32_t level, uint32_t *max) {
 	node_ptr node = node_map(node_addr);
 	
 	/* draw the node space usage bar */
-	uint8_t used_round = (uint8_t)ceil(((float)node_used(node) * 20.f) /
+	uint8_t used_round = (uint8_t)ceil(((float)node_used(node) * 12.f) /
 		(float)node_size_usable());
-	char used_bar[21];
-	for (uint8_t i = 0; i < 20; ++i) {
+	char used_bar[13];
+	for (uint8_t i = 0; i < 12; ++i) {
 		if (i <= used_round - 1) {
 			used_bar[i] = '#';
 		} else {
@@ -39,7 +39,7 @@ static void tree_graph_r(uint32_t node_addr, uint32_t level, uint32_t *max) {
 	float used_pct = ((float)node_used(node) * 100.f) /
 		(float)node_size_usable();
 	
-	int width_bar  = 20 + 2;
+	int width_bar  = 12 + 2;
 	int width_pct  = 3 + 1;
 	int width_free = log_u32(10, node_size_usable());
 	int width_cnt  = log_u32(10, node_max_cnt());
