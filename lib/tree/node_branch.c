@@ -81,27 +81,6 @@ void branch_zero(branch_ptr node, uint16_t first) {
 	memset(zero_begin, 0, (zero_end - zero_begin));
 }
 
-void branch_xfer_half(branch_ptr dst, branch_ptr src) {
-	ASSERT_BRANCH(dst);
-	ASSERT_BRANCH(src);
-	
-	uint16_t half = branch_half(src);
-	
-	if (half == 0) {
-		errx("%s: half == 0", __func__);
-	} else if (half == src->hdr.cnt) {
-		errx("%s: half == src->hdr.cnt", __func__);
-	}
-	
-	const node_ref *elem_end = src->elems + src->hdr.cnt;
-	for (const node_ref *elem = src->elems + half; elem < elem_end; ++elem) {
-		branch_append_naive(dst, elem);
-	}
-	
-	branch_zero(src, half);
-	src->hdr.cnt = half;
-}
-
 void branch_paternalize(branch_ptr node) {
 	ASSERT_BRANCH(node);
 	
@@ -189,7 +168,21 @@ void branch_split_post(branch_ptr this, branch_ptr new, bool was_root) {
 	ASSERT_BRANCH(this);
 	ASSERT_BRANCH(new);
 	
-	branch_xfer_half(new, this);
+	uint16_t half = branch_half(this);
+	
+	if (half == 0) {
+		errx("%s: half == 0", __func__);
+	} else if (half == this->hdr.cnt) {
+		errx("%s: half == this->hdr.cnt", __func__);
+	}
+	
+	const node_ref *elem_end = this->elems + this->hdr.cnt;
+	for (const node_ref *elem = this->elems + half; elem < elem_end; ++elem) {
+		branch_append_naive(new, elem);
+	}
+	
+	branch_zero(this, half);
+	this->hdr.cnt = half;
 	
 	/* our children don't know who their parent is anymore */
 	branch_paternalize(new);

@@ -104,28 +104,6 @@ void leaf_zero(leaf_ptr node, uint16_t first) {
 	memset(zero_begin, 0, (zero_end - zero_begin));
 }
 
-void leaf_xfer_half(leaf_ptr dst, leaf_ptr src) {
-	ASSERT_LEAF(dst);
-	ASSERT_LEAF(src);
-	
-	uint16_t half = leaf_half(src);
-	
-	if (half == 0) {
-		errx("%s: half == 0", __func__);
-	} else if (half == src->hdr.cnt) {
-		errx("%s: half == src->hdr.cnt", __func__);
-	}
-	
-	const item_ref *elem_end = src->elems + src->hdr.cnt;
-	for (const item_ref *elem = src->elems + half; elem < elem_end; ++elem) {
-		leaf_append_naive(dst, &elem->key,
-			(struct item_data){ elem->len, leaf_data_ptr(src, elem) });
-	}
-	
-	leaf_zero(src, half);
-	src->hdr.cnt = half;
-}
-
 void leaf_insert_naive(leaf_ptr node, uint16_t at, const key *key,
 	struct item_data item) {
 	ASSERT_LEAF(node);
@@ -201,5 +179,20 @@ void leaf_split_post(leaf_ptr this, leaf_ptr new) {
 	ASSERT_LEAF(this);
 	ASSERT_LEAF(new);
 	
-	leaf_xfer_half(new, this);
+	uint16_t half = leaf_half(this);
+	
+	if (half == 0) {
+		errx("%s: half == 0", __func__);
+	} else if (half == this->hdr.cnt) {
+		errx("%s: half == this->hdr.cnt", __func__);
+	}
+	
+	const item_ref *elem_end = this->elems + this->hdr.cnt;
+	for (const item_ref *elem = this->elems + half; elem < elem_end; ++elem) {
+		leaf_append_naive(new, &elem->key,
+			(struct item_data){ elem->len, leaf_data_ptr(this, elem) });
+	}
+	
+	leaf_zero(this, half);
+	this->hdr.cnt = half;
 }

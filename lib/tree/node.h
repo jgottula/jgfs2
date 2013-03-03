@@ -137,7 +137,6 @@ uint16_t branch_half(const branch_ptr node);
 node_ref *branch_search_addr(const branch_ptr node, uint32_t addr);
 
 void branch_zero(branch_ptr node, uint16_t first);
-void branch_xfer_half(branch_ptr dst, branch_ptr src);
 
 void branch_paternalize(branch_ptr node);
 
@@ -164,7 +163,6 @@ uint16_t leaf_half(const leaf_ptr node);
 void *leaf_data_ptr(const leaf_ptr node, const item_ref *item);
 
 void leaf_zero(leaf_ptr node, uint16_t first);
-void leaf_xfer_half(leaf_ptr dst, leaf_ptr src);
 
 void leaf_insert_naive(leaf_ptr node, uint16_t at, const key *key,
 	struct item_data item);
