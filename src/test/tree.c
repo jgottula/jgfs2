@@ -12,16 +12,17 @@
 
 
 static void test_dump(void) {
-	node_dump(fs.sblk->s_addr_meta_tree);
+	tree_graph(fs.sblk->s_addr_meta_tree);
+	tree_dump(fs.sblk->s_addr_meta_tree);
 }
 
 static void test_check(void) {
-	struct check_result result = check_node(fs.sblk->s_addr_meta_tree);
+	struct check_result result = check_tree(fs.sblk->s_addr_meta_tree);
 	check_print(result, true);
 }
 
 static bool test_check_nonfatal(void) {
-	struct check_result result = check_node(fs.sblk->s_addr_meta_tree);
+	struct check_result result = check_tree(fs.sblk->s_addr_meta_tree);
 	check_print(result, false);
 	return (result.type == RESULT_TYPE_OK);
 }
@@ -38,56 +39,23 @@ void test_tree(void) {
 	
 	fprintf(stderr, "%s: inserting inode\n", __func__);
 	
-	struct inode_item inode;
-	memset(&inode, 0x88, sizeof(inode));
 	key key = {
-		0x88888888,
-		KEY_INODE,
-		0,
+		0x00000000,
+		0x00,
+		0x00000000,
 	};
-	/*tree_insert(fs.sblk->s_addr_meta_tree, &key,
-		(struct item_data){ sizeof(inode), &inode });
-	test_check();
 	
-	memset(&inode, 0xcc, sizeof(inode));
-	key.id = 0xcccccccc;
-	tree_insert(fs.sblk->s_addr_meta_tree, &key,
-		(struct item_data){ sizeof(inode), &inode });
-	test_check();
-	
-	memset(&inode, 0x44, sizeof(inode));
-	key.id = 0x44444444;
-	tree_insert(fs.sblk->s_addr_meta_tree, &key,
-		(struct item_data){ sizeof(inode), &inode });
-	test_check();
-	
-	memset(&inode, 0x55, sizeof(inode));
-	key.id = 0x55555555;
-	tree_insert(fs.sblk->s_addr_meta_tree, &key,
-		(struct item_data){ sizeof(inode), &inode });
-	test_check();*/
-	
-	for (uint32_t i = 0x0; i < 0x10; ++i) {
-		key.id = i * 0x10000000;
-		tree_insert(fs.sblk->s_addr_meta_tree, &key,
-			(struct item_data){ sizeof(inode), &inode });
-		test_dump();
-	}
-	
-	//key.id = 0x00000000;
-	for (uint32_t i = 0; i < 70; ++i) {
-		memset(&inode, lrand48(), sizeof(inode));
-		key.id = lrand48();
+	for (uint32_t i = 0; i < 300; ++i) {
+		key.id = mrand48() & 0xffff;
 		
 		fprintf(stderr, "#%" PRId32 ": %" PRIx32 "\n", i, key.id);
 		
 		tree_insert(fs.sblk->s_addr_meta_tree, &key,
-			(struct item_data){ sizeof(inode), &inode });
+			(struct item_data){ 0, NULL });
+		test_dump();
 		
 		if (!test_check_nonfatal()) {
 			fprintf(stderr, "%s: failure on #%" PRId32 "\n", __func__, i);
-			test_dump();
-			
 			abort();
 		}
 	}
