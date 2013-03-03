@@ -105,14 +105,13 @@ void branch_shift_backward(branch_ptr node, uint16_t first, uint16_t diff) {
 	}
 }
 
-void branch_paternalize(branch_ptr node) {
-	ASSERT_BRANCH(node);
+void branch_xfer(branch_ptr dst, const branch_ptr src, uint16_t dst_idx,
+	uint16_t src_idx, uint16_t cnt) {
+	ASSERT_BRANCH(dst);
+	ASSERT_BRANCH(src);
 	
-	const node_ref *elem_end = node->elems + node->hdr.cnt;
-	for (const node_ref *elem = node->elems; elem < elem_end; ++elem) {
-		node_ptr child = node_map(elem->addr);
-		child->hdr.parent = node->hdr.this;
-		node_unmap(child);
+	for (uint16_t i = 0; i < cnt; ++i) {
+		branch_insert_naive(dst, dst_idx + i, src->elems + (src_idx + i));
 	}
 }
 
@@ -153,13 +152,14 @@ bool branch_insert(branch_ptr node, const node_ref *elem) {
 	return true;
 }
 
-void branch_xfer(branch_ptr dst, const branch_ptr src, uint16_t dst_idx,
-	uint16_t src_idx, uint16_t cnt) {
-	ASSERT_BRANCH(dst);
-	ASSERT_BRANCH(src);
+void branch_paternalize(branch_ptr node) {
+	ASSERT_BRANCH(node);
 	
-	for (uint16_t i = 0; i < cnt; ++i) {
-		branch_insert_naive(dst, dst_idx + i, src->elems + (src_idx + i));
+	const node_ref *elem_end = node->elems + node->hdr.cnt;
+	for (const node_ref *elem = node->elems; elem < elem_end; ++elem) {
+		node_ptr child = node_map(elem->addr);
+		child->hdr.parent = node->hdr.this;
+		node_unmap(child);
 	}
 }
 

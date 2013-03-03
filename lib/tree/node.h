@@ -140,14 +140,14 @@ void branch_zero(branch_ptr node, uint16_t first);
 void branch_shift_forward(branch_ptr node, uint16_t first, uint16_t diff);
 void branch_shift_backward(branch_ptr node, uint16_t first, uint16_t diff);
 
-void branch_paternalize(branch_ptr node);
+void branch_xfer(branch_ptr dst, const branch_ptr src, uint16_t dst_idx,
+	uint16_t src_idx, uint16_t cnt);
 
 void branch_append_naive(branch_ptr node, const node_ref *elem);
 void branch_insert_naive(branch_ptr node, uint16_t at, const node_ref *elem);
 bool branch_insert(branch_ptr node, const node_ref *elem);
 
-void branch_xfer(branch_ptr dst, const branch_ptr src, uint16_t dst_idx,
-	uint16_t src_idx, uint16_t cnt);
+void branch_paternalize(branch_ptr node);
 
 void branch_ref(branch_ptr node, node_ptr child);
 void branch_ref_update(branch_ptr node, node_ptr child);
@@ -174,13 +174,13 @@ void leaf_shift_forward(leaf_ptr node, uint16_t first, uint16_t diff_elem,
 void leaf_shift_backward(leaf_ptr node, uint16_t first, uint16_t diff_elem,
 	uint32_t diff_data);
 
+void leaf_xfer(leaf_ptr dst, const leaf_ptr src, uint16_t dst_idx,
+	uint16_t src_idx, uint16_t cnt);
+
 void leaf_insert_naive(leaf_ptr node, uint16_t at, const key *key,
 	struct item_data item);
 void leaf_append_naive(leaf_ptr node, const key *key, struct item_data item);
 bool leaf_insert(leaf_ptr node, const key *key, struct item_data item);
-
-void leaf_xfer(leaf_ptr dst, const leaf_ptr src, uint16_t dst_idx,
-	uint16_t src_idx, uint16_t cnt);
 
 void leaf_split_post(leaf_ptr this, leaf_ptr new);
 

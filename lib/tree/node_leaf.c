@@ -153,6 +153,22 @@ void leaf_shift_backward(leaf_ptr node, uint16_t first, uint16_t diff_elem,
 	}
 }
 
+void leaf_xfer(leaf_ptr dst, const leaf_ptr src, uint16_t dst_idx,
+	uint16_t src_idx, uint16_t cnt) {
+	ASSERT_LEAF(dst);
+	ASSERT_LEAF(src);
+	
+	for (uint16_t i = 0; i < cnt; ++i) {
+		const item_ref *elem_src = src->elems + (src_idx + i);
+		
+		leaf_insert_naive(dst, dst_idx + i, &elem_src->key,
+			(struct item_data){
+				.len  = elem_src->len,
+				.data = leaf_data_ptr(src, elem_src),
+			});
+	}
+}
+
 void leaf_insert_naive(leaf_ptr node, uint16_t at, const key *key,
 	struct item_data item) {
 	ASSERT_LEAF(node);
@@ -210,22 +226,6 @@ bool leaf_insert(leaf_ptr node, const key *key, struct item_data item) {
 	}
 	
 	return true;
-}
-
-void leaf_xfer(leaf_ptr dst, const leaf_ptr src, uint16_t dst_idx,
-	uint16_t src_idx, uint16_t cnt) {
-	ASSERT_LEAF(dst);
-	ASSERT_LEAF(src);
-	
-	for (uint16_t i = 0; i < cnt; ++i) {
-		const item_ref *elem_src = src->elems + (src_idx + i);
-		
-		leaf_insert_naive(dst, dst_idx + i, &elem_src->key,
-			(struct item_data){
-				.len  = elem_src->len,
-				.data = leaf_data_ptr(src, elem_src),
-			});
-	}
 }
 
 void leaf_split_post(leaf_ptr this, leaf_ptr new) {
