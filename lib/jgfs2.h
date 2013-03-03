@@ -102,7 +102,7 @@ struct __attribute__((__packed__)) jgfs2_super_block {
 };
 
 struct jgfs2_mkfs_param {
-	uint8_t  uuid[16];   // fs uuid; must be initialized
+	uint8_t  uuid[16];   // fs uuid; fill with zeroes for a random uuid
 	
 	char     label[JGFS2_LABEL_LIMIT + 1]; // null-terminated volume label
 	

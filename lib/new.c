@@ -9,6 +9,7 @@
 #include <bsd/string.h>
 #include <sys/user.h>
 #include <time.h>
+#include <uuid/uuid.h>
 #include "debug.h"
 #include "dev.h"
 #include "fs.h"
@@ -87,7 +88,11 @@ const struct jgfs2_super_block *fs_new(const char *dev_path,
 	new_sblk.s_ctime = time(NULL);
 	new_sblk.s_mtime = 0;
 	
-	memcpy(new_sblk.s_uuid, mkfs_param.uuid, sizeof(new_sblk.s_uuid));
+	if (uuid_is_null(mkfs_param.uuid)) {
+		uuid_generate_random(mkfs_param.uuid);
+	} else {
+		memcpy(new_sblk.s_uuid, mkfs_param.uuid, sizeof(new_sblk.s_uuid));
+	}
 	
 	strlcpy(new_sblk.s_label, mkfs_param.label, sizeof(new_sblk.s_label));
 	
