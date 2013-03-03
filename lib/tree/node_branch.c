@@ -171,6 +171,14 @@ void branch_ref_update(branch_ptr node, node_ptr child) {
 	node_ref *elem = branch_search_addr(node, child->hdr.this);
 	if (elem != NULL) {
 		elem->key = *node_first_key(child);
+		
+		/* if we are not root and we just updated the element in position 0, we
+		 * need to update the node_ref to us in our parent */
+		if (elem == node->elems && node->hdr.parent != 0) {
+			branch_ptr parent = (branch_ptr)node_map(node->hdr.parent);
+			branch_ref_update(parent, (node_ptr)node);
+			node_unmap((node_ptr)parent);
+		}
 	} else {
 		errx("%s: not found: node 0x%" PRIx32 " child 0x%" PRIx32,
 			__func__, node->hdr.this, child->hdr.this);
