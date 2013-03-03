@@ -108,6 +108,10 @@ void leaf_shift_forward(leaf_ptr node, uint16_t first, uint16_t diff_elem,
 	uint32_t diff_data) {
 	ASSERT_LEAF(node);
 	
+	if (node->hdr.cnt == 0) {
+		return;
+	}
+	
 	item_ref *elem_first = node->elems + first;
 	item_ref *elem_last  = node->elems + (node->hdr.cnt - 1);
 	
@@ -127,6 +131,10 @@ void leaf_shift_forward(leaf_ptr node, uint16_t first, uint16_t diff_elem,
 void leaf_shift_backward(leaf_ptr node, uint16_t first, uint16_t diff_elem,
 	uint32_t diff_data) {
 	ASSERT_LEAF(node);
+	
+	if (node->hdr.cnt == 0) {
+		return;
+	}
 	
 	item_ref *elem_first = node->elems + first;
 	item_ref *elem_last  = node->elems + (node->hdr.cnt - 1);
