@@ -161,34 +161,6 @@ void tree_graph(uint32_t root_addr) {
 	tree_unlock(root_addr);
 }
 
-void tree_insert(uint32_t root_addr, const key *key, struct item_data item) {
-	ASSERT_ROOT(root_addr);
-	tree_lock(root_addr);
-	
-	bool done = false, retried = false;
-	do {
-		leaf_ptr leaf      = tree_search(root_addr, key);
-		uint32_t leaf_addr = leaf->hdr.this;
-		
-		if (leaf_insert(leaf, key, item)) {
-			node_unmap((node_ptr)leaf);
-			
-			done = true;
-		} else if (!retried) {
-			node_unmap((node_ptr)leaf);
-			node_split(leaf_addr);
-			
-			retried = true;
-		} else {
-			errx("%s: leaf_insert split ineffective: root 0x%" PRIx32
-				" leaf 0x%" PRIx32 " %s len %" PRIu32,
-				__func__, root_addr, leaf_addr, key_str(key), item.len);
-		}
-	} while (!done);
-	
-	tree_unlock(root_addr);
-}
-
 static leaf_ptr tree_search_r(uint32_t root_addr, uint32_t node_addr,
 	const key *key) {
 	node_ptr node = node_map(node_addr);
@@ -240,4 +212,33 @@ leaf_ptr tree_search(uint32_t root_addr, const key *key) {
 	tree_unlock(root_addr);
 	
 	return result;
+}
+
+void tree_insert(uint32_t root_addr, const key *key, struct item_data item) {
+	ASSERT_ROOT(root_addr);
+	tree_lock(root_addr);
+	
+	bool done = false, retried = false;
+	do {
+		/* use tree_search_r, not tree_search, to circumvent locking */
+		leaf_ptr leaf      = tree_search_r(root_addr, root_addr, key);
+		uint32_t leaf_addr = leaf->hdr.this;
+		
+		if (leaf_insert(leaf, key, item)) {
+			node_unmap((node_ptr)leaf);
+			
+			done = true;
+		} else if (!retried) {
+			node_unmap((node_ptr)leaf);
+			node_split(leaf_addr);
+			
+			retried = true;
+		} else {
+			errx("%s: leaf_insert split ineffective: root 0x%" PRIx32
+				" leaf 0x%" PRIx32 " %s len %" PRIu32,
+				__func__, root_addr, leaf_addr, key_str(key), item.len);
+		}
+	} while (!done);
+	
+	tree_unlock(root_addr);
 }
