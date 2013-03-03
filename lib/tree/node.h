@@ -106,8 +106,8 @@ void node_unmap(const node_ptr node);
 
 void node_dump(uint32_t node_addr, bool recurse);
 
-uint32_t node_used(const node_ptr node);
-uint32_t node_free(const node_ptr node);
+uint32_t node_used(uint32_t node_addr);
+uint32_t node_free(uint32_t node_addr);
 
 bool node_is_root(uint32_t node_addr);
 uint32_t node_find_root(uint32_t node_addr);

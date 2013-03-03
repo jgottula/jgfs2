@@ -66,7 +66,7 @@ static void tree_graph_r(uint32_t node_addr, uint32_t level,
 	node_ptr node = node_map(node_addr);
 	
 	/* draw the node space usage bar */
-	uint8_t used_round = (uint8_t)ceil(((float)node_used(node) * 12.f) /
+	uint8_t used_round = (uint8_t)ceil(((float)node_used(node_addr) * 12.f) /
 		(float)node_size_usable());
 	char used_bar[13];
 	for (uint8_t i = 0; i < 12; ++i) {
@@ -78,7 +78,7 @@ static void tree_graph_r(uint32_t node_addr, uint32_t level,
 	}
 	used_bar[sizeof(used_bar) - 1] = '\0';
 	
-	float used_pct = ((float)node_used(node) * 100.f) /
+	float used_pct = ((float)node_used(node_addr) * 100.f) /
 		(float)node_size_usable();
 	
 	int width_bar  = 12 + 2;
@@ -117,7 +117,8 @@ static void tree_graph_r(uint32_t node_addr, uint32_t level,
 	fprintf_col(stderr, col_id, "%0*" PRIx32,
 		width_id, node_first_key(node)->id);
 	fprintf_col(stderr, col_cnt, "%*" PRIu16, width_cnt, node->hdr.cnt);
-	fprintf_col(stderr, col_free, "%*" PRIu32, width_free, node_free(node));
+	fprintf_col(stderr, col_free, "%*" PRIu32,
+		width_free, node_free(node_addr));
 	fprintf_col(stderr, col_pct, "%3d%%", (int)round(used_pct));
 	fprintf_col(stderr, col_bar, "[%s]\n", used_bar);
 	
@@ -138,7 +139,7 @@ static void tree_graph_r(uint32_t node_addr, uint32_t level,
 	
 	++(*node_qty);
 	*avg_fill = (*avg_fill * ((double)(*node_qty - 1) / (double)*node_qty)) +
-		(((double)node_used(node) / (double)node_size_usable()) /
+		(((double)node_used(node_addr) / (double)node_size_usable()) /
 		(double)*node_qty);
 	
 	node_unmap(node);
