@@ -59,14 +59,9 @@ void debug_map_push(const void *addr, uint32_t sect_num, uint32_t sect_cnt) {
 	fprintf(stderr, "\e[31;1m  MAP %p %08" PRIx32 " %08" PRIx32 "\n\e[0m",
 		addr, sect_num, sect_cnt);
 	
-	if (map_list == NULL) {
-		map_list = malloc(sizeof(struct map_node));
-		map_list->next = NULL;
-	} else {
-		struct map_node *new_head = malloc(sizeof(struct map_node));
-		new_head->next = map_list;
-		map_list = new_head;
-	}
+	struct map_node *new_head = malloc(sizeof(struct map_node));
+	new_head->next = map_list;
+	map_list = new_head;
 	
 	map_list->payload.addr = addr;
 	
