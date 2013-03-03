@@ -107,6 +107,7 @@ void branch_dump(const branch_ptr node);
 
 uint32_t branch_used(const branch_ptr node);
 uint32_t branch_free(const branch_ptr node);
+
 uint16_t branch_half(const branch_ptr node);
 
 node_ref *branch_search_addr(const branch_ptr node, uint32_t addr);
@@ -133,6 +134,7 @@ void leaf_dump(const leaf_ptr node);
 
 uint32_t leaf_used(const leaf_ptr node);
 uint32_t leaf_free(const leaf_ptr node);
+
 uint16_t leaf_half(const leaf_ptr node);
 
 void *leaf_data_ptr(const leaf_ptr node, const item_ref *item);
