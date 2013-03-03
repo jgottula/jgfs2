@@ -6,6 +6,7 @@
 
 
 #include "tree.h"
+#include <math.h>
 #include "../debug.h"
 #include "check.h"
 
@@ -16,8 +17,65 @@ void tree_init(uint32_t root_addr) {
 
 void tree_dump(uint32_t root_addr) {
 	ASSERT_ROOT(root_addr);
-	
 	node_dump(root_addr, true);
+}
+
+static void tree_graph_r(uint32_t node_addr, uint32_t level, uint32_t *max) {
+	node_ptr node = node_map(node_addr);
+	
+	fputc(' ', stderr);
+	if (level != 0) {
+		for (uint32_t i = 0; i < level - 1; ++i) {
+			fputs("| ", stderr);
+		}
+		fputs("+- ", stderr);
+	}
+	
+	fprintf(stderr, "%s 0x%" PRIx32,
+		(node->hdr.leaf ? "leaf" : "branch"), node_addr);
+	
+	/* draw a right-aligned node space usage bar */
+	float use_ratio = ((float)node_used(node) * 20.f) /
+		(float)node_size_usable();
+	uint8_t use_round = (uint8_t)ceil(use_ratio);
+	char use_bar[21];
+	for (uint8_t i = 0; i < 20; ++i) {
+		if (i <= use_round - 1) {
+			use_bar[i] = '#';
+		} else {
+			use_bar[i] = ' ';
+		}
+	}
+	use_bar[sizeof(use_bar) - 1] = '\0';
+	fprintf_right(stderr, "[%s]\n", use_bar);
+	
+	if (node->hdr.leaf) {
+		/* set this only in leaves since branches are, obviously, internal */
+		if (level > *max) {
+			*max = level;
+		}
+	} else {
+		branch_ptr branch = (branch_ptr)node;
+		
+		/* recurse through child nodes */
+		const node_ref *elem_end = branch->elems + branch->hdr.cnt;
+		for (const node_ref *elem = branch->elems; elem < elem_end; ++elem) {
+			tree_graph_r(elem->addr, level + 1, max);
+		}
+	}
+	
+	node_unmap(node);
+}
+
+void tree_graph(uint32_t root_addr) {
+	ASSERT_ROOT(root_addr);
+	
+	warnx("%s: root 0x%" PRIx32, __func__, root_addr);
+	
+	uint32_t max = 0;
+	tree_graph_r(root_addr, 0, &max);
+	
+	warnx("%s: max depth: %" PRId32, __func__, max + 1);
 }
 
 void tree_insert(uint32_t root_addr, const key *key, struct item_data item) {
