@@ -92,6 +92,8 @@ static void warnx(const char *fmt, ...) {
 }
 
 
+uint8_t log_u32(uint8_t base, uint32_t n);
+
 int fprintf_col(FILE *stream, int col, const char *format, ...);
 
 void debug_map_push(const void *addr, uint32_t sect_num, uint32_t sect_cnt);

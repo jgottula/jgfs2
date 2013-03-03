@@ -14,6 +14,21 @@
 struct map_node *map_list = NULL;
 
 
+uint8_t log_u32(uint8_t base, uint32_t n) {
+	uint8_t result = 0;
+	
+	if (n == 0) {
+		return 1;
+	}
+	
+	do {
+		n /= base;
+		++result;
+	} while (n != 0);
+	
+	return result;
+}
+
 int fprintf_col(FILE *stream, int col, const char *format, ...) {
 	static int cols = 0;
 	if (cols == 0) {
@@ -95,17 +110,7 @@ void dump_mem(const void *addr, size_t len) {
 	const uint8_t *begin = addr;
 	const uint8_t *end   = begin + len;
 	
-	/* get log2 of len for display purposes */
-	len = (end - begin);
-	uint8_t log2_len = 0;
-	while (len != 0) {
-		len >>= 1;
-		++log2_len;
-	}
-	log2_len = CEIL(log2_len, 4);
-	
-	/* set len correctly */
-	len = (end - begin);
+	uint32_t log16_len = log_u32(16, len);
 	
 	const uint8_t *ptr = begin;
 	bool skip = false, skip_prev = false;
@@ -124,8 +129,7 @@ void dump_mem(const void *addr, size_t len) {
 		}
 		
 		if (!skip) {
-			fprintf(stderr, "        %0*" PRIxPTR ": ",
-				log2_len, ptr - begin);
+			fprintf(stderr, "        %0*" PRIxPTR ": ", log16_len, ptr - begin);
 			
 			if (ptr < end) {
 				for (const uint8_t *ptr_line = ptr;
