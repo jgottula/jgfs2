@@ -26,12 +26,12 @@ enum check_result_type {
 };
 
 enum check_error_code {
-	ERR_TREE_SORT       = 1,    // key[n] > key[n+1]
-	ERR_TREE_DUPE       = 2,    // key[a] == key[b]
+	ERR_TREE_SORT       = 1,    // this[last] > next[first]
+	ERR_TREE_DUPE       = 2,    // this[last] == next[first]
 	ERR_TREE_NEXT_SKIP  = 3,    // next->next skips a node
 	ERR_TREE_NEXT_ORDER = 4,    // next->next goes backwards
-	ERR_TREE_PREV_SKIP  = 3,    // prev->prev skips a node
-	ERR_TREE_PREV_ORDER = 4,    // prev->prev goes forwards
+	ERR_TREE_PREV_SKIP  = 5,    // prev->prev skips a node
+	ERR_TREE_PREV_ORDER = 6,    // prev->prev goes forwards
 	
 	ERR_NODE_THIS  = 0,         // hdr.this is wrong
 	ERR_NODE_EMPTY = 1,         // !root and no elems
