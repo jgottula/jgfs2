@@ -6,11 +6,36 @@
 
 
 #include "debug.h"
+#include <sys/ioctl.h>
+#include <unistd.h>
 #include "fs.h"
 
 
 struct map_node *map_list = NULL;
 
+
+int fprintf_right(FILE *stream, const char *format, ...) {
+	char buf[4096];
+	
+	va_list ap;
+	va_start(ap, format);
+	vsnprintf(buf, sizeof(buf), format, ap);
+	va_end(ap);
+	
+	size_t len = strlen(buf);
+	
+	static size_t cols = 0;
+	if (cols == 0) {
+		/* fall back to 80 columns if this fails */
+		struct winsize ws;
+		if (ioctl(STDERR_FILENO, TIOCGWINSZ, &ws) < 0 ||
+			(cols = ws.ws_col) == 0) {
+			cols = 80;
+		}
+	}
+	
+	return fprintf(stream, "\r\e[%zuC%s", cols - len, buf);
+}
 
 void debug_map_push(const void *addr, uint32_t sect_num, uint32_t sect_cnt) {
 	fprintf(stderr, "\e[31;1m  MAP %p %08" PRIx32 " %08" PRIx32 "\n\e[0m",
