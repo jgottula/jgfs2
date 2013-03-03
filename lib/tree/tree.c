@@ -23,6 +23,45 @@ void tree_dump(uint32_t root_addr) {
 static void tree_graph_r(uint32_t node_addr, uint32_t level, uint32_t *max) {
 	node_ptr node = node_map(node_addr);
 	
+	/* draw the node space usage bar */
+	uint8_t used_round = (uint8_t)ceil(((float)node_used(node) * 20.f) /
+		(float)node_size_usable());
+	char used_bar[21];
+	for (uint8_t i = 0; i < 20; ++i) {
+		if (i <= used_round - 1) {
+			used_bar[i] = '#';
+		} else {
+			used_bar[i] = ' ';
+		}
+	}
+	used_bar[sizeof(used_bar) - 1] = '\0';
+	
+	float used_pct = ((float)node_used(node) * 100.f) /
+		(float)node_size_usable();
+	
+	int width_bar  = 20 + 2;
+	int width_pct  = 3 + 1;
+	int width_free = log_u32(10, node_size_usable());
+	int width_cnt  = log_u32(10, node_max_cnt());
+	int width_id   = sizeof(uint32_t) * 2;
+	
+	int col_bar  = 0 - width_bar;
+	int col_pct  = (col_bar - 1) - width_pct;
+	int col_free = (col_pct - 1) - width_free;
+	int col_cnt  = (col_free - 1) - width_cnt;
+	int col_id   = (col_cnt - 1) - width_id;
+	
+	/* column headers */
+	if (node->hdr.parent == 0) {
+		fprintf_col(stderr, col_id, "%*s", width_id, "key.id");
+		fprintf_col(stderr, col_cnt, "%*s", width_cnt, "cnt");
+		fprintf_col(stderr, col_free, "%*s", width_free, "free");
+		fprintf_col(stderr, col_pct, "%*s", width_pct, "used");
+		
+		fputc('\n', stderr);
+	}
+	
+	/* tree graphics */
 	fputc(' ', stderr);
 	if (level != 0) {
 		for (uint32_t i = 0; i < level - 1; ++i) {
@@ -34,24 +73,12 @@ static void tree_graph_r(uint32_t node_addr, uint32_t level, uint32_t *max) {
 	fprintf(stderr, "%s 0x%" PRIx32,
 		(node->hdr.leaf ? "leaf" : "branch"), node_addr);
 	
-	/* draw a right-aligned node space usage bar */
-	float use_ratio = ((float)node_used(node) * 20.f) /
-		(float)node_size_usable();
-	uint8_t use_round = (uint8_t)ceil(use_ratio);
-	char use_bar[21];
-	for (uint8_t i = 0; i < 20; ++i) {
-		if (i <= use_round - 1) {
-			use_bar[i] = '#';
-		} else {
-			use_bar[i] = ' ';
-		}
-	}
-	use_bar[sizeof(use_bar) - 1] = '\0';
-	fprintf_right(stderr,
-		"%" PRIu16 " %08" PRIx32 " %4" PRIu32"/%4" PRIu32 " [%s]",
-		node->hdr.cnt, node_first_key(node)->id, node_used(node),
-		node_size_usable(), use_bar);
-	fputc('\n', stderr);
+	fprintf_col(stderr, col_id, "%0*" PRIx32,
+		width_id, node_first_key(node)->id);
+	fprintf_col(stderr, col_cnt, "%*" PRIu16, width_cnt, node->hdr.cnt);
+	fprintf_col(stderr, col_free, "%*" PRIu32, width_free, node_free(node));
+	fprintf_col(stderr, col_pct, "%3d%%", (int)round(used_pct));
+	fprintf_col(stderr, col_bar, "[%s]\n", used_bar);
 	
 	if (node->hdr.leaf) {
 		/* set this only in leaves since branches are, obviously, internal */
