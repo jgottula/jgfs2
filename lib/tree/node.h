@@ -131,7 +131,7 @@ node_ref *branch_search_addr(const branch_ptr node, uint32_t addr);
 void branch_zero(branch_ptr node, uint16_t first);
 void branch_xfer_half(branch_ptr dst, branch_ptr src);
 
-void branch_assert_parenthood(branch_ptr node);
+void branch_paternalize(branch_ptr node);
 
 void branch_append_naive(branch_ptr node, const node_ref *elem);
 bool branch_insert(branch_ptr node, const node_ref *elem);

@@ -103,7 +103,7 @@ void branch_xfer_half(branch_ptr dst, branch_ptr src) {
 	branch_zero(src, half);
 }
 
-void branch_assert_parenthood(branch_ptr node) {
+void branch_paternalize(branch_ptr node) {
 	ASSERT_BRANCH(node);
 	
 	const node_ref *elem_end = node->elems + node->hdr.cnt;
@@ -185,8 +185,8 @@ void branch_split_post(branch_ptr this, branch_ptr new, bool was_root) {
 	branch_xfer_half(new, this);
 	
 	/* our children don't know who their parent is anymore */
-	branch_assert_parenthood(new);
+	branch_paternalize(new);
 	if (was_root) {
-		branch_assert_parenthood(this);
+		branch_paternalize(this);
 	}
 }
