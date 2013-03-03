@@ -43,30 +43,37 @@ void test_tree(void) {
 	);
 	test_check();
 	
-	fprintf(stderr, "%s: inserting inode\n", __func__);
-	
 	key key = {
 		0x00000000,
 		0x00,
 		0x00000000,
 	};
+	char data[4096];
 	
-	for (uint32_t i = 0; i < 300; ++i) {
-		key.id = mrand48() & 0xffff;
-		
-		fprintf(stderr, "#%" PRIu32 ": %" PRIx32 "\n", i, key.id);
-		
-		tree_insert(fs.sblk->s_addr_meta_tree, &key,
-			(struct item_data){ 0, NULL });
-		test_dump();
-		
-		if (!test_check_nonfatal()) {
-			fprintf(stderr, "%s: failure on #%" PRIu32 "\n", __func__, i);
-			abort();
-		}
+	for (size_t i = 0; i < sizeof(data); ++i) {
+		data[i] = mrand48();
 	}
 	
-	test_dump();
+	for (uint32_t i = 0; i < 100000; ++i) {
+		if (i % 1000 == 0) {
+			fprintf(stderr, "%" PRIu32 "\n", i);
+		}
+		
+		key.id = mrand48();
+		
+		uint32_t len = (uint32_t)mrand48() % 128;
+		
+		tree_insert(fs.sblk->s_addr_meta_tree, &key,
+			(struct item_data){ len, data });
+		
+		/*if (!test_check_nonfatal()) {
+			fprintf(stderr, "%s: failure on #%" PRIu32 "\n", __func__, i);
+			abort();
+		}*/
+	}
+	
+	test_check();
+	tree_graph(fs.sblk->s_addr_meta_tree);
 	
 	jgfs2_done();
 }
