@@ -28,22 +28,22 @@ DEFINES="-D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -DFUSE_USE_VERSION=26"
 LIB_OUT="bin/libjgfs2.a"
 LIB_SRC=(lib/*.c lib/*/*.c)
 LIB_OBJS=${LIB_SRC[@]//.c/.o}
-LIB_LIBS=(-lbsd -luuid)
+LIB_LIBS=(-lm -lbsd -luuid)
 
 FUSE_OUT="bin/fuse.jgfs2"
 FUSE_SRC=(src/fuse/*.c)
 FUSE_OBJS=${FUSE_SRC[@]//.c/.o}
-FUSE_LIBS=(-lbsd -lfuse)
+FUSE_LIBS=(-lfuse)
 
 TEST_OUT="bin/test.jgfs2"
 TEST_SRC=(src/test/*.c)
 TEST_OBJS=${TEST_SRC[@]//.c/.o}
-TEST_LIBS=(-lbsd)
+TEST_LIBS=()
 
 TREE_OUT="bin/tree.jgfs2"
 TREE_SRC=(src/tree/*.cxx)
 TREE_OBJS=${TREE_SRC[@]//.cxx/.o}
-TREE_LIBS=(-lQtCore)
+TREE_LIBS=(-lQtCore -lQtGui)
 
 VIEW_OUT="bin/view.jgfs2"
 VIEW_SRC=(src/view/*.c)
@@ -53,7 +53,7 @@ VIEW_LIBS=()
 MKFS_OUT="bin/mkfs.jgfs2"
 MKFS_SRC=(src/mkfs/*.c)
 MKFS_OBJS=${MKFS_SRC[@]//.c/.o}
-MKFS_LIBS=(-lbsd -luuid)
+MKFS_LIBS=()
 
 FSCK_OUT="bin/fsck.jgfs2"
 FSCK_SRC=(src/fsck/*.c)
@@ -143,52 +143,52 @@ fsctl)
 attr)
 	redo-ifchange $ATTR_OUT ;;
 $LIB_OUT)
-	LIBS="${LIB_LIBS[@]}"
+	LIBS=""
 	OBJS="${LIB_OBJS[@]}"
 	target_lib
 	;;
 $FUSE_OUT)
-	LIBS="${FUSE_LIBS[@]}"
+	LIBS="${FUSE_LIBS[@]} ${LIB_LIBS[@]}"
 	OBJS="${FUSE_OBJS[@]} $LIB_OUT"
 	target_c_link
 	;;
 $TEST_OUT)
-	LIBS="${TEST_LIBS[@]}"
+	LIBS="${TEST_LIBS[@]} ${LIB_LIBS[@]}"
 	OBJS="${TEST_OBJS[@]} $LIB_OUT"
 	target_c_link
 	;;
 $TREE_OUT)
-	LIBS="${TREE_LIBS[@]}"
+	LIBS="${TREE_LIBS[@]} ${LIB_LIBS[@]}"
 	OBJS="${TREE_OBJS[@]} $LIB_OUT"
 	target_cxx_link
 	;;
 $VIEW_OUT)
-	LIBS="${VIEW_LIBS[@]}"
+	LIBS="${VIEW_LIBS[@]} ${LIB_LIBS[@]}"
 	OBJS="${VIEW_OBJS[@]} $LIB_OUT"
 	target_c_link
 	;;
 $MKFS_OUT)
-	LIBS="${MKFS_LIBS[@]}"
+	LIBS="${MKFS_LIBS[@]} ${LIB_LIBS[@]}"
 	OBJS="${MKFS_OBJS[@]} $LIB_OUT"
 	target_c_link
 	;;
 $FSCK_OUT)
-	LIBS="${FSCK_LIBS[@]}"
+	LIBS="${FSCK_LIBS[@]} ${LIB_LIBS[@]}"
 	OBJS="${FSCK_OBJS[@]} $LIB_OUT"
 	target_c_link
 	;;
 $DEFRAG_OUT)
-	LIBS="${DEFRAG_LIBS[@]}"
+	LIBS="${DEFRAG_LIBS[@]} ${LIB_LIBS[@]}"
 	OBJS="${DEFRAG_OBJS[@]} $LIB_OUT"
 	target_c_link
 	;;
 $FSCTL_OUT)
-	LIBS="${FSCTL_LIBS[@]}"
+	LIBS="${FSCTL_LIBS[@]} ${LIB_LIBS[@]}"
 	OBJS="${FSCTL_OBJS[@]} $LIB_OUT"
 	target_c_link
 	;;
 $ATTR_OUT)
-	LIBS="${ATTR_LIBS[@]}"
+	LIBS="${ATTR_LIBS[@]} ${LIB_LIBS[@]}"
 	OBJS="${ATTR_OBJS[@]} $LIB_OUT"
 	target_c_link
 	;;
