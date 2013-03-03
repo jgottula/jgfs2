@@ -49,6 +49,22 @@ void node_dump(uint32_t node_addr, bool recurse) {
 	node_unmap(node);
 }
 
+uint32_t node_used(const node_ptr node) {
+	if (node->hdr.leaf) {
+		return leaf_used((const leaf_ptr)node);
+	} else {
+		return branch_used((const branch_ptr)node);
+	}
+}
+
+uint32_t node_free(const node_ptr node) {
+	if (node->hdr.leaf) {
+		return leaf_free((const leaf_ptr)node);
+	} else {
+		return branch_free((const branch_ptr)node);
+	}
+}
+
 bool node_is_root(uint32_t node_addr) {
 	const node_ptr node = node_map(node_addr);
 	bool is_root = (node->hdr.parent == 0);
