@@ -2,11 +2,6 @@ jgfs2
 todo list
 
 
-license:
-- add source code headers: adapt AVRm68k header
-  - include makefiles/redo scripts
-  - do this for the justix tree as well
-
 fs design:
 - extents
   - do we need a maximum extent size?
@@ -121,7 +116,6 @@ lib:
       - measure of tree balance?
       - look for other measurements that can be taken of B trees
   - use this in mkfs, defrag, ...
-- binary search within nodes
 - use 32-bit cnt in nodes (for 1MiB block size)
 - enforce character set in names
 
