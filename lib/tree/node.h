@@ -89,6 +89,14 @@ static uint32_t node_size_usable(void) {
 	return node_size_byte() - sizeof(struct node_hdr);
 }
 
+static uint16_t node_max_cnt(void) {
+	if (sizeof(item_ref) > sizeof(node_ref)) {
+		return (node_size_usable() / sizeof(item_ref)) + 1;
+	} else {
+		return (node_size_usable() / sizeof(node_ref)) + 1;
+	}
+}
+
 
 /* generic node functions */
 uint32_t node_alloc(void);
