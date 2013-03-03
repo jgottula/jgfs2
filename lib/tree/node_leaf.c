@@ -103,6 +103,47 @@ void leaf_zero(leaf_ptr node, uint16_t first) {
 	memset(zero_begin, 0, (zero_end - zero_begin));
 }
 
+
+void leaf_shift_forward(leaf_ptr node, uint16_t first, uint16_t diff_elem,
+	uint32_t diff_data) {
+	ASSERT_LEAF(node);
+	
+	item_ref *elem_begin = node->elems + first;
+	item_ref *elem_end   = node->elems + node->hdr.cnt;
+	
+	uint8_t *data_begin = leaf_data_ptr(node, elem_end);
+	uint8_t *data_end   = leaf_data_ptr(node, elem_begin) + elem_begin->len;
+	
+	memmove(data_begin - diff_data, data_begin, (data_end - data_begin));
+	
+	for (item_ref *elem = elem_end - 1; elem >= elem_begin; --elem) {
+		item_ref *elem_dst = elem + diff_elem;
+		
+		*elem_dst = *elem;
+		elem_dst->off -= diff_data;
+	}
+}
+
+void leaf_shift_backward(leaf_ptr node, uint16_t first, uint16_t diff_elem,
+	uint32_t diff_data) {
+	ASSERT_LEAF(node);
+	
+	item_ref *elem_begin = node->elems + first;
+	item_ref *elem_end   = node->elems + node->hdr.cnt;
+	
+	uint8_t *data_begin = leaf_data_ptr(node, elem_end);
+	uint8_t *data_end   = leaf_data_ptr(node, elem_begin) + elem_begin->len;
+	
+	memmove(data_begin + diff_data, data_begin, (data_end - data_begin));
+	
+	for (item_ref *elem = elem_begin; elem < elem_end; ++elem) {
+		item_ref *elem_src = elem + diff_elem;
+		
+		*elem = *elem_src;
+		elem->off += diff_data;
+	}
+}
+
 void leaf_insert_naive(leaf_ptr node, uint16_t at, const key *key,
 	struct item_data item) {
 	ASSERT_LEAF(node);
@@ -147,19 +188,7 @@ bool leaf_insert(leaf_ptr node, const key *key, struct item_data item) {
 	
 	uint16_t insert_at = node_search_hypo((node_ptr)node, key);
 	
-	/* shift elements above the insertion point over by one; this includes the
-	 * data buffers to which they point */
-	item_ref *elem_last = node->elems + (node->hdr.cnt - 1);
-	for (item_ref *elem = elem_last; elem >= node->elems + insert_at; --elem) {
-		item_ref *elem_next = elem + 1;
-		*elem_next = *elem;
-		
-		uint8_t *data_ptr = (uint8_t *)node + elem_next->off;
-		memmove(data_ptr - item.len, data_ptr, elem_next->len);
-		
-		elem_next->off -= item.len;
-	}
-	
+	leaf_shift_forward(node, insert_at, 1, item.len);
 	leaf_insert_naive(node, insert_at, key, item);
 	++node->hdr.cnt;
 	

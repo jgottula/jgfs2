@@ -79,6 +79,32 @@ void branch_zero(branch_ptr node, uint16_t first) {
 	memset(zero_begin, 0, (zero_end - zero_begin));
 }
 
+void branch_shift_forward(branch_ptr node, uint16_t first, uint16_t diff) {
+	ASSERT_BRANCH(node);
+	
+	node_ref *elem_begin = node->elems + first;
+	node_ref *elem_end   = node->elems + node->hdr.cnt;
+	
+	for (node_ref *elem = elem_end - 1; elem >= elem_begin; --elem) {
+		node_ref *elem_dst = elem + diff;
+		
+		*elem_dst = *elem;
+	}
+}
+
+void branch_shift_backward(branch_ptr node, uint16_t first, uint16_t diff) {
+	ASSERT_BRANCH(node);
+	
+	node_ref *elem_begin = node->elems + first;
+	node_ref *elem_end   = node->elems + node->hdr.cnt;
+	
+	for (node_ref *elem = elem_begin; elem < elem_end; ++elem) {
+		node_ref *elem_src = elem + diff;
+		
+		*elem = *elem_src;
+	}
+}
+
 void branch_paternalize(branch_ptr node) {
 	ASSERT_BRANCH(node);
 	
@@ -106,13 +132,7 @@ bool branch_insert(branch_ptr node, const node_ref *elem) {
 	
 	uint16_t insert_at = node_search_hypo((node_ptr)node, &elem->key);
 	
-	/* shift elements above the insertion point over by one */
-	node_ref *elem_last = node->elems + (node->hdr.cnt - 1);
-	for (node_ref *elem = elem_last; elem >= node->elems + insert_at; --elem) {
-		node_ref *elem_next = elem + 1;
-		*elem_next = *elem;
-	}
-	
+	branch_shift_forward(node, insert_at, 1);
 	node->elems[insert_at] = *elem;
 	++node->hdr.cnt;
 	
