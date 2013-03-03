@@ -77,6 +77,19 @@ typedef struct branch_node *branch_ptr;
 typedef struct leaf_node   *leaf_ptr;
 
 
+static uint32_t node_size_blk(void) {
+	return 1;
+}
+
+static uint32_t node_size_byte(void) {
+	return node_size_blk() * fs.blk_size;
+}
+
+static uint32_t node_size_usable(void) {
+	return node_size_byte() - sizeof(struct node_hdr);
+}
+
+
 /* generic node functions */
 uint32_t node_alloc(void);
 
@@ -148,19 +161,6 @@ void leaf_append_naive(leaf_ptr node, const key *key, struct item_data item);
 bool leaf_insert(leaf_ptr node, const key *key, struct item_data item);
 
 void leaf_split_post(leaf_ptr this, leaf_ptr new);
-
-
-static uint32_t node_size_blk(void) {
-	return 1;
-}
-
-static uint32_t node_size_byte(void) {
-	return node_size_blk() * fs.blk_size;
-}
-
-static uint32_t node_size_usable(void) {
-	return node_size_byte() - sizeof(struct node_hdr);
-}
 
 
 #endif
