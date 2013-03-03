@@ -121,7 +121,7 @@ uint16_t node_search_hypo(const node_ptr node, const key *key);
 void node_zero_data(node_ptr node);
 void node_copy_data(node_ptr dst, const node_ptr src);
 
-void node_split(uint32_t node_addr);
+void node_split(uint32_t this_addr);
 
 
 /* branch node functions */
