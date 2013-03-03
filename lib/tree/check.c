@@ -93,6 +93,37 @@ static struct check_result check_node_leaf(leaf_ptr node) {
 	struct check_result result = { RESULT_TYPE_OK };
 	
 	if (node->hdr.cnt > 0) {
+		if (node->hdr.prev != 0) {
+			node_ptr prev = node_map(node->hdr.prev);
+			if (!prev->hdr.leaf) {
+				result.type = RESULT_TYPE_LEAF;
+				result.leaf = (struct leaf_check_error){
+					.code      = ERR_LEAF_PREV_BRANCH,
+					.node_addr = node->hdr.this,
+					
+					.elem_cnt = 0,
+				};
+				
+				goto done;
+			}
+			node_unmap(prev);
+		}
+		if (node->hdr.next != 0) {
+			node_ptr next = node_map(node->hdr.next);
+			if (!next->hdr.leaf) {
+				result.type = RESULT_TYPE_LEAF;
+				result.leaf = (struct leaf_check_error){
+					.code      = ERR_LEAF_NEXT_BRANCH,
+					.node_addr = node->hdr.this,
+					
+					.elem_cnt = 0,
+				};
+				
+				goto done;
+			}
+			node_unmap(next);
+		}
+		
 		if (leaf_used(node) > node_size_usable()) {
 			result.type = RESULT_TYPE_LEAF;
 			result.leaf = (struct leaf_check_error){
@@ -381,6 +412,12 @@ void check_print(struct check_result result, bool fatal) {
 		bool have_desc = true;
 		const char *err_desc;
 		switch (err->code) {
+		case ERR_LEAF_PREV_BRANCH:
+			err_desc = "prev points to branch";
+			break;
+		case ERR_LEAF_NEXT_BRANCH:
+			err_desc = "next points to branch";
+			break;
 		case ERR_LEAF_OVERFLOW:
 			err_desc = "node content overflow";
 			break;
@@ -402,6 +439,12 @@ void check_print(struct check_result result, bool fatal) {
 		}
 		
 		switch (err->code) {
+		case ERR_LEAF_PREV_BRANCH:
+			warnx("prev 0x%" PRIx32, node->hdr.prev);
+			break;
+		case ERR_LEAF_NEXT_BRANCH:
+			warnx("next 0x%" PRIx32, node->hdr.next);
+			break;
 		case ERR_LEAF_OVERFLOW:
 			warnx("%" PRIu32 " used > %" PRIu32 " possible",
 				leaf_used(node), node_size_usable());

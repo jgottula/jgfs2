@@ -43,9 +43,11 @@ enum check_error_code {
 	ERR_BRANCH_EMPTY_CHILD = 3, // child.hdr.cnt == 0
 	ERR_BRANCH_KEY         = 4, // elem.key != child.keys[0]
 	
-	ERR_LEAF_OVERFLOW = 1,      // item_ref overlaps item data
-	ERR_LEAF_UNCONTIG = 2,      // wasted space between item data
-	ERR_LEAF_OVERLAP  = 3,      // elem data regions overlap
+	ERR_LEAF_PREV_BRANCH = 1,   // prev points to a branch
+	ERR_LEAF_NEXT_BRANCH = 2,   // next points to a branch
+	ERR_LEAF_OVERFLOW    = 3,   // item_ref overlaps item data
+	ERR_LEAF_UNCONTIG    = 4,   // wasted space between item data
+	ERR_LEAF_OVERLAP     = 5,   // elem data regions overlap
 	
 	ERR_ITEM_TYPE    = 1,       // invalid item type
 	ERR_ITEM_KEY_ID  = 2,       // inappropriate key id for item type
