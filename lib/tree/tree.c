@@ -75,7 +75,7 @@ void tree_graph(uint32_t root_addr) {
 	uint32_t max = 0;
 	tree_graph_r(root_addr, 0, &max);
 	
-	warnx("%s: max depth: %" PRId32, __func__, max + 1);
+	warnx("%s: max depth: %" PRIu32, __func__, max + 1);
 }
 
 void tree_insert(uint32_t root_addr, const key *key, struct item_data item) {
@@ -97,7 +97,7 @@ void tree_insert(uint32_t root_addr, const key *key, struct item_data item) {
 			retried = true;
 		} else {
 			errx("%s: leaf_insert split ineffective: root 0x%" PRIx32
-				" leaf 0x%" PRIx32 " %s len %" PRId32,
+				" leaf 0x%" PRIx32 " %s len %" PRIu32,
 				__func__, root_addr, leaf_addr, key_str(key), item.len);
 		}
 	} while (!done);

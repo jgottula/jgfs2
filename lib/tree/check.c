@@ -299,7 +299,7 @@ void check_print(struct check_result result, bool fatal) {
 		if (have_desc) {
 			warnx("%s", err_desc);
 		} else {
-			warnx("unknown error (%" PRId32 ")", err->code);
+			warnx("unknown error (%" PRIu32 ")", err->code);
 			err_desc = "unknown error";
 		}
 		
@@ -343,7 +343,7 @@ void check_print(struct check_result result, bool fatal) {
 		if (have_desc) {
 			warnx("%s", err_desc);
 		} else {
-			warnx("unknown error (%" PRId32 ")", err->code);
+			warnx("unknown error (%" PRIu32 ")", err->code);
 			err_desc = "unknown error";
 		}
 		
@@ -397,7 +397,7 @@ void check_print(struct check_result result, bool fatal) {
 		if (have_desc) {
 			warnx("%s", err_desc);
 		} else {
-			warnx("unknown error (%" PRId32 ")", err->code);
+			warnx("unknown error (%" PRIu32 ")", err->code);
 			err_desc = "unknown error";
 		}
 		

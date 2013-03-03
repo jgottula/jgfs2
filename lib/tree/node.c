@@ -89,8 +89,8 @@ uint32_t node_find_root(uint32_t node_addr) {
 
 const key *node_key(const node_ptr node, uint16_t idx) {
 	if (idx >= node->hdr.cnt) {
-		errx("%s: idx exceeds bounds: node 0x%" PRIx32 ", %" PRId16
-			" >= %" PRId16, __func__, node->hdr.this, idx, node->hdr.cnt);
+		errx("%s: idx exceeds bounds: node 0x%" PRIx32 ", %" PRIu16
+			" >= %" PRIu16, __func__, node->hdr.this, idx, node->hdr.cnt);
 	}
 	
 	if (node->hdr.leaf) {
