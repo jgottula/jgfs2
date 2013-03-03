@@ -62,7 +62,6 @@ static void tree_graph_r(uint32_t node_addr, uint32_t level, uint32_t *max) {
 	}
 	
 	/* tree graphics */
-	fputc(' ', stderr);
 	if (level != 0) {
 		for (uint32_t i = 0; i < level - 1; ++i) {
 			fputs("| ", stderr);
