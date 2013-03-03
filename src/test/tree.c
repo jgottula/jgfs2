@@ -48,14 +48,14 @@ void test_tree(void) {
 	for (uint32_t i = 0; i < 300; ++i) {
 		key.id = mrand48() & 0xffff;
 		
-		fprintf(stderr, "#%" PRId32 ": %" PRIx32 "\n", i, key.id);
+		fprintf(stderr, "#%" PRIu32 ": %" PRIx32 "\n", i, key.id);
 		
 		tree_insert(fs.sblk->s_addr_meta_tree, &key,
 			(struct item_data){ 0, NULL });
 		test_dump();
 		
 		if (!test_check_nonfatal()) {
-			fprintf(stderr, "%s: failure on #%" PRId32 "\n", __func__, i);
+			fprintf(stderr, "%s: failure on #%" PRIu32 "\n", __func__, i);
 			abort();
 		}
 	}
