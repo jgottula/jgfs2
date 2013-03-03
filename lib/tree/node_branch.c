@@ -34,8 +34,6 @@ void branch_dump(const branch_ptr node) {
 		fprintf(stderr, "        node %-4" PRIdPTR ": %s addr 0x%" PRIx32 "\n",
 			(elem - node->elems), key_str(&elem->key), elem->addr);
 	}
-	
-	dump_mem(node, node_size_byte());
 }
 
 uint32_t branch_used(const branch_ptr node) {

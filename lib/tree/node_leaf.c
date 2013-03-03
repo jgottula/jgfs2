@@ -35,9 +35,11 @@ void leaf_dump(const leaf_ptr node) {
 	for (const item_ref *elem = node->elems; elem < elem_end; ++elem) {
 		fprintf(stderr, "        item %-4" PRIdPTR " %s len %" PRIu32 "\n",
 			(elem - node->elems), key_str(&elem->key), elem->len);
+		
+		if (elem->len != 0) {
+			dump_mem(leaf_data_ptr(node, elem), elem->len);
+		}
 	}
-	
-	dump_mem(node, node_size_byte());
 }
 
 uint32_t leaf_used(const leaf_ptr node) {
