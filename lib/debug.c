@@ -88,20 +88,9 @@ void debug_map_dump(void) {
 	}
 }
 
-void dump_mem(const void *ptr, size_t len) {
-	warnx("%s: %zu bytes @ %p", __func__, len, ptr);
-	
-	uintptr_t begin = (uintptr_t)ptr;
-	uintptr_t end   = (uintptr_t)((uint8_t *)ptr + len);
-	
-	/* round down to 16 bytes */
-	begin &= ~0xf;
-	
-	/* round up to 16 bytes */
-	if ((end & 0xf) != 0) {
-		end &= ~0xf;
-		end += 0x10;
-	}
+void dump_mem(const void *addr, size_t len) {
+	const uint8_t *begin = addr;
+	const uint8_t *end   = begin + len;
 	
 	/* get log2 of len for display purposes */
 	len = (end - begin);
@@ -115,15 +104,11 @@ void dump_mem(const void *ptr, size_t len) {
 	/* set len correctly */
 	len = (end - begin);
 	
-	const uint8_t *begin_b = (const uint8_t *)begin;
-	const uint8_t *end_b   = (const uint8_t *)end;
-	
-	const uint8_t *ptr_b = begin_b;
-	
+	const uint8_t *ptr = begin;
 	bool skip = false, skip_prev = false;
-	while (ptr_b <= end_b) {
-		if (ptr_b - begin_b >= 0x10 && end_b - ptr_b >= 0x10) {
-			if (memcmp(ptr_b - 0x10, ptr_b, 0x10) == 0) {
+	while (ptr <= end) {
+		if (ptr - begin >= 0x10 && end - ptr >= 0x10) {
+			if (memcmp(ptr - 0x10, ptr, 0x10) == 0) {
 				if (!skip_prev) {
 					fputs("         *\n", stderr);
 					skip = true;
@@ -137,12 +122,12 @@ void dump_mem(const void *ptr, size_t len) {
 		
 		if (!skip) {
 			fprintf(stderr, "        %0*" PRIxPTR ": ",
-				log2_len, ptr_b - begin_b);
+				log2_len, ptr - begin);
 			
-			if (ptr_b < end_b) {
-				for (const uint8_t *ptr_line = ptr_b;
-					ptr_line < ptr_b + 0x10; ++ptr_line) {
-					if (ptr_line == ptr_b + 8) {
+			if (ptr < end) {
+				for (const uint8_t *ptr_line = ptr;
+					ptr_line < ptr + 0x10 && ptr_line < end; ++ptr_line) {
+					if (ptr_line == ptr + 8) {
 						fputc(' ', stderr);
 					}
 					
@@ -154,7 +139,7 @@ void dump_mem(const void *ptr, size_t len) {
 		}
 		
 		skip_prev = skip;
-		ptr_b += 0x10;
+		ptr += 0x10;
 	}
 }
 

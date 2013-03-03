@@ -98,7 +98,7 @@ void debug_map_push(const void *addr, uint32_t sect_num, uint32_t sect_cnt);
 void debug_map_pop(const void *addr, uint32_t sect_num, uint32_t sect_cnt);
 void debug_map_dump(void);
 
-void dump_mem(const void *ptr, size_t len);
+void dump_mem(const void *addr, size_t len);
 void dump_sect(uint32_t sect_num, uint32_t sect_cnt);
 void dump_blk(uint32_t blk_num, uint32_t blk_cnt);
 
