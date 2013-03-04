@@ -62,7 +62,8 @@ void tree_dump(uint32_t root_addr) {
 }
 
 static void tree_graph_r(uint32_t node_addr, uint32_t level,
-	uint32_t *max_level, uint32_t *node_qty, double *avg_fill) {
+	uint32_t *max_level, uint32_t *node_qty, uint64_t *item_qty,
+	double *avg_fill) {
 	node_ptr node = node_map(node_addr);
 	
 	/* draw the node space usage bar */
@@ -131,13 +132,16 @@ static void tree_graph_r(uint32_t node_addr, uint32_t level,
 		if (level > *max_level) {
 			*max_level = level;
 		}
+		
+		*item_qty += node->hdr.cnt;
 	} else {
 		branch_ptr branch = (branch_ptr)node;
 		
 		/* recurse through child nodes */
 		const node_ref *elem_end = branch->elems + branch->hdr.cnt;
 		for (const node_ref *elem = branch->elems; elem < elem_end; ++elem) {
-			tree_graph_r(elem->addr, level + 1, max_level, node_qty, avg_fill);
+			tree_graph_r(elem->addr, level + 1, max_level,
+				node_qty, item_qty, avg_fill);
 		}
 	}
 	
@@ -157,11 +161,13 @@ void tree_graph(uint32_t root_addr) {
 	
 	uint32_t max_level = 1;
 	uint32_t node_qty = 0;
+	uint64_t item_qty = 0;
 	double avg_fill = 0.;
-	tree_graph_r(root_addr, 1, &max_level, &node_qty, &avg_fill);
+	tree_graph_r(root_addr, 1, &max_level, &node_qty, &item_qty, &avg_fill);
 	
-	warnx("%s: node_qty %" PRIu32 " max_level %" PRIu32 " avg_fill %.1f%%",
-		__func__, node_qty, max_level, avg_fill * 100.);
+	warnx("%s: node_qty %" PRIu32 " item_qty %" PRIu64 " max_level %" PRIu32
+		" avg_fill %.1f%%",
+		__func__, node_qty, item_qty, max_level, avg_fill * 100.);
 	
 	tree_unlock(root_addr);
 }
