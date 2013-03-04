@@ -105,11 +105,12 @@ static void tree_graph_r(uint32_t node_addr, uint32_t level,
 	}
 	
 	/* tree graphics */
-	if (level != 0) {
-		for (uint32_t i = 0; i < level - 1; ++i) {
+	for (uint32_t i = level; i > 1; --i) {
+		if (i == 2) {
+			fputs("+- ", stderr);
+		} else {
 			fputs("| ", stderr);
 		}
-		fputs("+- ", stderr);
 	}
 	
 	fprintf(stderr, "%s 0x%" PRIx32,
