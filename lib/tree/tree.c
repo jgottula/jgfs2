@@ -226,6 +226,28 @@ leaf_ptr tree_search(uint32_t root_addr, const key *key) {
 	return result;
 }
 
+bool tree_retrieve(uint32_t root_addr, const key *key, struct item_data *item) {
+	ASSERT_ROOT(root_addr);
+	tree_lock(root_addr);
+	
+	bool result = false;
+	leaf_ptr leaf = tree_search_r(root_addr, root_addr, key);
+	uint16_t idx;
+	if (node_search((node_ptr)leaf, key, &idx)) {
+		item_ref *elem = leaf->elems + idx;
+		
+		item->len  = elem->len;
+		item->data = leaf_data_ptr(leaf, elem);
+		
+		result = true;
+	}
+	
+	node_unmap((node_ptr)leaf);
+	tree_unlock(root_addr);
+	
+	return result;
+}
+
 void tree_insert(uint32_t root_addr, const key *key, struct item_data item) {
 	ASSERT_ROOT(root_addr);
 	tree_lock(root_addr);

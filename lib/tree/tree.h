@@ -26,6 +26,7 @@ void tree_init(uint32_t root_addr);
 void tree_dump(uint32_t root_addr);
 void tree_graph(uint32_t root_addr);
 leaf_ptr tree_search(uint32_t root_addr, const key *key);
+bool tree_retrieve(uint32_t root_addr, const key *key, struct item_data *item);
 void tree_insert(uint32_t root_addr, const key *key, struct item_data item);
 
 
