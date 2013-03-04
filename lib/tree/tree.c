@@ -230,7 +230,8 @@ void tree_insert(uint32_t root_addr, const key *key, struct item_data item) {
 	ASSERT_ROOT(root_addr);
 	tree_lock(root_addr);
 	
-	bool done = false, retried = false;
+	bool done = false;
+	uint8_t retry = 0;
 	do {
 		/* use tree_search_r, not tree_search, to circumvent locking */
 		leaf_ptr leaf      = tree_search_r(root_addr, root_addr, key);
@@ -240,14 +241,14 @@ void tree_insert(uint32_t root_addr, const key *key, struct item_data item) {
 			node_unmap((node_ptr)leaf);
 			
 			done = true;
-		} else if (!retried) {
+		} else if (retry == 0) {
 			node_unmap((node_ptr)leaf);
 			node_split(leaf_addr);
 			
-			retried = true;
+			++retry;
 		} else {
-			errx("%s: leaf_insert split ineffective: root 0x%" PRIx32
-				" leaf 0x%" PRIx32 " %s len %" PRIu32,
+			errx("%s: giving up: root 0x%" PRIx32 " leaf 0x%"
+				PRIx32 " %s len %" PRIu32,
 				__func__, root_addr, leaf_addr, key_str(key), item.len);
 		}
 	} while (!done);
