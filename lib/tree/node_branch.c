@@ -81,6 +81,9 @@ void branch_zero(branch_ptr node, uint16_t first) {
 
 void branch_shift_forward(branch_ptr node, uint16_t first, uint16_t diff) {
 	ASSERT_BRANCH(node);
+	if (first >= node->hdr.cnt) {
+		return;
+	}
 	
 	node_ref *elem_first = node->elems + first;
 	node_ref *elem_last  = node->elems + (node->hdr.cnt - 1);
@@ -94,14 +97,17 @@ void branch_shift_forward(branch_ptr node, uint16_t first, uint16_t diff) {
 
 void branch_shift_backward(branch_ptr node, uint16_t first, uint16_t diff) {
 	ASSERT_BRANCH(node);
+	if (first >= node->hdr.cnt) {
+		return;
+	}
 	
 	node_ref *elem_first = node->elems + first;
 	node_ref *elem_last  = node->elems + (node->hdr.cnt - 1);
 	
 	for (node_ref *elem = elem_first; elem <= elem_last; ++elem) {
-		node_ref *elem_src = elem + diff;
+		node_ref *elem_dst = elem - diff;
 		
-		*elem = *elem_src;
+		*elem_dst = *elem;
 	}
 }
 
