@@ -146,10 +146,10 @@ void leaf_shift_backward(leaf_ptr node, uint16_t first, uint16_t diff_elem,
 	memmove(data_begin + diff_data, data_begin, (data_end - data_begin));
 	
 	for (item_ref *elem = elem_first; elem <= elem_last; ++elem) {
-		item_ref *elem_src = elem + diff_elem;
+		item_ref *elem_dst = elem - diff_elem;
 		
-		*elem = *elem_src;
-		elem->off += diff_data;
+		*elem_dst = *elem;
+		elem_dst->off += diff_data;
 	}
 }
 
