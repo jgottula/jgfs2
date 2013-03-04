@@ -241,6 +241,7 @@ void leaf_split_post(leaf_ptr this, leaf_ptr new) {
 	}
 	
 	leaf_xfer(new, this, 0, half, this->hdr.cnt - half);
+	new->hdr.cnt = this->hdr.cnt - half;
 	
 	leaf_zero(this, half);
 	this->hdr.cnt = half;
