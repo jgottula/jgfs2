@@ -17,7 +17,7 @@ uint32_t ext_alloc(uint32_t len) {
 	
 	static uint32_t alloc_ptr = 100;
 	
-	TODO("remove dummy code");
+	//TODO("remove dummy code");
 	return alloc_ptr++;
 }
 
