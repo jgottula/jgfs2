@@ -134,6 +134,7 @@ uint32_t branch_free(const branch_ptr node);
 
 uint16_t branch_half(const branch_ptr node);
 
+uint32_t branch_search(const branch_ptr node, const key *key);
 node_ref *branch_search_addr(const branch_ptr node, uint32_t addr);
 
 void branch_zero(branch_ptr node, uint16_t first);

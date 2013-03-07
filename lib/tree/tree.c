@@ -184,35 +184,12 @@ static leaf_ptr tree_search_r(uint32_t root_addr, uint32_t node_addr,
 		return (leaf_ptr)node;
 	} else {
 		branch_ptr branch = (branch_ptr)node;
-		leaf_ptr   result = NULL;
 		
-		ASSERT_NONEMPTY(branch);
+		uint32_t child_addr = branch_search(branch, key);
+		leaf_ptr child = tree_search_r(root_addr, child_addr, key);
 		
-		/* need a binary search that gives the element with key <= the key we
-		 * are looking for, not == */
-		TODO("binary search");
-		
-		const node_ref *elem_first = branch->elems;
-		const node_ref *elem_last = branch->elems + (branch->hdr.cnt - 1);
-		for (const node_ref *elem = elem_last; elem >= elem_first; --elem) {
-			int8_t cmp = key_cmp(key, &elem->key);
-			if (cmp > 0) {
-				result = tree_search_r(root_addr, elem->addr, key);
-				goto done;
-			} else if (cmp == 0) {
-				errx("%s: child starts with key: root 0x%" PRIx32 " node 0x%"
-					PRIx32 " key %s",
-					__func__, root_addr, node_addr, key_str(key));
-			}
-		}
-		
-		/* if smaller than any other key, recurse through the first subnode */
-		result = tree_search_r(root_addr, elem_first->addr, key);
-		
-	done:
 		node_unmap(node);
-		
-		return result;
+		return child;
 	}
 }
 

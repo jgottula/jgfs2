@@ -121,20 +121,24 @@ const key *node_first_key(const node_ptr node) {
 }
 
 bool node_search(const node_ptr node, const key *key, uint16_t *out) {
+	/* circumvent unsigned wraparound if node->hdr.cnt == 0 */
+	if (node->hdr.cnt == 0) {
+		return false;
+	}
+	
 	uint16_t first = 0;
 	uint16_t last  = node->hdr.cnt - 1;
 	uint16_t middle;
 	
-	TODO("test this for 1-3 items with sought item in each position");
-	
+	/* goal: find key that == wanted key */
 	while (first <= last) {
 		middle = (first + last) / 2;
 		
-		int8_t cmp = key_cmp(key, node_key(node, middle));
+		int8_t cmp = key_cmp(node_key(node, middle), key);
 		
-		if (cmp > 0) {
+		if (cmp < 0) {
 			first = middle + 1;
-		} else if (cmp < 0) {
+		} else if (cmp > 0) {
 			last = middle - 1;
 		} else {
 			/* found */
@@ -152,7 +156,7 @@ uint16_t node_search_hypo(const node_ptr node, const key *key) {
 	 * possible index */
 	if (node->hdr.cnt == 0) {
 		return 0;
-	} else if (key_cmp(key, node_key(node, node->hdr.cnt - 1)) > 0) {
+	} else if (key_cmp(node_key(node, node->hdr.cnt - 1), key) < 0) {
 		return node->hdr.cnt;
 	}
 	
@@ -160,15 +164,16 @@ uint16_t node_search_hypo(const node_ptr node, const key *key) {
 	uint16_t last  = node->hdr.cnt - 1;
 	uint16_t middle;
 	
+	/* goal: find lowest key that is > wanted key */
 	while (first <= last) {
 		middle = CEIL(first + last, 2);
 		
-		int8_t cmp = key_cmp(key, node_key(node, middle));
+		int8_t cmp = key_cmp(node_key(node, middle), key);
 		
-		if (cmp > 0) {
+		if (cmp < 0) {
 			first = middle + 1;
-		} else if (cmp < 0) {
-			if (middle == 0 || key_cmp(key, node_key(node, middle - 1)) > 0) {
+		} else if (cmp > 0) {
+			if (middle == 0 || key_cmp(node_key(node, middle - 1), key) < 0) {
 				return middle;
 			} else {
 				last = middle - 1;

@@ -54,6 +54,43 @@ uint16_t branch_half(const branch_ptr node) {
 	return node->hdr.cnt / 2;
 }
 
+uint32_t branch_search(const branch_ptr node, const key *key) {
+	ASSERT_BRANCH(node);
+	ASSERT_NONEMPTY(node);
+	
+	/* if lower than all present keys, return first node_ref */
+	if (key_cmp(&node->elems[0].key, key) > 0) {
+		return node->elems[0].addr;
+	}
+	
+	uint16_t first = 0;
+	uint16_t last  = node->hdr.cnt - 1;
+	uint16_t middle;
+	
+	/* goal: find highest key that is <= wanted key */
+	while (first <= last) {
+		middle = CEIL(first + last, 2);
+		
+		int8_t cmp = key_cmp(&node->elems[middle].key, key);
+		
+		if (cmp < 0) {
+			if (middle == node->hdr.cnt - 1 ||
+				key_cmp(&node->elems[middle + 1].key, key) > 0) {
+				return node->elems[middle].addr;
+			} else {
+				first = middle + 1;
+			}
+		} else if (cmp > 0) {
+			last = middle - 1;
+		} else {
+			return node->elems[middle].addr;
+		}
+	}
+	
+	errx("%s: total failure: node 0x%" PRIx32 " key %s",
+		__func__, node->hdr.this, key_str(key));
+}
+
 node_ref *branch_search_addr(const branch_ptr node, uint32_t addr) {
 	ASSERT_BRANCH(node);
 	
