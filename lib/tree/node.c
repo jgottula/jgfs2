@@ -242,13 +242,15 @@ void node_split(uint32_t this_addr) {
 		
 		node_zero_data((node_ptr)parent);
 	} else {
-		/* we handle possible parent splits first so that the recursion will
-		 * go cleanly, without worry for partial changes down at this level */
+		/* we handle splits in a depth-first manner: we recurse to the parent,
+		 * if necessary, *before* we split this node */
 		parent = (branch_ptr)node_map(parent_addr);
 		if (branch_free(parent) < sizeof(node_ref)) {
-			/* remap the parent in case parent_addr was changed in the split */
 			node_unmap((node_ptr)parent);
 			node_split(parent_addr);
+			
+			/* remap the parent, in case it changed */
+			parent_addr = this->hdr.parent;
 			parent = (branch_ptr)node_map(parent_addr);
 		}
 	}
