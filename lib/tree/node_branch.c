@@ -254,6 +254,8 @@ void branch_split_post(branch_ptr this, branch_ptr new, bool was_root) {
 	}
 	
 	branch_xfer(new, this, 0, half, this->hdr.cnt - half);
+	new->hdr.cnt = this->hdr.cnt - half;
+	
 	branch_zero(this, half);
 	this->hdr.cnt = half;
 	
