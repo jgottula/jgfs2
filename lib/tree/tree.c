@@ -203,7 +203,8 @@ leaf_ptr tree_search(uint32_t root_addr, const key *key) {
 	return result;
 }
 
-bool tree_retrieve(uint32_t root_addr, const key *key, struct item_data *item) {
+bool tree_retrieve(uint32_t root_addr, const key *key, size_t max_len,
+	void *buf) {
 	ASSERT_ROOT(root_addr);
 	tree_lock(root_addr);
 	
@@ -213,10 +214,12 @@ bool tree_retrieve(uint32_t root_addr, const key *key, struct item_data *item) {
 	if (node_search((node_ptr)leaf, key, &idx)) {
 		item_ref *elem = leaf->elems + idx;
 		
-		item->len  = elem->len;
-		item->data = leaf_data_ptr(leaf, elem);
-		
-		result = true;
+		if (elem->len <= max_len) {
+			uint8_t *data_ptr = leaf_data_ptr(leaf, idx);
+			memcpy(buf, data_ptr, elem->len);
+			
+			result = true;
+		}
 	}
 	
 	node_unmap((node_ptr)leaf);
