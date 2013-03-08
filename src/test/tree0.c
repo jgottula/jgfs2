@@ -27,7 +27,7 @@ static bool test_check_nonfatal(void) {
 	return (result.type == RESULT_TYPE_OK);
 }
 
-void test_tree(void) {
+void test_tree0(void) {
 	fprintf(stderr, "%s\n", __func__);
 	
 	jgfs2_new("/dev/loop0p1",
@@ -48,31 +48,55 @@ void test_tree(void) {
 		0x00,
 		0x00000000,
 	};
-	char data[4096];
+	uint8_t data[4096];
 	
 	for (size_t i = 0; i < sizeof(data); ++i) {
-		data[i] = mrand48();
+		data[i] = (uint8_t)i;
 	}
 	
-	for (uint32_t i = 0; i < 100000; ++i) {
-		if (i % 1000 == 0) {
-			fprintf(stderr, "%" PRIu32 "\n", i);
-		}
-		
-		key.id = mrand48();
-		
-		uint32_t len = (uint32_t)mrand48() % 128;
+	for (uint32_t i = 0; i < 10000; ++i) {
+		key.id = ((i % 1000) * 10) + (i / 1000);
+		uint32_t len = i % 200;
 		
 		tree_insert(fs.sblk->s_addr_meta_tree, &key,
 			(struct item_data){ len, data });
+	}
+	
+	for (uint32_t i = 0; i < 10000; ++i) {
+		key.id = ((i % 1000) * 10) + (i / 1000);
+		uint32_t len = i % 200;
 		
-		/*if (!test_check_nonfatal()) {
-			fprintf(stderr, "%s: failure on #%" PRIu32 "\n", __func__, i);
+		leaf_ptr leaf = tree_search(fs.sblk->s_addr_meta_tree, &key);
+		uint16_t item_idx;
+		
+		if (!node_search((node_ptr)leaf, &key, &item_idx)) {
+			fprintf(stderr, "node_search fail at i = %" PRIu32 "\n", i);
 			abort();
-		}*/
+		}
+		
+		item_ref *item = leaf->elems + item_idx;
+		
+		if (item->len != len) {
+			fprintf(stderr, "len wrong: i = %" PRIu32 " is %" PRIu32
+				" should be %" PRIu32 "\n", i, item->len, len);
+			abort();
+		}
+		
+		uint8_t *item_data = leaf_data_ptr(leaf, item_idx);
+		
+		for (uint32_t j = 0; j < len; ++j) {
+			if (item_data[j] != (uint8_t)j) {
+				fprintf(stderr, "bad data: i = %" PRIu32 " j = %" PRIu32
+					" item_data[j] = %" PRIu8 "\n", i, j, item_data[j]);
+				abort();
+			}
+		}
+		
+		node_unmap((node_ptr)leaf);
 	}
 	
 	test_check();
+	//tree_dump(fs.sblk->s_addr_meta_tree);
 	tree_graph(fs.sblk->s_addr_meta_tree);
 	
 	jgfs2_done();

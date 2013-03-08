@@ -7,11 +7,12 @@
 
 #include <err.h>
 #include <stdlib.h>
+#include "rand.h"
 
 
 extern void test_mmap();
-extern void test_tree();
-
+extern void test_tree0();
+extern void test_tree1();
 
 int main(int argc, char **argv) {
 	warnx("performing unit tests");
@@ -20,5 +21,6 @@ int main(int argc, char **argv) {
 	srand48(0);
 	
 	//test_mmap();
-	test_tree();
+	//test_tree0();
+	test_tree1();
 }
