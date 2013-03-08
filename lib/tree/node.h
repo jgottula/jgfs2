@@ -167,7 +167,7 @@ uint32_t leaf_free(const leaf_ptr node);
 
 uint16_t leaf_half(const leaf_ptr node);
 
-void *leaf_data_ptr(const leaf_ptr node, const item_ref *item);
+void *leaf_data_ptr(const leaf_ptr node, uint16_t idx);
 
 void leaf_zero(leaf_ptr node, uint16_t first);
 void leaf_shift_forward(leaf_ptr node, uint16_t first, uint16_t diff_elem,

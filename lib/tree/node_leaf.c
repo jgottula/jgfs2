@@ -37,7 +37,8 @@ void leaf_dump(const leaf_ptr node) {
 			(elem - node->elems), key_str(&elem->key), elem->len);
 		
 		if (elem->len != 0) {
-			dump_mem(leaf_data_ptr(node, elem), elem->len);
+			uint16_t idx = (elem - node->elems);
+			dump_mem(leaf_data_ptr(node, idx), elem->len);
 		}
 	}
 }
@@ -86,10 +87,15 @@ uint16_t leaf_half(const leaf_ptr node) {
 	return node->hdr.cnt / 2;
 }
 
-void *leaf_data_ptr(const leaf_ptr node, const item_ref *item) {
+void *leaf_data_ptr(const leaf_ptr node, uint16_t idx) {
 	ASSERT_LEAF(node);
 	
-	return (uint8_t *)node + item->off;
+	if (idx >= node->hdr.cnt) {
+		errx("%s: idx >= cnt: node 0x%" PRIx32 " idx %" PRIu16 " cnt %" PRIu16,
+			__func__, node->hdr.this, idx, node->hdr.cnt);
+	}
+	
+	return (uint8_t *)node + node->elems[idx].off;
 }
 
 void leaf_zero(leaf_ptr node, uint16_t first) {
@@ -101,7 +107,7 @@ void leaf_zero(leaf_ptr node, uint16_t first) {
 	const item_ref *elem = node->elems + first;
 	
 	uint8_t *zero_begin = (uint8_t *)elem;
-	uint8_t *zero_end   = leaf_data_ptr(node, elem) + elem->len;
+	uint8_t *zero_end   = leaf_data_ptr(node, first) + elem->len;
 	
 	memset(zero_begin, 0, (zero_end - zero_begin));
 }
@@ -117,8 +123,8 @@ void leaf_shift_forward(leaf_ptr node, uint16_t first, uint16_t diff_elem,
 	item_ref *elem_first = node->elems + first;
 	item_ref *elem_last  = node->elems + (node->hdr.cnt - 1);
 	
-	uint8_t *data_begin = leaf_data_ptr(node, elem_last);
-	uint8_t *data_end   = leaf_data_ptr(node, elem_first) + elem_first->len;
+	uint8_t *data_begin = leaf_data_ptr(node, node->hdr.cnt - 1);
+	uint8_t *data_end   = leaf_data_ptr(node, first) + elem_first->len;
 	
 	memmove(data_begin - diff_data, data_begin, (data_end - data_begin));
 	
@@ -140,8 +146,8 @@ void leaf_shift_backward(leaf_ptr node, uint16_t first, uint16_t diff_elem,
 	item_ref *elem_first = node->elems + first;
 	item_ref *elem_last  = node->elems + (node->hdr.cnt - 1);
 	
-	uint8_t *data_begin = leaf_data_ptr(node, elem_last);
-	uint8_t *data_end   = leaf_data_ptr(node, elem_first) + elem_first->len;
+	uint8_t *data_begin = leaf_data_ptr(node, node->hdr.cnt - 1);
+	uint8_t *data_end   = leaf_data_ptr(node, first) + elem_first->len;
 	
 	memmove(data_begin + diff_data, data_begin, (data_end - data_begin));
 	
@@ -164,7 +170,7 @@ void leaf_xfer(leaf_ptr dst, const leaf_ptr src, uint16_t dst_idx,
 		leaf_insert_naive(dst, dst_idx + i, &elem_src->key,
 			(struct item_data){
 				.len  = elem_src->len,
-				.data = leaf_data_ptr(src, elem_src),
+				.data = leaf_data_ptr(src, src_idx + i),
 			});
 	}
 }
