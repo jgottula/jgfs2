@@ -123,10 +123,12 @@ void leaf_shift_forward(leaf_ptr node, uint16_t first, uint16_t diff_elem,
 	item_ref *elem_first = node->elems + first;
 	item_ref *elem_last  = node->elems + (node->hdr.cnt - 1);
 	
-	uint8_t *data_begin = leaf_data_ptr(node, node->hdr.cnt - 1);
-	uint8_t *data_end   = leaf_data_ptr(node, first) + elem_first->len;
-	
-	memmove(data_begin - diff_data, data_begin, (data_end - data_begin));
+	if (diff_data != 0) {
+		uint8_t *data_begin = leaf_data_ptr(node, node->hdr.cnt - 1);
+		uint8_t *data_end   = leaf_data_ptr(node, first) + elem_first->len;
+		
+		memmove(data_begin - diff_data, data_begin, (data_end - data_begin));
+	}
 	
 	for (item_ref *elem = elem_last; elem >= elem_first; --elem) {
 		item_ref *elem_dst = elem + diff_elem;
@@ -146,10 +148,12 @@ void leaf_shift_backward(leaf_ptr node, uint16_t first, uint16_t diff_elem,
 	item_ref *elem_first = node->elems + first;
 	item_ref *elem_last  = node->elems + (node->hdr.cnt - 1);
 	
-	uint8_t *data_begin = leaf_data_ptr(node, node->hdr.cnt - 1);
-	uint8_t *data_end   = leaf_data_ptr(node, first) + elem_first->len;
-	
-	memmove(data_begin + diff_data, data_begin, (data_end - data_begin));
+	if (diff_data != 0) {
+		uint8_t *data_begin = leaf_data_ptr(node, node->hdr.cnt - 1);
+		uint8_t *data_end   = leaf_data_ptr(node, first) + elem_first->len;
+		
+		memmove(data_begin + diff_data, data_begin, (data_end - data_begin));
+	}
 	
 	for (item_ref *elem = elem_first; elem <= elem_last; ++elem) {
 		item_ref *elem_dst = elem - diff_elem;
