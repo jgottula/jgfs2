@@ -40,11 +40,6 @@ TEST_SRC=(src/test/*.c)
 TEST_OBJS=${TEST_SRC[@]//.c/.o}
 TEST_LIBS=()
 
-TREE_OUT="bin/tree.jgfs2"
-TREE_SRC=(src/tree/*.cxx)
-TREE_OBJS=${TREE_SRC[@]//.cxx/.o}
-TREE_LIBS=(-lQtCore -lQtGui)
-
 VIEW_OUT="bin/view.jgfs2"
 VIEW_SRC=(src/view/*.c)
 VIEW_OBJS=${VIEW_SRC[@]//.c/.o}
@@ -121,15 +116,13 @@ function target_lib {
 
 case "$TARGET" in
 all)
-	redo lib fuse test tree view mkfs fsck defrag fsctl attr ;;
+	redo lib fuse test view mkfs fsck defrag fsctl attr ;;
 lib)
 	redo-ifchange $LIB_OUT ;;
 fuse)
 	redo-ifchange $FUSE_OUT ;;
 test)
 	redo-ifchange $TEST_OUT ;;
-tree)
-	redo-ifchange $TREE_OUT ;;
 view)
 	redo-ifchange $VIEW_OUT ;;
 mkfs)
@@ -156,11 +149,6 @@ $TEST_OUT)
 	LIBS="${TEST_LIBS[@]} ${LIB_LIBS[@]}"
 	OBJS="${TEST_OBJS[@]} $LIB_OUT"
 	target_c_link
-	;;
-$TREE_OUT)
-	LIBS="${TREE_LIBS[@]} ${LIB_LIBS[@]}"
-	OBJS="${TREE_OBJS[@]} $LIB_OUT"
-	target_cxx_link
 	;;
 $VIEW_OUT)
 	LIBS="${VIEW_LIBS[@]} ${LIB_LIBS[@]}"
