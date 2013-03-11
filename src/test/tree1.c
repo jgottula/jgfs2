@@ -32,7 +32,7 @@ static bool test_check_nonfatal(void) {
 void test_tree1(void) {
 	fprintf(stderr, "%s\n", __func__);
 	
-	jgfs2_new("/dev/loop0p1",
+	jgfs2_new("/dev/loop0",
 		&(struct jgfs2_mount_options){
 			.read_only = false,
 			.debug_map = false,
@@ -56,7 +56,7 @@ void test_tree1(void) {
 		data[i] = (uint8_t)i;
 	}
 	
-#define MAX (1 << 26)
+#define MAX (1 << 20)
 	
 	srand(time(NULL));
 	long seed = rand();
@@ -66,7 +66,11 @@ void test_tree1(void) {
 	
 	fprintf(stderr, "permuting key id array\n");
 	uint32_t *keys = malloc(sizeof(uint32_t) * MAX);
-	rand_permute_init(keys, MAX);
+	rand32_permute_init(keys, MAX);
+	
+	fprintf(stderr, "generating data len array\n");
+	uint32_t *lens = malloc(sizeof(uint32_t) * MAX);
+	rand32_fill_range(lens, MAX, 400);
 	
 	fprintf(stderr, "total %" PRIu32 "\n", MAX);
 	
@@ -76,23 +80,7 @@ void test_tree1(void) {
 		}
 		
 		key.id = keys[i];
-		
-		uint32_t len = 0;
-		
-		/*long r = mrand48() % 100;
-		if (r < 5) {
-			len = 1024 + (mrand48() % 1024);
-		} else if (r < 10) {
-			len = 768 + (mrand48() % 768);
-		} else if (r < 15) {
-			len = 512 + (mrand48() % 512);
-		} else if (r < 20) {
-			len = 128 + (mrand48() % 128);
-		} else if (r < 80) {
-			len = 16 + (mrand48() % 64);
-		} else {
-			len = 0;
-		}*/
+		uint32_t len = lens[i];
 		
 		tree_insert(fs.sblk->s_addr_meta_tree, &key,
 			(struct item_data){ len, data });
@@ -110,6 +98,7 @@ void test_tree1(void) {
 		}
 		
 		key.id = i;
+		uint32_t len = lens[i];
 		
 		uint16_t item_idx;
 		
@@ -126,6 +115,13 @@ void test_tree1(void) {
 		}
 		
 		item_ref *item = node->elems + item_idx;
+		
+		if (item->len != len) {
+			fprintf(stderr, "wrong len: i = %" PRIu32 " item->len = %" PRIu32
+				" len = %" PRIu32 "\n", i, item->len, len);
+			abort();
+		}
+		
 		uint8_t *item_data = leaf_data_ptr(node, item_idx);
 		
 		for (uint32_t j = 0; j < item->len; ++j) {
