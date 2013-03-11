@@ -214,6 +214,9 @@ bool leaf_insert(leaf_ptr node, const key *key, struct item_data item) {
 	if (sizeof(item_ref) + item.len > node_size_usable()) {
 		errx("%s: will never fit: node 0x%" PRIx32 " %s len %" PRIu32,
 			__func__, node->hdr.this, key_str(key), item.len);
+	} else if (item.len * 10 >= node_size_usable()) {
+		warnx("%s: obese item: node 0x%" PRIx32 " %s len %" PRIu32,
+			__func__, node->hdr.this, key_str(key), item.len);
 	}
 	
 	/* the caller needs to make space if necessary */
