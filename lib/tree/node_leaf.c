@@ -72,12 +72,12 @@ uint16_t leaf_half(const leaf_ptr node) {
 	
 	/* find out how many items take up half the node space, and tell the caller
 	 * to remove all the items above this halfway point */
-	for (uint16_t i = 0; i < node->hdr.cnt - 1; ++i) {
+	for (uint16_t i = 0; i < node->hdr.cnt; ++i) {
 		used_incr += sizeof(item_ref);
-		used_incr += node->elems[i].len;
+		used_incr += node->elems[node->hdr.cnt - (i + 1)].len;
 		
 		if (used_incr >= used_half) {
-			return i + 1;
+			return i;
 		}
 	}
 	
