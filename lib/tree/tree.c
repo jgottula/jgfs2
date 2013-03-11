@@ -56,9 +56,7 @@ void tree_init(uint32_t root_addr) {
 
 void tree_dump(uint32_t root_addr) {
 	ASSERT_ROOT(root_addr);
-	tree_lock(root_addr);
 	node_dump(root_addr, true);
-	tree_unlock(root_addr);
 }
 
 static void tree_graph_r(uint32_t node_addr, uint32_t level,
@@ -156,7 +154,6 @@ static void tree_graph_r(uint32_t node_addr, uint32_t level,
 
 void tree_graph(uint32_t root_addr) {
 	ASSERT_ROOT(root_addr);
-	tree_lock(root_addr);
 	
 	warnx("%s: root 0x%" PRIx32, __func__, root_addr);
 	
@@ -169,8 +166,12 @@ void tree_graph(uint32_t root_addr) {
 	warnx("%s: node_qty %" PRIu32 " item_qty %" PRIu64 " max_level %" PRIu32
 		" avg_fill %.1f%%",
 		__func__, node_qty, item_qty, max_level, avg_fill * 100.);
+}
+
+void tree_stat(uint32_t root_addr) {
+	ASSERT_ROOT(root_addr);
 	
-	tree_unlock(root_addr);
+	TODO("implement this");
 }
 
 static leaf_ptr tree_search_r(uint32_t root_addr, uint32_t node_addr,

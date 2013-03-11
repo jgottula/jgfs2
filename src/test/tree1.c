@@ -68,9 +68,11 @@ void test_tree1(void) {
 	uint32_t *keys = malloc(sizeof(uint32_t) * MAX);
 	rand_permute_init(keys, MAX);
 	
+	fprintf(stderr, "total %" PRIu32 "\n", MAX);
+	
 	for (uint32_t i = 0; i < MAX; ++i) {
-		if (i % 10000 == 0) {
-			fprintf(stderr, "insert %" PRIu32 "\n", i);
+		if (i % 100 == 0 || i == MAX - 1) {
+			fprintf(stderr, "\rinsert %" PRIu32, i + 1);
 		}
 		
 		key.id = keys[i];
@@ -96,14 +98,15 @@ void test_tree1(void) {
 			(struct item_data){ len, data });
 		//test_check();
 	}
+	fputc('\n', stderr);
 	
 	test_check();
 	
 	key.id = 0;
 	leaf_ptr node = tree_search(fs.sblk->s_addr_meta_tree, &key);
 	for (uint32_t i = 0; i < MAX; ++i) {
-		if (i % 10000 == 0) {
-			fprintf(stderr, "check %" PRIu32 "\n", i);
+		if (i % 100 == 0 || i == MAX - 1) {
+			fprintf(stderr, "\rcheck %" PRIu32, i + 1);
 		}
 		
 		key.id = i;
@@ -134,11 +137,12 @@ void test_tree1(void) {
 		}
 	}
 	node_unmap((node_ptr)node);
+	fputc('\n', stderr);
 	
 #if 0
 	for (uint32_t i = 0; i < MAX; ++i) {
-		if (i % 10000 == 0) {
-			fprintf(stderr, "remove %" PRIu32 "\n", i);
+		if (i % 100 == 0 || i == MAX - 1) {
+			fprintf(stderr, "\rremove %" PRIu32, i + 1);
 		}
 		
 		key.id = keys[i];
@@ -150,6 +154,7 @@ void test_tree1(void) {
 		
 		test_check();
 	}
+	fputc('\n', stderr);
 #endif
 	
 	tree_graph(fs.sblk->s_addr_meta_tree);
