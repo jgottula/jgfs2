@@ -46,7 +46,7 @@ int jg_statfs(const char *path, struct statvfs *statv) {
 	statv->f_bfree  = (blk_total - blk_used);
 	statv->f_bavail = (blk_total - blk_used);
 	
-	statv->f_namemax = JGFS2_NAME_LIMIT;
+	statv->f_namemax = JGFS2_LIMIT_NAME;
 	
 	return 0;
 }
