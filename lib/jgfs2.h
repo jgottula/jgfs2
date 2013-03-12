@@ -35,10 +35,8 @@ extern "C" {
 #define JGFS2_SBLK_SECT     1
 #define JGFS2_BOOT_SECT     2
 
-#define JGFS2_LABEL_LIMIT   63
-#define JGFS2_NAME_LIMIT    255
-
-#define JGFS2_INODE_EXTENTS 9
+#define JGFS2_LIMIT_LABEL   63
+#define JGFS2_LIMIT_NAME    255
 
 
 enum jgfs2_mode {
@@ -93,7 +91,7 @@ struct __attribute__((__packed__)) jgfs2_super_block {
 	
 	uint8_t  s_uuid[16];       // fs uuid
 	
-	char     s_label[JGFS2_LABEL_LIMIT + 1]; // null-terminated volume label
+	char     s_label[JGFS2_LIMIT_LABEL + 1]; // null-terminated volume label
 	
 	uint32_t s_addr_ext_tree;  // address of extent tree
 	uint32_t s_addr_meta_tree; // address of metadata tree
@@ -104,7 +102,7 @@ struct __attribute__((__packed__)) jgfs2_super_block {
 struct jgfs2_mkfs_param {
 	uint8_t  uuid[16];   // fs uuid; fill with zeroes for a random uuid
 	
-	char     label[JGFS2_LABEL_LIMIT + 1]; // null-terminated volume label
+	char     label[JGFS2_LIMIT_LABEL + 1]; // null-terminated volume label
 	
 	uint32_t total_sect; // total number of sectors; zero: fill device
 	uint16_t boot_sect;  // number of boot sectors
