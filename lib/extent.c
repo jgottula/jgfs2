@@ -9,8 +9,6 @@
 #include "debug.h"
 
 
-/* NOTE: allocations CANNOT result in insertions to the ext tree because tree
- * insertions themselves rely on successful allocation */
 uint32_t ext_alloc(uint32_t len) {
 	/* traverse the ext tree horizontally and find a free extent that is
 	 * large enough */
@@ -25,24 +23,31 @@ uint32_t ext_alloc(uint32_t len) {
  * zeroed extents (holes) for the library user (or will we just use the
  * read(2)/write(2) convention of filling a user buffer?) */
 
-
-/* POSSIBLE fix for tree->alloc->tree feedback loop:
- * FIRST, look at btrfs and figure out if file extents are merged in the ext
- * allocation tree and if free extents are kept as items or what so we know what
- * we're dealing with
+/* FIX for the tree->aloc->tree feedback loop:
  * 
- * the stuff listed below won't quite work because the tree will be locked for
- * read access too; so, it would be best to cache the largest free extents in
- * a linked list in memory and make temporary allocations from those, and then
- * commit the modifications to memory when the ext tree is unlocked
- *
- * THIS IS NOT QUITE RIGHT YET:
- * - implement tree locking
- * - keep a linked list of temporary modifications
- * - if the ext tree is locked when we try to allocate, commit modifications to
- *   the linked list instead and consult the linked list
- * - if the ext tree is not locked and the linked list hasn't been flushed,
- *   explode in the user's face
- * - add a function that node_split can call when its original (first) recursion
- *   finishes that will flush the linked list to the ext tree
+ * add new param to ext_alloc, ext_dealloc called 'in_mem', used by node_split,
+ * that is set when node_split is operating on the ext tree
+ * 
+ * when in_mem, keep track of alloc'd and dealloc'd regions in a list/tree
+ * when in_mem, consult list/tree in addition to the ext tree itself
+ * PROBLEM: what if the ext tree is in a state of temporary brokenness?
+ * 
+ * when NOT in_mem, complain exceedingly loudly if the list/tree is not empty
+ * 
+ * new function, ext_flush, that "flushes" the list by calling ext_(de)alloc
+ * (note that those functions may, in turn, alter the list if they have issues)
+ * 
+ * update node_split to use in_mem
+ * update node_split to call ext_flush at the END of its TOP-LEVEL recursion
+ */
+
+/* IDEA: two ext trees that track only free space
+ * 
+ * one is sorted by offset
+ * the other is sorted by length
+ * 
+ * use the one sorted by length for allocations (find just the right size)
+ * use the one sorted by offset for deallocations (find the addr we need)
+ * 
+ * when one tree is modified, update the other
  */
