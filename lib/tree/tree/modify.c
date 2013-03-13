@@ -11,13 +11,14 @@
 
 void tree_insert(uint32_t root_addr, const key *key, struct item_data item) {
 	ASSERT_ROOT(root_addr);
-	tree_lock(root_addr);
 	
 	bool done = false;
 	uint8_t retry = 0;
 	do {
 		leaf_ptr leaf = tree_search(root_addr, key);
 		uint32_t leaf_addr = leaf->hdr.this;
+		
+		tree_lock(root_addr);
 		
 		if (leaf_insert(leaf, key, item)) {
 			node_unmap((node_ptr)leaf);
@@ -33,9 +34,9 @@ void tree_insert(uint32_t root_addr, const key *key, struct item_data item) {
 				PRIx32 " %s len %" PRIu32,
 				__func__, root_addr, leaf_addr, key_str(key), item.len);
 		}
+		
+		tree_unlock(root_addr);
 	} while (!done);
-	
-	tree_unlock(root_addr);
 }
 
 bool tree_remove(uint32_t root_addr, const key *key) {

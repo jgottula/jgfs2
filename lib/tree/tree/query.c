@@ -9,34 +9,31 @@
 #include "../../debug.h"
 
 
-static leaf_ptr tree_search_r(uint32_t root_addr, uint32_t node_addr,
+static node_ptr tree_search_r(uint32_t root_addr, uint32_t node_addr,
 	const key *key) {
 	node_ptr node = node_map(node_addr, true);
 	
 	/* remove this later for performance */
-	#warning
-	//check_node(node_addr, false);
+	check_node(node_addr, false);
 	
 	if (node->hdr.leaf) {
-		return (leaf_ptr)node;
+		return node;
 	} else {
-		branch_ptr branch = (branch_ptr)node;
-		
-		uint32_t child_addr = branch_search(branch, key);
-		leaf_ptr child = tree_search_r(root_addr, child_addr, key);
+		uint32_t child_addr = branch_search(node, key);
+		node_ptr child = tree_search_r(root_addr, child_addr, key);
 		
 		node_unmap(node);
 		return child;
 	}
 }
 
-leaf_ptr tree_search(uint32_t root_addr, const key *key) {
+node_ptr tree_search(uint32_t root_addr, const key *key) {
 	ASSERT_ROOT(root_addr);
+	tree_lock(root_addr);
 	
-	//tree_lock(root_addr);
 	leaf_ptr result = tree_search_r(root_addr, root_addr, key);
-	//tree_unlock(root_addr);
 	
+	tree_unlock(root_addr);
 	return result;
 }
 
