@@ -30,7 +30,7 @@ static struct dev dev_null = {
 };
 
 
-void *dev_map_sect(uint32_t sect_num, uint32_t sect_cnt) {
+void *dev_map(uint32_t sect_num, uint32_t sect_cnt, bool writable) {
 	if (sect_num + sect_cnt > dev.size_sect) {
 		errx("%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
 			__func__, sect_num, sect_num + sect_cnt, dev.size_sect);
@@ -46,7 +46,16 @@ void *dev_map_sect(uint32_t sect_num, uint32_t sect_cnt) {
 		byte_off /= dev.page_size;
 	}
 	
-	int prot = PROT_READ | (dev.read_only ? 0 : PROT_WRITE);
+	int prot = PROT_READ;
+	if (writable) {
+		if (!dev.read_only) {
+			prot |= PROT_WRITE;
+		} else {
+			errx("%s: wanted write on ro dev: sect [%" PRIu32 ", %" PRIu32 ")",
+				__func__, sect_num, sect_num + sect_cnt);
+		}
+	}
+	
 	void *addr = mmap(NULL, byte_len, prot, MAP_SHARED, dev.fd, byte_off);
 	
 	if (addr == MAP_FAILED) {
@@ -63,7 +72,7 @@ void *dev_map_sect(uint32_t sect_num, uint32_t sect_cnt) {
 	return (addr + adjust);
 }
 
-void dev_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt) {
+void dev_unmap(void *addr, uint32_t sect_num, uint32_t sect_cnt) {
 	if (sect_num + sect_cnt > dev.size_sect) {
 		errx("%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
 			__func__, sect_num, sect_num + sect_cnt, dev.size_sect);
@@ -81,12 +90,6 @@ void dev_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt) {
 		addr -= adjust;
 	}
 	
-	/* explicitly call msync(2), since this may not be implied by munmap(2) */
-	if (msync(addr, byte_len, MS_SYNC) < 0) {
-		err("%s: msync failed: addr %p, sect [%" PRIu32 ", %" PRIu32 ")",
-			__func__, addr, sect_num, sect_num + sect_cnt);
-	}
-	
 	if (munmap(addr, byte_len) < 0) {
 		err("%s: munmap failed: addr %p, sect [%" PRIu32 ", %" PRIu32 ")",
 			__func__, addr, sect_num, sect_num + sect_cnt);
@@ -99,15 +102,34 @@ void dev_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt) {
 	}
 }
 
-void dev_fsync(void) {
-	if (fsync(dev.fd) < 0) {
-		warn("fsync failed");
+void dev_msync(void *addr, uint32_t sect_num, uint32_t sect_cnt, bool async) {
+	if (sect_num + sect_cnt > dev.size_sect) {
+		errx("%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
+			__func__, sect_num, sect_num + sect_cnt, dev.size_sect);
+	}
+	
+	uint64_t byte_off = SECT_TO_BYTE(sect_num);
+	uint64_t byte_len = SECT_TO_BYTE(sect_cnt);
+	
+	/* if not page-aligned, make it so */
+	uint32_t adjust = (byte_off % dev.page_size);
+	if (adjust != 0) {
+		byte_len += adjust;
+		byte_off /= dev.page_size;
+		
+		addr -= adjust;
+	}
+	
+	int flags = (async ? MS_ASYNC : MS_SYNC);
+	if (msync(addr, byte_len, flags)) {
+		err("%s: msync failed: sect [%" PRIu32 ", %" PRIu32 ")",
+			__func__, sect_num, sect_num + sect_cnt);
 	}
 }
 
-void dev_msync(void *addr, size_t length) {
-	if (msync(addr, length, MS_SYNC) < 0) {
-		warn("msync failed");
+void dev_fsync(void) {
+	if (fsync(dev.fd) < 0) {
+		warn("fsync failed");
 	}
 }
 

@@ -31,11 +31,11 @@ struct dev {
 extern struct dev dev;
 
 
-void *dev_map_sect(uint32_t sect_num, uint32_t sect_cnt);
-void dev_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt);
+void *dev_map(uint32_t sect_num, uint32_t sect_cnt, bool writable);
+void dev_unmap(void *addr, uint32_t sect_num, uint32_t sect_cnt);
+void dev_msync(void *addr, uint32_t sect_num, uint32_t sect_cnt, bool async);
 
 void dev_fsync(void);
-void dev_msync(void *addr, size_t length);
 
 void dev_open(const char *dev_path, bool read_only, bool debug_map);
 void dev_close(void);
