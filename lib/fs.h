@@ -50,10 +50,14 @@ struct fs {
 extern struct fs fs;
 
 
-void *fs_map_sect(uint32_t sect_num, uint32_t sect_cnt);
+void *fs_map_sect(uint32_t sect_num, uint32_t sect_cnt, bool writable);
 void fs_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt);
-void *fs_map_blk(uint32_t blk_num, uint32_t blk_cnt);
+void fs_msync_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt,
+	bool async);
+
+void *fs_map_blk(uint32_t blk_num, uint32_t blk_cnt, bool writable);
 void fs_unmap_blk(void *addr, uint32_t blk_num, uint32_t blk_cnt);
+void fs_msync_blk(void *addr, uint32_t blk_num, uint32_t blk_cnt, bool async);
 
 bool fs_sblk_check(const struct jgfs2_super_block *sblk);
 

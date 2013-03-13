@@ -36,13 +36,13 @@ static struct fs fs_null = {
 };
 
 
-void *fs_map_sect(uint32_t sect_num, uint32_t sect_cnt) {
+void *fs_map_sect(uint32_t sect_num, uint32_t sect_cnt, bool writable) {
 	if (sect_num + sect_cnt > fs.sblk->s_total_sect) {
 		errx("%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
 			__func__, sect_num, sect_num + sect_cnt, fs.sblk->s_total_sect);
 	}
 	
-	return dev_map_sect(sect_num, sect_cnt);
+	return dev_map(sect_num, sect_cnt, writable);
 }
 
 void fs_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt) {
@@ -51,17 +51,29 @@ void fs_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt) {
 			__func__, sect_num, sect_num + sect_cnt, fs.sblk->s_total_sect);
 	}
 	
-	dev_unmap_sect(addr, sect_num, sect_cnt);
+	dev_unmap(addr, sect_num, sect_cnt);
 }
 
-void *fs_map_blk(uint32_t blk_num, uint32_t blk_cnt) {
+void fs_msync_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt,
+	bool async) {
+	if (sect_num + sect_cnt > fs.sblk->s_total_sect) {
+		errx("%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
+			__func__, sect_num, sect_num + sect_cnt, fs.sblk->s_total_sect);
+	}
+	
+	dev_msync(addr, sect_num, sect_cnt, async);
+}
+
+void *fs_map_blk(uint32_t blk_num, uint32_t blk_cnt, bool writable) {
 	if (blk_num + blk_cnt > fs.size_blk) {
 		errx("%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
 			__func__, blk_num, blk_num + blk_cnt, fs.size_blk);
 	}
 	
-	return dev_map_sect(blk_num * fs.sblk->s_blk_size,
-		blk_cnt * fs.sblk->s_blk_size);
+	uint32_t sect_num = blk_num * fs.sblk->s_blk_size;
+	uint32_t sect_cnt = blk_cnt * fs.sblk->s_blk_size;
+	
+	return dev_map(sect_num, sect_cnt, writable);
 }
 
 void fs_unmap_blk(void *addr, uint32_t blk_num, uint32_t blk_cnt) {
@@ -70,8 +82,22 @@ void fs_unmap_blk(void *addr, uint32_t blk_num, uint32_t blk_cnt) {
 			__func__, blk_num, blk_num + blk_cnt, fs.size_blk);
 	}
 	
-	dev_unmap_sect(addr, blk_num * fs.sblk->s_blk_size,
-		blk_cnt * fs.sblk->s_blk_size);
+	uint32_t sect_num = blk_num * fs.sblk->s_blk_size;
+	uint32_t sect_cnt = blk_cnt * fs.sblk->s_blk_size;
+	
+	dev_unmap(addr, sect_num, sect_cnt);
+}
+
+void fs_msync_blk(void *addr, uint32_t blk_num, uint32_t blk_cnt, bool async) {
+	if (blk_num + blk_cnt > fs.size_blk) {
+		errx("%s: bounds violation: [%" PRIu32 ", %" PRIu32 ") > %" PRIu32,
+			__func__, blk_num, blk_num + blk_cnt, fs.size_blk);
+	}
+	
+	uint32_t sect_num = blk_num * fs.sblk->s_blk_size;
+	uint32_t sect_cnt = blk_cnt * fs.sblk->s_blk_size;
+	
+	dev_msync(addr, sect_num, sect_cnt, async);
 }
 
 bool fs_sblk_check(const struct jgfs2_super_block *sblk) {
@@ -106,8 +132,8 @@ void fs_init(const char *dev_path,
 	
 	TODO("device size checks");
 	
-	fs.vbr  = dev_map_sect(JGFS2_VBR_SECT, 1);
-	fs.sblk = dev_map_sect(JGFS2_SBLK_SECT, 1);
+	fs.vbr  = dev_map(JGFS2_VBR_SECT, 1, true);
+	fs.sblk = dev_map(JGFS2_SBLK_SECT, 1, true);
 	
 	if (new_sblk != NULL) {
 		TODO("write backup super blocks with new_sblk here?");
@@ -129,7 +155,7 @@ void fs_init(const char *dev_path,
 		fs.sblk->s_blk_size);
 	fs.data_blk_cnt   = fs.size_blk - fs.data_blk_first;
 	
-	fs.boot = fs_map_sect(JGFS2_BOOT_SECT, fs.sblk->s_boot_sect);
+	fs.boot = fs_map_sect(JGFS2_BOOT_SECT, fs.sblk->s_boot_sect, true);
 	
 	if (new_sblk != NULL) {
 		fs_new_post();
@@ -151,8 +177,8 @@ void fs_done(void) {
 	if (fs.init) {
 		fs_unmap_sect(fs.boot, JGFS2_BOOT_SECT, fs.sblk->s_boot_sect);
 		
-		dev_unmap_sect(fs.vbr, JGFS2_VBR_SECT, 1);
-		dev_unmap_sect(fs.sblk, JGFS2_SBLK_SECT, 1);
+		dev_unmap(fs.vbr, JGFS2_VBR_SECT, 1);
+		dev_unmap(fs.sblk, JGFS2_SBLK_SECT, 1);
 		
 		dev_close();
 		
