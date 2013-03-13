@@ -53,7 +53,11 @@ static noreturn void err(const char *fmt, ...) {
 	
 	fprintf(stderr, ": %s\n", strerror(errno));
 	
+#ifdef DEBUG_FATAL
 	abort();
+#else
+	exit(1);
+#endif
 }
 
 static noreturn void errx(const char *fmt, ...) {
@@ -66,7 +70,11 @@ static noreturn void errx(const char *fmt, ...) {
 	
 	fputc('\n', stderr);
 	
+#ifdef DEBUG_FATAL
 	abort();
+#else
+	exit(1);
+#endif
 }
 
 static void warn(const char *fmt, ...) {
