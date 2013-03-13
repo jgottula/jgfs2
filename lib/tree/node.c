@@ -25,7 +25,9 @@ node_ptr node_map(uint32_t node_addr, bool writable) {
 void node_unmap(const node_ptr node) {
 	const struct node_hdr *hdr = (const struct node_hdr *)node;
 	
+	/* msync asynchronously so we don't hurt performance too badly */
 	fs_msync_blk(node, hdr->this, node_size_blk(), true);
+	
 	fs_unmap_blk(node, hdr->this, node_size_blk());
 }
 
