@@ -9,6 +9,12 @@
 #include "debug.h"
 
 
+/* TODO: need a higher-level function that will return a number of extents that
+ * add up to the requested length if a single extent can't be found;
+ * we can use the fact that we have access to the ext tree to allocate the
+ * largest extents that we know about so files have the fewest possible frags;
+ * use this when allocating file data extents */
+
 uint32_t ext_alloc(uint32_t len) {
 	/* traverse the ext tree horizontally and find a free extent that is
 	 * large enough */
