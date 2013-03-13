@@ -5,8 +5,8 @@
  */
 
 
-#include "node.h"
-#include "../debug.h"
+#include "../node.h"
+#include "../../debug.h"
 
 
 branch_ptr branch_init(uint32_t node_addr, uint32_t parent) {

@@ -111,10 +111,23 @@ struct check_result {
 };
 
 
-struct check_result check_tree(uint32_t root_addr);
-struct check_result check_node(uint32_t node_addr, bool recurse);
-struct check_result check_item(const key *key, struct item_data item);
+/* common code */
 void check_print(struct check_result result, bool fatal);
+
+/* tree checking */
+struct check_result check_tree(uint32_t root_addr);
+
+/* node checking */
+struct check_result check_node(uint32_t node_addr, bool recurse);
+
+/* branch checking */
+struct check_result check_branch(branch_ptr node);
+
+/* leaf checking */
+struct check_result check_leaf(leaf_ptr node);
+
+/* item checking */
+struct check_result check_item(const key *key, struct item_data item);
 
 
 #endif

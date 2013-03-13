@@ -15,10 +15,6 @@
 #include "item.h"
 
 
-/* merge two nodes if they combine to make a node that is less than 80% full */
-#define NODE_MERGE_THRESHOLD \
-	((node_size_usable() * 8) / 10)
-
 #define ASSERT_ROOT(_node_addr) \
 	if (!node_is_root(_node_addr)) { \
 		errx("%s: not root: node 0x%" PRIx32, \

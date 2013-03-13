@@ -5,9 +5,9 @@
  */
 
 
-#include "node.h"
-#include "../debug.h"
-#include "../extent.h"
+#include "../node.h"
+#include "../../debug.h"
+#include "../../extent.h"
 
 
 uint32_t node_alloc(void) {
