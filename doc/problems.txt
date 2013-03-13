@@ -1,0 +1,35 @@
+jgfs2
+problems
+
+
+variable length btree items:
+- breaks the normal btree guarantees about node space usage
+  - see Edward Shishkin's comments wrt Btrfs for details
+- current split algorithm is hopelessly broken
+  - tree_insert doesn't try to split more than once
+  - tree_insert can't communicate the amount of free space wanted (and the key)
+    to node_split, which chould make use of such information
+  - node_split tries to cut the *currently used* space in half; see prev point
+- partial alleviation: don't use really big items
+  - we won't store data inline like btrfs does
+  - we must use DIR_ITEM items for name lookups (>255 bytes at max)
+- bad performance: store (key, offset to data file)
+  - pro: fixed size items
+  - con: bad locality (where is the 'data file' gonna get put?)
+  - con: ugly ugly ugly
+- total fix: use s(b)trees (modification of B+ tree)
+  - need to take a closer look at p and q constraints
+
+free space tracking:
+- ext tree has issues
+  - when the ext tree is modified, it may need to alloc/dealloc an extent
+  - therefore we have recursive situations that get very nasty, very quickly
+- fs bitmap would work
+  - makes the fs 'messier'
+  - finding free extent of required size is slow
+
+fs corruption:
+- writing trees atomically requires COW, which is too complicated to justify
+- tree 'commits' will significantly decrease the likelihood of tree corruption
+- core fs functionality needs to choose order of operations carefully to
+  minimize the impact of partial operations
