@@ -81,6 +81,12 @@ void dev_unmap_sect(void *addr, uint32_t sect_num, uint32_t sect_cnt) {
 		addr -= adjust;
 	}
 	
+	/* explicitly call msync(2), since this may not be implied by munmap(2) */
+	if (msync(addr, byte_len, MS_SYNC) < 0) {
+		err("%s: msync failed: addr %p, sect [%" PRIu32 ", %" PRIu32 ")",
+			__func__, addr, sect_num, sect_num + sect_cnt);
+	}
+	
 	if (munmap(addr, byte_len) < 0) {
 		err("%s: munmap failed: addr %p, sect [%" PRIu32 ", %" PRIu32 ")",
 			__func__, addr, sect_num, sect_num + sect_cnt);
