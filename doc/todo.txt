@@ -2,12 +2,39 @@ jgfs2
 todo list
 
 
+mapping:
+- option for read-only mappings
+  - check ALL call instances for necessity of write access
+- option for MAP_LOCKED mappings
+  - only do msync(2) on unmap for these mappings
+  - use this wherever mostly-atomic writes are necessary (sblk, trees)
+- we might need to keep a tree/list of mappings so we can remember whether it
+  was read-only or locked
+- DETERMINE: does msync sync to the disk cache, or ALL THE WAY to the disk?
+  - if it goes all the way, use this behavior
+  - if not, then use msync(2) on unmap for every mapping
+
+crash consistency:
+- tree commit
+  - node_map: maintain a list/tree of mapped node block numbers and buf addrs
+    - if called and have an entry for that block already, just return the buf
+    - if don't have an entry, map the node, create entry, and return the buffer
+      - this needs MAP_LOCKED
+  - node_unmap: no-op
+  - tree_commit: sync/unmap all entries, then delete them from the list
+  - this is NOT atomic, but it is MUCH less likely that an error will occur in
+    tree_commit than in *all* of the gaps between node_map and node_unmap that
+    currently exist
+
 fs design:
+- tree checking: check for data referenced but not marked as allocated
 - tree merging/splitting: need hysteresis tuning
   - for example, split when we surpass 90% usage, but merge when the combined
     usage of the pair of nodes is under 60% of a single node
   - this technique will avoid needless splitting/merging of nodes when near the
     split/merge threshold
+- tree merging
+  - try to redistribute before going for the merge
 - extents
   - do we need a maximum extent size?
     - yes if we ever map the entire extent
