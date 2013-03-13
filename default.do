@@ -23,7 +23,8 @@ export CXXFLAGS="-std=c++11 -O0 -ggdb -Wall -Wextra -Wno-unused-parameter \
 -Wno-unused-function -include cstddef -include cstdint -Isrc"
 
 
-DEFINES="-D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -DFUSE_USE_VERSION=26"
+DEFINES="-D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -DFUSE_USE_VERSION=26 \
+-DDEBUG_FATAL"
 
 LIB_OUT="bin/libjgfs2.a"
 LIB_SRC=(lib/*.c lib/*/*.c)
