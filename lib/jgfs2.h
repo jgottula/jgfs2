@@ -25,18 +25,18 @@ extern "C" {
 #define JGFS2_VER_EXPAND(_maj, _min) \
 	(((uint16_t)(_maj) * 0x100) + (uint16_t)(_min))
 
-#define JGFS2_VER_MAJOR     0x00
-#define JGFS2_VER_MINOR     0x01
-#define JGFS2_VER_TOTAL     JGFS2_VER_EXPAND(JGFS2_VER_MAJOR, JGFS2_VER_MINOR)
+#define JGFS2_VER_MAJOR   0x00
+#define JGFS2_VER_MINOR   0x01
+#define JGFS2_VER_TOTAL   JGFS2_VER_EXPAND(JGFS2_VER_MAJOR, JGFS2_VER_MINOR)
 
-#define JGFS2_MAGIC         "JGF2"
+#define JGFS2_MAGIC       "JGF2"
 
-#define JGFS2_VBR_SECT      0
-#define JGFS2_SBLK_SECT     1
-#define JGFS2_BOOT_SECT     2
+#define JGFS2_VBR_SECT    0
+#define JGFS2_SBLK_SECT   1
+#define JGFS2_BOOT_SECT   2
 
-#define JGFS2_LIMIT_LABEL   63
-#define JGFS2_LIMIT_NAME    255
+#define JGFS2_LIMIT_LABEL 63
+#define JGFS2_LIMIT_NAME  255
 
 
 enum jgfs2_mode {
