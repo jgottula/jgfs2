@@ -37,6 +37,7 @@ enum check_error_code {
 	ERR_NODE_EMPTY = 1,         // !root and no elems
 	ERR_NODE_SORT  = 2,         // key[0] > key[1]
 	ERR_NODE_DUPE  = 3,         // key @ elem_idx[0] == key @ elem_idx[1]
+	#warning generalize prev/next and depth checks to all nodes
 	
 	ERR_BRANCH_OVERFLOW    = 1, // cnt items wouldn't fit in a node
 	ERR_BRANCH_PARENT      = 2, // hdr.this != child.parent

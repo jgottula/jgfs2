@@ -36,10 +36,5 @@ struct __attribute__((__packed__)) inode_item {
 	uint32_t i_gen;   // generation
 };
 
-struct item_data {
-	uint32_t len;
-	void *data;
-};
-
 
 #endif
