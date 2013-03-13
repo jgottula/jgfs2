@@ -15,6 +15,10 @@
 #include "item.h"
 
 
+/* merge two nodes if they combine to make a node that is less than 80% full */
+#define NODE_MERGE_THRESHOLD \
+	((node_size_usable() * 8) / 10)
+
 #define ASSERT_ROOT(_node_addr) \
 	if (!node_is_root(_node_addr)) { \
 		errx("%s: not root: node 0x%" PRIx32, \
@@ -122,6 +126,7 @@ void node_zero_data(node_ptr node);
 void node_copy_data(node_ptr dst, const node_ptr src);
 
 void node_split(uint32_t this_addr);
+void node_merge(uint32_t this_addr);
 
 
 /* branch node functions */
@@ -147,6 +152,8 @@ void branch_xfer(branch_ptr dst, const branch_ptr src, uint16_t dst_idx,
 void branch_append_naive(branch_ptr node, const node_ref *elem);
 void branch_insert_naive(branch_ptr node, uint16_t at, const node_ref *elem);
 bool branch_insert(branch_ptr node, const node_ref *elem);
+
+bool branch_remove(branch_ptr node, const key *key);
 
 void branch_paternalize(branch_ptr node);
 
@@ -182,6 +189,8 @@ void leaf_insert_naive(leaf_ptr node, uint16_t at, const key *key,
 	struct item_data item);
 void leaf_append_naive(leaf_ptr node, const key *key, struct item_data item);
 bool leaf_insert(leaf_ptr node, const key *key, struct item_data item);
+
+bool leaf_remove(leaf_ptr node, const key *key);
 
 void leaf_split_post(leaf_ptr this, leaf_ptr new);
 

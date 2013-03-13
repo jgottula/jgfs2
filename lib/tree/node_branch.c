@@ -271,3 +271,50 @@ void branch_split_post(branch_ptr this, branch_ptr new, bool was_root) {
 		branch_paternalize(this);
 	}
 }
+
+
+#warning remove branch_{prev,next}
+#if 0
+static uint32_t branch_prev_r(uint32_t node_addr, const key *key) {
+	/* root has no previous sibling */
+	if (node_addr == 0) {
+		return 0;
+	}
+	
+	branch_ptr node = node_map(node_addr);
+	
+	uint16_t key_idx = node_search_hypo(node, key);
+	
+	if (key_idx != 0) {
+		// found = ...
+	}
+	
+	node_unmap(node);
+	
+	return found;
+}
+
+uint32_t branch_prev(const branch_ptr node) {
+	const key *first_key = node_first_key((node_ptr)node);
+	
+	uint16_t key_idx;
+	if (!node_search((node_ptr)node, first_key, &key_idx)) {
+		errx("%s: impossible condition: node 0x%" PRIx32,
+			__func__, node->hdr.this);
+	}
+	
+	if (key_idx != 0) {
+		return node->elems[key_idx - 1].addr;
+	} else {
+		return branch_prev_r(node->hdr.parent, first_key);
+	}
+}
+
+/*static uint32_t branch_next_r(uint32_t node_addr, const key *key) {
+	
+}
+
+uint32_t branch_next(const branch_ptr node) {
+	return branch_next_r(node->hdr.this, node_first_key((node_ptr)node));
+}*/
+#endif

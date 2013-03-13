@@ -33,6 +33,7 @@ bool tree_retrieve(uint32_t root_addr, const key *key, size_t max_len,
 	void *buf);
 
 void tree_insert(uint32_t root_addr, const key *key, struct item_data item);
+bool tree_remove(uint32_t root_addr, const key *key);
 
 
 #endif

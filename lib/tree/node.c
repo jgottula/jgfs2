@@ -279,3 +279,130 @@ void node_split(uint32_t this_addr) {
 	node_unmap(new);
 	node_unmap(this);
 }
+
+void node_merge(uint32_t this_addr) {
+	node_ptr this = node_map(this_addr, true);
+	
+	uint32_t parent_addr = this->hdr.parent;
+	branch_ptr parent = NULL;
+	
+	/* can't merge the root node with anything */
+	if (parent_addr == 0) {
+		parent = (branch_ptr)node_map(parent_addr, true);
+	} else {
+		goto done;
+	}
+	
+	uint32_t merge_addr = 0;
+	node_ptr merge = NULL;
+	
+	bool is_prev = false;
+	if (this->hdr.leaf) {
+		bool has_prev = (this->hdr.prev != 0);
+		bool has_next = (this->hdr.next != 0);
+		
+		if (has_prev && has_next) {
+			/* choose node with more space; mildly prefer next over prev */
+			if (node_used(this->hdr.next) <= node_used(this->hdr.prev)) {
+				merge_addr = this->hdr.next;
+			} else {
+				merge_addr = this->hdr.prev;
+				is_prev = true;
+			}
+		} else if (has_prev) {
+			merge_addr = this->hdr.prev;
+			is_prev = true;
+		} else if (has_next) {
+			merge_addr = this->hdr.next;
+		}
+	} else {
+		uint16_t key_idx;
+		if (!node_search((node_ptr)parent, node_first_key(this), &key_idx)) {
+			errx("%s: can't find this in parent: node 0x%" PRIx32 " parent 0x%"
+				PRIx32 " key %s", __func__, this_addr, parent_addr,
+				key_str(node_first_key(this)));
+		}
+		
+		if (key_idx < parent->hdr.cnt - 1) {
+			merge_addr = parent->elems[key_idx + 1].addr;
+		} else if (key_idx > 0) {
+			merge_addr = parent->elems[key_idx - 1].addr;
+			is_prev = true;
+		} else {
+			errx("%s: branch with one elem: node 0x%" PRIx32,
+				__func__, this_addr);
+		}
+	}
+	
+	if (merge_addr != 0) {
+		merge = node_map(merge_addr, true);
+	} else {
+		goto done;
+	}
+	
+	if (is_prev) {
+		// use *_shift_forward first
+		// then *_xfer once
+		// then increment this->hdr.cnt
+		// then UPDATE our parent ref
+	} else {
+		// *_xfer once
+		// then increment this->hdr.cnt
+	}
+	
+	// remove sibling from parent
+	// deallocate sibling
+	
+	
+	
+	/* need to make sure this case is handled:
+	 * we have root and two children and the two children get merged into root
+	 * as a leaf node */
+	
+done:
+	if (merge != NULL) {
+		node_unmap(merge);
+	}
+	if (parent != NULL) {
+		node_unmap((node_ptr)parent);
+	}
+	node_unmap(this);
+}
+#if 0
+	leaf_ptr prev  = NULL;
+	leaf_ptr next  = NULL;
+	leaf_ptr *merge = NULL;
+	
+	if (node->hdr.prev != 0) {
+		prev = node_map(node->hdr.prev, true);
+	}
+	if (node->hdr.next != 0) {
+		next = node_map(node->hdr.next, true);
+	}
+	
+	if (has_prev && has_next) {
+		/* slightly prefer merging with next (rhs) over prev (lhs) */
+		if (node_used(next) <= node_used(prev)) {
+			merge = &next;
+		} else {
+			merge = &prev;
+		}
+	} else if (has_prev) {
+		merge = &prev;
+	} else if (has_next) {
+		merge = &next;
+	}
+	
+	if (merge != NULL) {
+		if (node_used(node) + node_used(*merge) <= NODE_MERGE_THRESHOLD) {
+			node_merge(node, merge);
+		}
+	}
+	
+	if (prev != NULL) {
+		node_unmap(prev);
+	}
+	if (next != NULL) {
+		node_unmap(next);
+	}
+#endif

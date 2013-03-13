@@ -242,6 +242,36 @@ bool leaf_insert(leaf_ptr node, const key *key, struct item_data item) {
 	return true;
 }
 
+bool leaf_remove(leaf_ptr node, const key *key) {
+	ASSERT_LEAF(node);
+	
+	uint16_t remove_at;
+	if (!node_search((node_ptr)node, key, &remove_at)) {
+		return false;
+	}
+	
+	TODO("test data shift");
+	TODO("test zero");
+	
+	uint32_t data_len = node->elems[remove_at].len;
+	
+	leaf_shift_backward(node, remove_at + 1, 1, data_len);
+	leaf_zero(node, node->hdr.cnt - 1);
+	--node->hdr.cnt;
+	
+	/* if we are not root and we just removed the element in position 0, we
+	 * need to update the node_ref to us in our parent */
+	if (remove_at == 0 && node->hdr.parent != 0) {
+		branch_ptr parent = (branch_ptr)node_map(node->hdr.parent, true);
+		branch_ref_update(parent, (node_ptr)node);
+		node_unmap((node_ptr)parent);
+	}
+	
+	node_merge(node->hdr.this);
+	
+	return true;
+}
+
 void leaf_split_post(leaf_ptr this, leaf_ptr new) {
 	ASSERT_LEAF(this);
 	ASSERT_LEAF(new);

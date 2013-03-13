@@ -179,7 +179,8 @@ static leaf_ptr tree_search_r(uint32_t root_addr, uint32_t node_addr,
 	node_ptr node = node_map(node_addr, true);
 	
 	/* remove this later for performance */
-	check_node(node_addr, false);
+	#warning
+	//check_node(node_addr, false);
 	
 	if (node->hdr.leaf) {
 		return (leaf_ptr)node;
@@ -257,4 +258,20 @@ void tree_insert(uint32_t root_addr, const key *key, struct item_data item) {
 	} while (!done);
 	
 	tree_unlock(root_addr);
+}
+
+bool tree_remove(uint32_t root_addr, const key *key) {
+	ASSERT_ROOT(root_addr);
+	tree_lock(root_addr);
+	
+	/* use tree_search_r, not tree_search, to circumvent locking */
+	leaf_ptr leaf      = tree_search_r(root_addr, root_addr, key);
+	uint32_t leaf_addr = leaf->hdr.this;
+	
+	bool result = leaf_remove(leaf, key);
+	node_unmap((node_ptr)leaf);
+	
+	tree_unlock(root_addr);
+	
+	return result;
 }
