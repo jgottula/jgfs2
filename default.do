@@ -27,47 +27,47 @@ DEFINES="-D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -DFUSE_USE_VERSION=26 \
 -DDEBUG_FATAL"
 
 LIB_OUT="bin/libjgfs2.a"
-LIB_SRC=(lib/*.c lib/*/*.c)
+LIB_SRC=$(find lib -type f -iname '*.c')
 LIB_OBJS=${LIB_SRC[@]//.c/.o}
 LIB_LIBS=(-lm -lbsd -luuid)
 
 FUSE_OUT="bin/fuse.jgfs2"
-FUSE_SRC=(src/fuse/*.c)
+FUSE_SRC=$(find src/fuse -type f -iname '*.c')
 FUSE_OBJS=${FUSE_SRC[@]//.c/.o}
 FUSE_LIBS=(-lfuse)
 
 TEST_OUT="bin/test.jgfs2"
-TEST_SRC=(src/test/*.c src/test/*/*.c)
+TEST_SRC=$(find src/test -type f -iname '*.c')
 TEST_OBJS=${TEST_SRC[@]//.c/.o}
 TEST_LIBS=()
 
 VIEW_OUT="bin/view.jgfs2"
-VIEW_SRC=(src/view/*.c)
+VIEW_SRC=$(find src/view -type f -iname '*.c')
 VIEW_OBJS=${VIEW_SRC[@]//.c/.o}
 VIEW_LIBS=()
 
 MKFS_OUT="bin/mkfs.jgfs2"
-MKFS_SRC=(src/mkfs/*.c)
+MKFS_SRC=$(find src/mkfs -type f -iname '*.c')
 MKFS_OBJS=${MKFS_SRC[@]//.c/.o}
 MKFS_LIBS=()
 
 FSCK_OUT="bin/fsck.jgfs2"
-FSCK_SRC=(src/fsck/*.c)
+FSCK_SRC=$(find src/fsck -type f -iname '*.c')
 FSCK_OBJS=${FSCK_SRC[@]//.c/.o}
 FSCK_LIBS=()
 
 DEFRAG_OUT="bin/defrag.jgfs2"
-DEFRAG_SRC=(src/defrag/*.c)
+DEFRAG_SRC=$(find src/defrag -type f -iname '*.c')
 DEFRAG_OBJS=${DEFRAG_SRC[@]//.c/.o}
 DEFRAG_LIBS=()
 
 FSCTL_OUT="bin/fsctl.jgfs2"
-FSCTL_SRC=(src/fsctl/*.c)
+FSCTL_SRC=$(find src/fsctl -type f -iname '*.c')
 FSCTL_OBJS=${FSCTL_SRC[@]//.c/.o}
 FSCTL_LIBS=()
 
 ATTR_OUT="bin/attr.jgfs2"
-ATTR_SRC=(src/attr/*.c)
+ATTR_SRC=$(find src/attr -type f -iname '*.c')
 ATTR_OBJS=${ATTR_SRC[@]//.c/.o}
 ATTR_LIBS=()
 
