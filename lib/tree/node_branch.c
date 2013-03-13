@@ -10,7 +10,7 @@
 
 
 branch_ptr branch_init(uint32_t node_addr, uint32_t parent) {
-	branch_ptr node = (branch_ptr)node_map(node_addr);
+	branch_ptr node = (branch_ptr)node_map(node_addr, true);
 	
 	node->hdr.leaf   = false;
 	node->hdr.cnt    = 0;
@@ -187,7 +187,7 @@ bool branch_insert(branch_ptr node, const node_ref *elem) {
 	/* if we are not root and we just inserted the element in position 0, we
 	 * need to update the node_ref to us in our parent */
 	if (insert_at == 0 && node->hdr.parent != 0) {
-		branch_ptr parent = (branch_ptr)node_map(node->hdr.parent);
+		branch_ptr parent = (branch_ptr)node_map(node->hdr.parent, true);
 		branch_ref_update(parent, (node_ptr)node);
 		node_unmap((node_ptr)parent);
 	}
@@ -195,12 +195,18 @@ bool branch_insert(branch_ptr node, const node_ref *elem) {
 	return true;
 }
 
+bool branch_remove(branch_ptr node, const key *key) {
+	ASSERT_BRANCH(node);
+	
+	
+}
+
 void branch_paternalize(branch_ptr node) {
 	ASSERT_BRANCH(node);
 	
 	const node_ref *elem_end = node->elems + node->hdr.cnt;
 	for (const node_ref *elem = node->elems; elem < elem_end; ++elem) {
-		node_ptr child = node_map(elem->addr);
+		node_ptr child = node_map(elem->addr, true);
 		child->hdr.parent = node->hdr.this;
 		node_unmap(child);
 	}
@@ -231,7 +237,7 @@ void branch_ref_update(branch_ptr node, node_ptr child) {
 		/* if we are not root and we just updated the element in position 0, we
 		 * need to update the node_ref to us in our parent */
 		if (elem == node->elems && node->hdr.parent != 0) {
-			branch_ptr parent = (branch_ptr)node_map(node->hdr.parent);
+			branch_ptr parent = (branch_ptr)node_map(node->hdr.parent, true);
 			branch_ref_update(parent, (node_ptr)node);
 			node_unmap((node_ptr)parent);
 		}

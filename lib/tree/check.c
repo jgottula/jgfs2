@@ -43,7 +43,7 @@ static struct check_result check_node_branch(branch_ptr node, bool recurse) {
 	
 	for (uint16_t i = 0; i < node->hdr.cnt; ++i) {
 		const node_ref *elem = node->elems + i;
-		node_ptr child = node_map(elem->addr);
+		node_ptr child = node_map(elem->addr, false);
 		
 		bool bad = false;
 		uint32_t code = 0;
@@ -94,7 +94,7 @@ static struct check_result check_node_leaf(leaf_ptr node) {
 	
 	if (node->hdr.cnt > 0) {
 		if (node->hdr.prev != 0) {
-			node_ptr prev = node_map(node->hdr.prev);
+			node_ptr prev = node_map(node->hdr.prev, false);
 			bool is_leaf = prev->hdr.leaf;
 			node_unmap(prev);
 			if (!is_leaf) {
@@ -110,7 +110,7 @@ static struct check_result check_node_leaf(leaf_ptr node) {
 			}
 		}
 		if (node->hdr.next != 0) {
-			node_ptr next = node_map(node->hdr.next);
+			node_ptr next = node_map(node->hdr.next, false);
 			bool is_leaf = next->hdr.leaf;
 			node_unmap(next);
 			if (!is_leaf) {
@@ -186,7 +186,7 @@ done:
 
 struct check_result check_node(uint32_t node_addr, bool recurse) {
 	struct check_result result = { RESULT_TYPE_OK };
-	node_ptr node = node_map(node_addr);
+	node_ptr node = node_map(node_addr, false);
 	
 	if (node->hdr.this != node_addr) {
 		result.type = RESULT_TYPE_NODE;
@@ -306,7 +306,7 @@ void check_print(struct check_result result, bool fatal) {
 		TODO("report for tree results");
 	} else if (result.type == RESULT_TYPE_NODE) {
 		const struct node_check_error *err = &result.node;
-		const node_ptr node = node_map(err->node_addr);
+		const node_ptr node = node_map(err->node_addr, false);
 		
 		warnx("check_node on 0x%" PRIx32 " failed:", err->node_addr);
 		
@@ -350,7 +350,7 @@ void check_print(struct check_result result, bool fatal) {
 		node_unmap(node);
 	} else if (result.type == RESULT_TYPE_BRANCH) {
 		const struct branch_check_error *err = &result.branch;
-		const branch_ptr node = (branch_ptr)node_map(err->node_addr);
+		const branch_ptr node = (branch_ptr)node_map(err->node_addr, false);
 		
 		warnx("check_branch on 0x%" PRIx32 " failed:", err->node_addr);
 		
@@ -382,7 +382,7 @@ void check_print(struct check_result result, bool fatal) {
 		
 		node_ptr child;
 		if (err->elem_cnt > 0) {
-			child = node_map(err->elem.addr);
+			child = node_map(err->elem.addr, false);
 			
 			warnx("[elem %" PRIu16 "] key %s addr 0x%" PRIx32,
 				err->elem_idx, key_str(&err->elem.key), err->elem.addr);
@@ -407,7 +407,7 @@ void check_print(struct check_result result, bool fatal) {
 		node_unmap((node_ptr)node);
 	} else if (result.type == RESULT_TYPE_LEAF) {
 		const struct leaf_check_error *err = &result.leaf;
-		const leaf_ptr node = (leaf_ptr)node_map(err->node_addr);
+		const leaf_ptr node = (leaf_ptr)node_map(err->node_addr, false);
 		
 		warnx("check_leaf on 0x%" PRIx32 " failed:", err->node_addr);
 		

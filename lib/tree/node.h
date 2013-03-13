@@ -101,7 +101,7 @@ static uint16_t node_max_cnt(void) {
 /* generic node functions */
 uint32_t node_alloc(void);
 
-node_ptr node_map(uint32_t node_addr);
+node_ptr node_map(uint32_t node_addr, bool writable);
 void node_unmap(const node_ptr node);
 
 void node_dump(uint32_t node_addr, bool recurse);

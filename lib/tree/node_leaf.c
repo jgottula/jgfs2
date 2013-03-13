@@ -11,7 +11,7 @@
 
 leaf_ptr leaf_init(uint32_t node_addr, uint32_t parent, uint32_t prev,
 	uint32_t next) {
-	leaf_ptr node = (leaf_ptr)node_map(node_addr);
+	leaf_ptr node = (leaf_ptr)node_map(node_addr, true);
 	
 	node->hdr.leaf   = true;
 	node->hdr.cnt    = 0;
@@ -233,7 +233,7 @@ bool leaf_insert(leaf_ptr node, const key *key, struct item_data item) {
 	/* if we are not root and we just inserted the element in position 0, we
 	 * need to update the node_ref to us in our parent */
 	if (insert_at == 0 && node->hdr.parent != 0) {
-		branch_ptr parent = (branch_ptr)node_map(node->hdr.parent);
+		branch_ptr parent = (branch_ptr)node_map(node->hdr.parent, true);
 		branch_ref_update(parent, (node_ptr)node);
 		node_unmap((node_ptr)parent);
 	}

@@ -18,18 +18,19 @@ uint32_t node_alloc(void) {
 	return ext_alloc(node_size_blk());
 }
 
-node_ptr node_map(uint32_t node_addr) {
-	return (node_ptr)fs_map_blk(node_addr, node_size_blk());
+node_ptr node_map(uint32_t node_addr, bool writable) {
+	return (node_ptr)fs_map_blk(node_addr, node_size_blk(), writable);
 }
 
 void node_unmap(const node_ptr node) {
 	const struct node_hdr *hdr = (const struct node_hdr *)node;
 	
+	fs_msync_blk(node, hdr->this, node_size_blk(), true);
 	fs_unmap_blk(node, hdr->this, node_size_blk());
 }
 
 void node_dump(uint32_t node_addr, bool recurse) {
-	node_ptr node = node_map(node_addr);
+	node_ptr node = node_map(node_addr, false);
 	
 	if (node->hdr.leaf) {
 		leaf_dump((leaf_ptr)node);
@@ -50,7 +51,7 @@ void node_dump(uint32_t node_addr, bool recurse) {
 }
 
 uint32_t node_used(uint32_t node_addr) {
-	const node_ptr node = node_map(node_addr);
+	const node_ptr node = node_map(node_addr, false);
 	
 	uint32_t used;
 	if (node->hdr.leaf) {
@@ -65,7 +66,7 @@ uint32_t node_used(uint32_t node_addr) {
 }
 
 uint32_t node_free(uint32_t node_addr) {
-	const node_ptr node = node_map(node_addr);
+	const node_ptr node = node_map(node_addr, false);
 	
 	uint32_t free;
 	if (node->hdr.leaf) {
@@ -80,7 +81,7 @@ uint32_t node_free(uint32_t node_addr) {
 }
 
 bool node_is_root(uint32_t node_addr) {
-	const node_ptr node = node_map(node_addr);
+	const node_ptr node = node_map(node_addr, false);
 	bool is_root = (node->hdr.parent == 0);
 	node_unmap(node);
 	
@@ -93,7 +94,7 @@ uint32_t node_find_root(uint32_t node_addr) {
 	do {
 		node_addr = parent_addr;
 		
-		node_ptr node = node_map(node_addr);
+		node_ptr node = node_map(node_addr, false);
 		parent_addr = node->hdr.parent;
 		node_unmap(node);
 	} while (parent_addr != 0);
@@ -204,7 +205,7 @@ void node_copy_data(node_ptr dst, const node_ptr src) {
 }
 
 void node_split(uint32_t this_addr) {
-	node_ptr this = node_map(this_addr);
+	node_ptr this = node_map(this_addr, true);
 	
 	uint32_t parent_addr = this->hdr.parent;
 	branch_ptr parent = NULL;
@@ -244,14 +245,14 @@ void node_split(uint32_t this_addr) {
 	} else {
 		/* we handle splits in a depth-first manner: we recurse to the parent,
 		 * if necessary, *before* we split this node */
-		parent = (branch_ptr)node_map(parent_addr);
+		parent = (branch_ptr)node_map(parent_addr, true);
 		if (branch_free(parent) < sizeof(node_ref)) {
 			node_unmap((node_ptr)parent);
 			node_split(parent_addr);
 			
 			/* remap the parent, in case it changed */
 			parent_addr = this->hdr.parent;
-			parent = (branch_ptr)node_map(parent_addr);
+			parent = (branch_ptr)node_map(parent_addr, true);
 		}
 	}
 	

@@ -62,7 +62,7 @@ void tree_dump(uint32_t root_addr) {
 static void tree_graph_r(uint32_t node_addr, uint32_t level,
 	uint32_t *max_level, uint32_t *node_qty, uint64_t *item_qty,
 	double *avg_fill) {
-	node_ptr node = node_map(node_addr);
+	node_ptr node = node_map(node_addr, false);
 	
 	/* draw the node space usage bar */
 	uint8_t used_round = (uint8_t)ceil(((float)node_used(node_addr) * 12.f) /
@@ -176,7 +176,7 @@ void tree_stat(uint32_t root_addr) {
 
 static leaf_ptr tree_search_r(uint32_t root_addr, uint32_t node_addr,
 	const key *key) {
-	node_ptr node = node_map(node_addr);
+	node_ptr node = node_map(node_addr, true);
 	
 	/* remove this later for performance */
 	check_node(node_addr, false);
