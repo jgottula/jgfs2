@@ -146,13 +146,13 @@ void dump_mem(const void *addr, size_t len) {
 }
 
 void dump_sect(uint32_t sect_num, uint32_t sect_cnt) {
-	void *sect_mem = fs_map_sect(sect_num, sect_cnt);
+	void *sect_mem = fs_map_sect(sect_num, sect_cnt, false);
 	dump_mem(sect_mem, SECT_TO_BYTE(sect_cnt));
 	fs_unmap_sect(sect_mem, sect_num, sect_cnt);
 }
 
 void dump_blk(uint32_t blk_num, uint32_t blk_cnt) {
-	void *blk_mem = fs_map_blk(blk_num, blk_cnt);
+	void *blk_mem = fs_map_blk(blk_num, blk_cnt, false);
 	dump_mem(blk_mem, BLK_TO_BYTE(blk_cnt));
 	fs_unmap_blk(blk_mem, blk_num, blk_cnt);
 }

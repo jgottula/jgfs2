@@ -114,7 +114,7 @@ void fs_new_post(void) {
 	
 	/* always zap the slack space between the end of the boot area and the first
 	 * data block */
-	void *slack = fs_map_sect(JGFS2_BOOT_SECT, fs.sblk->s_boot_sect);
+	void *slack = fs_map_sect(JGFS2_BOOT_SECT, fs.sblk->s_boot_sect, true);
 	memset(slack, 0, BLK_TO_BYTE(fs.data_blk_first) -
 		SECT_TO_BYTE(JGFS2_BOOT_SECT + fs.sblk->s_boot_sect));
 	fs_unmap_sect(slack, JGFS2_BOOT_SECT, fs.sblk->s_boot_sect);
