@@ -49,7 +49,7 @@ static void print_version(FILE *stream, struct argp_state *state) {
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 	switch (key) {
 	case 's':
-		switch (sscanf(arg, "%" SCNu32, &param.rand_seed)) {
+		switch (sscanf(arg, "0x%" SCNx32, &param.rand_seed)) {
 		case EOF:
 		default:
 			warnx("rand_seed: don't understand '%s'", arg);
@@ -136,7 +136,7 @@ static const char doc[] = "Run jgfs2 unit tests on a device.";
 static struct argp_option options[] = {
 	{ NULL, 0, NULL, 0, "RNG parameters:", 1 },
 	{ "seed", 's', "UINT32", 0,
-		"random seed", 1, },
+		"random seed\n> format: 0x...", 1, },
 	
 	{ NULL, 0, NULL, 0, "debug options:", 2 },
 	{ "debug", 'D', "FLAGS", 0,
