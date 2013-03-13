@@ -26,8 +26,8 @@ void branch_dump(const branch_ptr node) {
 	ASSERT_BRANCH(node);
 	
 	const struct node_hdr *hdr = &node->hdr;
-	warnx("%s: this 0x%" PRIx32 " parent 0x%" PRIx32 " cnt %" PRIu16,
-		__func__, hdr->this, hdr->parent, hdr->cnt);
+	warnx("%s: this 0x%" PRIx32 " parent 0x%" PRIx32 " cnt %" PRIu16 " free %"
+		PRIu32, __func__, hdr->this, hdr->parent, hdr->cnt, branch_free(node));
 	
 	const node_ref *elem_end = node->elems + node->hdr.cnt;
 	for (const node_ref *elem = node->elems; elem < elem_end; ++elem) {

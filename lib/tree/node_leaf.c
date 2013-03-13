@@ -28,8 +28,9 @@ void leaf_dump(const leaf_ptr node) {
 	
 	const struct node_hdr *hdr = &node->hdr;
 	warnx("%s: this 0x%" PRIx32 " parent 0x%" PRIx32 " prev 0x%" PRIx32
-		" next 0x%" PRIx32 " cnt %" PRIu16,
-		__func__, hdr->this, hdr->parent, hdr->prev, hdr->next, hdr->cnt);
+		" next 0x%" PRIx32 " cnt %" PRIu16 " free %" PRIu32,
+		__func__, hdr->this, hdr->parent, hdr->prev, hdr->next, hdr->cnt,
+		leaf_free(node));
 	
 	const item_ref *elem_end = node->elems + node->hdr.cnt;
 	for (const item_ref *elem = node->elems; elem < elem_end; ++elem) {
