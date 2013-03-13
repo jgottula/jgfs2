@@ -16,10 +16,10 @@ export CC="ccache gcc"
 export CXX="ccache g++"
 export AR=ar
 
-export CFLAGS="-std=gnu11 -O0 -ggdb -Wall -Wextra -Wno-unused-parameter \
+export CFLAGS="-std=gnu11 -O1 -ggdb -Wall -Wextra -Wno-unused-parameter \
 -Wno-unused-function -include stddef.h -include stdbool.h -include stdint.h \
 -Isrc"
-export CXXFLAGS="-std=c++11 -O0 -ggdb -Wall -Wextra -Wno-unused-parameter \
+export CXXFLAGS="-std=c++11 -O1 -ggdb -Wall -Wextra -Wno-unused-parameter \
 -Wno-unused-function -include cstddef -include cstdint -Isrc"
 
 
