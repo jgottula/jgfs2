@@ -37,7 +37,7 @@ FUSE_OBJS=${FUSE_SRC[@]//.c/.o}
 FUSE_LIBS=(-lfuse)
 
 TEST_OUT="bin/test.jgfs2"
-TEST_SRC=(src/test/*.c)
+TEST_SRC=(src/test/*.c src/test/*/*.c)
 TEST_OBJS=${TEST_SRC[@]//.c/.o}
 TEST_LIBS=()
 
