@@ -41,6 +41,8 @@ void jgfs2_init(const char *dev_path,
 	jgfs2_init_common();
 	
 	fs_init(dev_path, mount_opt, NULL);
+	
+	lib_init = true;
 }
 
 void jgfs2_new(const char *dev_path,
@@ -50,6 +52,8 @@ void jgfs2_new(const char *dev_path,
 	
 	const struct jgfs2_super_block *new_sblk = fs_new(dev_path, param);
 	fs_init(dev_path, mount_opt, new_sblk);
+	
+	lib_init = true;
 }
 
 void jgfs2_done(void) {
