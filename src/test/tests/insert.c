@@ -84,7 +84,7 @@ bool test_insert(uint32_t cnt) {
 				abort();
 			}
 			
-			leaf_ptr next = (leaf_ptr)node_map(node->hdr.next);
+			leaf_ptr next = (leaf_ptr)node_map(node->hdr.next, false);
 			node_unmap((node_ptr)node);
 			node = next;
 		}
