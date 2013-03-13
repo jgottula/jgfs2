@@ -2,16 +2,24 @@ jgfs2
 todo list
 
 
+trees:
+- reimplement as s(b)-tree (for leaves AND branches; keep compact branches)
+- add links between branch nodes of the same level
+
+checks:
+- tree: ensure that all leaf nodes are at the same depth
+- tree: ensure that no branch nodes are at the leaf depth
+- tree: ensure that all {leaf,branch} sweeps are incompressible
+
+in-memory trees/lists:
+- replace ad-hoc implementation with bsd/sys/queue and bsd/sys/tree
+
 mapping:
-- option for read-only mappings
-  - check ALL call instances for necessity of write access
 - option for MAP_LOCKED mappings
-  - only do msync(2) on unmap for these mappings
   - use this wherever mostly-atomic writes are necessary (sblk, trees)
-- we might need to keep a tree/list of mappings so we can remember whether it
-  was read-only or locked
 - DETERMINE: does msync sync to the disk cache, or ALL THE WAY to the disk?
   - also: how does fsync differ from msync?
+  - also: what happens if mlock(), write, then munmap()? do the changes stick?
   - write a test or look at linux internals or specs
     - if it goes all the way, use this behavior
     - if not, then use msync(2) on unmap for every mapping
@@ -211,6 +219,7 @@ defrag:
     - do this for all extents, going in order of disk offset
 - mode: tree balance
   - balance the whole B+ tree
+  - bonus: defrag and sequentialize tree nodes
 
 fsctl:
 - check that fs is unmounted
