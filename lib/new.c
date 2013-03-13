@@ -12,6 +12,7 @@
 #include <uuid/uuid.h>
 #include "debug.h"
 #include "dev.h"
+#include "extent.h"
 #include "fs.h"
 #include "tree.h"
 
@@ -119,10 +120,8 @@ void fs_new_post(void) {
 		SECT_TO_BYTE(JGFS2_BOOT_SECT + fs.sblk->s_boot_sect));
 	fs_unmap_sect(slack, JGFS2_BOOT_SECT, fs.sblk->s_boot_sect);
 	
-	TODO("put ext tree at fs end so it grows backwards");
-	
-	fs.sblk->s_addr_ext_tree  = fs.data_blk_first;
-	fs.sblk->s_addr_meta_tree = fs.data_blk_first + 1;
+	fs.sblk->s_addr_ext_tree  = ext_alloc(1);
+	fs.sblk->s_addr_meta_tree = ext_alloc(1);
 	
 	tree_init(fs.sblk->s_addr_ext_tree);
 	tree_init(fs.sblk->s_addr_meta_tree);
