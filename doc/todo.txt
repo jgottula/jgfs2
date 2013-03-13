@@ -11,8 +11,11 @@ mapping:
 - we might need to keep a tree/list of mappings so we can remember whether it
   was read-only or locked
 - DETERMINE: does msync sync to the disk cache, or ALL THE WAY to the disk?
-  - if it goes all the way, use this behavior
-  - if not, then use msync(2) on unmap for every mapping
+  - also: how does fsync differ from msync?
+  - write a test or look at linux internals or specs
+    - if it goes all the way, use this behavior
+    - if not, then use msync(2) on unmap for every mapping
+    - update behavior in dev_close based on findings
 
 crash consistency:
 - tree commit
