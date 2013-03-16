@@ -135,10 +135,10 @@ void *leaf_elem_data(const node_ptr leaf, uint16_t idx);
 /* bulk operations */
 void node_zero_all(node_ptr node);
 void node_zero_range(node_ptr node, uint16_t first);
-void node_shift_forward(node_ptr node, uint16_t first, uint16_t diff_elem,
-	uint32_t diff_data);
-void node_shift_backward(node_ptr node, uint16_t first, uint16_t diff_elem,
-	uint32_t diff_data);
+void node_shift_forward(node_ptr node, uint16_t first, uint16_t last,
+	uint16_t diff_elem, uint32_t diff_data);
+void node_shift_backward(node_ptr node, uint16_t first, uint16_t last,
+	uint16_t diff_elem, uint32_t diff_data);
 void node_append_multiple(node_ptr dst, const node_ptr src, uint16_t src_idx,
 	uint16_t elem_cnt, uint32_t data_len);
 void node_prepend_multiple(node_ptr dst, const node_ptr src, uint16_t src_idx,

@@ -40,21 +40,24 @@ void node_zero_range(node_ptr node, uint16_t first) {
 	memset(zero_begin, 0, (zero_end - zero_begin));
 }
 
-void node_shift_forward(node_ptr node, uint16_t first, uint16_t diff_elem,
-	uint32_t diff_data) {
-	if (first >= node->hdr.cnt) {
-		errx("%s: first exceeds bounds: node 0x%" PRIx32 ": %" PRIu16
-			" >= %" PRIu16, __func__, node->hdr.this, first, node->hdr.cnt);
-	} else if (UINT16_MAX - diff_elem < first) {
+void node_shift_forward(node_ptr node, uint16_t first, uint16_t last,
+	uint16_t diff_elem, uint32_t diff_data) {
+	if (first > last) {
+		errx("%s: first > last: node 0x%" PRIx32 ": %" PRIu16
+			" >= %" PRIu16, __func__, node->hdr.this, first, last);
+	} else if (last >= node->hdr.cnt) {
+		errx("%s: last exceeds bounds: node 0x%" PRIx32 ": %" PRIu16
+			" >= %" PRIu16, __func__, node->hdr.this, last, node->hdr.cnt);
+	} else if (UINT16_MAX - diff_elem < last) {
 		errx("%s: will exceed bounds: node 0x%" PRIx32 ": %" PRIu16 " + %"
 			PRIu16 " >= %" PRIu16,
-			__func__, node->hdr.this, first, diff_elem, node->hdr.cnt);
+			__func__, node->hdr.this, last, diff_elem, node->hdr.cnt);
 	}
 	
 	if (diff_data != 0) {
 		ASSERT_LEAF(node);
 		
-		uint8_t *data_begin = leaf_elem_data(node, node->hdr.cnt - 1);
+		uint8_t *data_begin = leaf_elem_data(node, last);
 		uint8_t *data_end   = leaf_elem_data(node, first) +
 			node->l_elems[first].len;
 		
@@ -63,7 +66,7 @@ void node_shift_forward(node_ptr node, uint16_t first, uint16_t diff_elem,
 	
 	if (node->hdr.leaf) {
 		item_ref *elem_first = node->l_elems + first;
-		item_ref *elem_last  = node->l_elems + (node->hdr.cnt - 1);
+		item_ref *elem_last  = node->l_elems + last;
 		
 		for (item_ref *elem = elem_last; elem >= elem_first; --elem) {
 			item_ref *elem_dst = elem + diff_elem;
@@ -73,7 +76,7 @@ void node_shift_forward(node_ptr node, uint16_t first, uint16_t diff_elem,
 		}
 	} else {
 		node_ref *elem_first = node->b_elems + first;
-		node_ref *elem_last  = node->b_elems + (node->hdr.cnt - 1);
+		node_ref *elem_last  = node->b_elems + last;
 		
 		for (node_ref *elem = elem_last; elem >= elem_first; --elem) {
 			node_ref *elem_dst = elem + diff_elem;
@@ -83,11 +86,14 @@ void node_shift_forward(node_ptr node, uint16_t first, uint16_t diff_elem,
 	}
 }
 
-void node_shift_backward(node_ptr node, uint16_t first, uint16_t diff_elem,
-	uint32_t diff_data) {
-	if (first >= node->hdr.cnt) {
-		errx("%s: first exceeds bounds: node 0x%" PRIx32 ": %" PRIu16
-			" >= %" PRIu16, __func__, node->hdr.this, first, node->hdr.cnt);
+void node_shift_backward(node_ptr node, uint16_t first, uint16_t last,
+	uint16_t diff_elem, uint32_t diff_data) {
+	if (first > last) {
+		errx("%s: first > last: node 0x%" PRIx32 ": %" PRIu16
+			" >= %" PRIu16, __func__, node->hdr.this, first, last);
+	} else if (last >= node->hdr.cnt) {
+		errx("%s: last exceeds bounds: node 0x%" PRIx32 ": %" PRIu16
+			" >= %" PRIu16, __func__, node->hdr.this, last, node->hdr.cnt);
 	} else if (first < diff_elem) {
 		errx("%s: will exceed bounds: node 0x%" PRIx32 ": %" PRIu16 " - %"
 			PRIu16 " < 0", __func__, node->hdr.this, first, diff_elem);
@@ -96,7 +102,7 @@ void node_shift_backward(node_ptr node, uint16_t first, uint16_t diff_elem,
 	if (diff_data != 0) {
 		ASSERT_LEAF(node);
 		
-		uint8_t *data_begin = leaf_elem_data(node, node->hdr.cnt - 1);
+		uint8_t *data_begin = leaf_elem_data(node, last);
 		uint8_t *data_end   = leaf_elem_data(node, first) +
 			node->l_elems[first].len;
 		
@@ -105,7 +111,7 @@ void node_shift_backward(node_ptr node, uint16_t first, uint16_t diff_elem,
 	
 	if (node->hdr.leaf) {
 		item_ref *elem_first = node->l_elems + first;
-		item_ref *elem_last  = node->l_elems + (node->hdr.cnt - 1);
+		item_ref *elem_last  = node->l_elems + last;
 		
 		for (item_ref *elem = elem_first; elem <= elem_last; ++elem) {
 			item_ref *elem_dst = elem - diff_elem;
@@ -115,7 +121,7 @@ void node_shift_backward(node_ptr node, uint16_t first, uint16_t diff_elem,
 		}
 	} else {
 		node_ref *elem_first = node->b_elems + first;
-		node_ref *elem_last  = node->b_elems + (node->hdr.cnt - 1);
+		node_ref *elem_last  = node->b_elems + last;
 		
 		for (node_ref *elem = elem_first; elem <= elem_last; ++elem) {
 			node_ref *elem_dst = elem - diff_elem;
@@ -184,7 +190,7 @@ void node_append_multiple(node_ptr dst, const node_ptr src, uint16_t src_idx,
 
 void node_prepend_multiple(node_ptr dst, const node_ptr src, uint16_t src_idx,
 	uint16_t elem_cnt, uint32_t data_len) {
-	node_shift_forward(dst, 0, elem_cnt, data_len);
+	node_shift_forward(dst, 0, dst->hdr.cnt - 1, elem_cnt, data_len);
 	
 	uint16_t dst_idx = 0;
 	node_xfer_multiple(dst, src, dst_idx, src_idx, elem_cnt, data_len);
