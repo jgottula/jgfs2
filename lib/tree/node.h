@@ -71,10 +71,7 @@ struct __attribute__((__packed__)) node {
 
 union elem_payload {
 	uint32_t b_addr;
-	struct {
-		uint32_t l_len;
-		void *l_data;	
-	};
+	struct item_data l_item;
 };
 
 
@@ -100,22 +97,6 @@ static elem *node_elem(const node_ptr node, uint16_t idx) {
 		return (elem *)(node->b_elems + idx);
 	}
 }
-
-
-#warning take a look at node_max_cnt
-/*static uint16_t node_max_cnt(void) {
-	if (sizeof(item_ref) > sizeof(node_ref)) {
-		return (node_size_usable() / sizeof(item_ref)) + 1;
-	} else {
-		return (node_size_usable() / sizeof(node_ref)) + 1;
-	}
-}*/
-
-
-#warning check all functions for possibility of const pointers
-#warning also check all static functions
-
-#warning one-use internal functions should be made static in one code file
 
 
 /* debugging */
@@ -148,6 +129,7 @@ key *node_key(const node_ptr node, uint16_t idx);
 key *node_first_key(const node_ptr node);
 
 /* elements */
+uint32_t elem_weight(const node_ptr node, uint16_t idx);
 void *leaf_elem_data(const node_ptr leaf, uint16_t idx);
 
 /* bulk operations */
@@ -157,8 +139,10 @@ void node_shift_forward(node_ptr node, uint16_t first, uint16_t diff_elem,
 	uint32_t diff_data);
 void node_shift_backward(node_ptr node, uint16_t first, uint16_t diff_elem,
 	uint32_t diff_data);
-void node_xfer(node_ptr dst, const node_ptr src, uint16_t dst_idx,
-	uint16_t src_idx, uint16_t cnt);
+void node_append_multiple(node_ptr dst, const node_ptr src, uint16_t src_idx,
+	uint16_t elem_cnt, uint32_t data_len);
+void node_prepend_multiple(node_ptr dst, const node_ptr src, uint16_t src_idx,
+	uint16_t elem_cnt, uint32_t data_len);
 
 /* searching */
 bool node_search(const node_ptr node, const key *key, uint16_t *out);
@@ -171,31 +155,8 @@ bool node_insert(node_ptr node, const key *key,
 	const union elem_payload *payload);
 
 
-#if 0
-
-void node_split(uint32_t this_addr);
-void node_merge(uint32_t this_addr);
-
-
-void branch_append_naive(branch_ptr node, const node_ref *elem);
-void branch_insert_naive(branch_ptr node, uint16_t at, const node_ref *elem);
-bool branch_insert(branch_ptr node, const node_ref *elem);
-
-bool branch_remove(branch_ptr node, const key *key);
-
-void branch_split_post(branch_ptr this, branch_ptr new, bool was_root);
-
-
-/* leaf node functions */
-void leaf_insert_naive(leaf_ptr node, uint16_t at, const key *key,
-	struct item_data item);
-void leaf_append_naive(leaf_ptr node, const key *key, struct item_data item);
-bool leaf_insert(leaf_ptr node, const key *key, struct item_data item);
-
-bool leaf_remove(leaf_ptr node, const key *key);
-
-void leaf_split_post(leaf_ptr this, leaf_ptr new);
-#endif
+/* TODO: make a pass through all node code and delete/static-ify all functions
+ * that are used only once or only by tree code */
 
 
 #endif
