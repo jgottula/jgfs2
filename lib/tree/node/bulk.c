@@ -125,27 +125,24 @@ void node_shift_backward(node_ptr node, uint16_t first, uint16_t diff_elem,
 	}
 }
 
-void node_append_multiple(node_ptr dst, const node_ptr src, uint16_t src_idx,
-	uint16_t elem_cnt, uint32_t data_len) {
+static void node_xfer_multiple(node_ptr dst, const node_ptr src,
+	uint16_t dst_idx, uint16_t src_idx, uint16_t elem_cnt, uint32_t data_len) {
 	if (src_idx + elem_cnt > src->hdr.cnt) {
 		errx("%s: [%" PRIu16 ", %" PRIu16 ") > %" PRIu16 ": dst 0x%" PRIx32
-			" src 0x%" PRIx32 " src_idx %" PRIu16 " elem_cnt %" PRIu16
-			" data_len %" PRIu32,
+			" src 0x%" PRIx32 " src_idx %" PRIu16 " dst_idx %" PRIu16
+			" elem_cnt %" PRIu16 " data_len %" PRIu32,
 			__func__, src_idx, src_idx + elem_cnt, src->hdr.cnt, dst->hdr.this,
-			src->hdr.this, src_idx, elem_cnt, data_len);
+			src->hdr.this, src_idx, dst_idx, elem_cnt, data_len);
 	}
-	
-	uint16_t dst_idx = dst->hdr.cnt;
 	
 	if (dst->hdr.leaf) {
 		ASSERT_LEAF(src);
 		
-		uint32_t off;
+		uint32_t dst_off;
 		if (dst->hdr.cnt == 0) {
-			off = node_size_byte();
+			dst_off = node_size_byte();
 		} else {
-			const item_ref *elem_last = dst->l_elems + (dst->hdr.cnt - 1);
-			off = elem_last->off;
+			dst_off = dst->l_elems[dst_idx].off;
 		}
 		
 		item_ref *elem_dst       = dst->l_elems + dst_idx;
@@ -153,14 +150,14 @@ void node_append_multiple(node_ptr dst, const node_ptr src, uint16_t src_idx,
 		while (elem_cnt-- != 0) {
 			*elem_dst = *elem_src;
 			
-			off -= elem_src->len;
-			elem_dst->off = off;
+			dst_off -= elem_src->len;
+			elem_dst->off = dst_off;
 			
 			++elem_dst;
 			++elem_src;
 		}
 		
-		uint8_t *data_dst = off;
+		uint8_t       *data_dst = (uint8_t *)dst + dst_off;
 		const uint8_t *data_src = leaf_elem_data(src, src_idx + (elem_cnt - 1));
 		
 		memcpy(data_dst, data_src, data_len);
@@ -176,40 +173,20 @@ void node_append_multiple(node_ptr dst, const node_ptr src, uint16_t src_idx,
 			++elem_src;
 		}
 	}
-	
+}
+
+void node_append_multiple(node_ptr dst, const node_ptr src, uint16_t src_idx,
+	uint16_t elem_cnt, uint32_t data_len) {
+	uint16_t dst_idx = dst->hdr.cnt;
+	node_xfer_multiple(dst, src, dst_idx, src_idx, elem_cnt, data_len);
 	dst->hdr.cnt += elem_cnt;
 }
 
-void node_prepend_multiple() {
+void node_prepend_multiple(node_ptr dst, const node_ptr src, uint16_t src_idx,
+	uint16_t elem_cnt, uint32_t data_len) {
+	node_shift_forward(dst, 0, elem_cnt, data_len);
 	
+	uint16_t dst_idx = 0;
+	node_xfer_multiple(dst, src, dst_idx, src_idx, elem_cnt, data_len);
+	dst->hdr.cnt += elem_cnt;
 }
-
-
-
-#warning get rid of node_xfer
-#if 0
-void node_xfer(node_ptr dst, const node_ptr src, uint16_t dst_idx,
-	uint16_t src_idx, uint16_t cnt) {
-	if (dst->hdr.leaf) {
-		ASSERT_LEAF(src);
-		
-		#warning
-		/*for (uint16_t i = 0; i < cnt; ++i) {
-		const item_ref *elem_src = src->elems + (src_idx + i);
-		
-		leaf_insert_naive(dst, dst_idx + i, &elem_src->key,
-			(struct item_data){
-				.len  = elem_src->len,
-				.data = leaf_data_ptr(src, src_idx + i),
-			});
-		}*/
-	} else {
-		ASSERT_BRANCH(src);
-		
-		#warning
-		for (uint16_t i = 0; i < cnt; ++i) {
-			branch_insert_naive(dst, dst_idx + i, src->b_elems + (src_idx + i));
-		}
-	}
-}
-#endif
