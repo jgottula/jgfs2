@@ -88,6 +88,9 @@ static bool tree_make_space(node_ptr node, uint32_t space_needed,
 	bool result = false;
 	if (space_total >= space_needed) {
 		result = true;
+		
+		// make space
+		// do the insertion
 	}
 	
 	/* update parent references */
@@ -173,7 +176,19 @@ bool tree_remove(uint32_t root_addr, const key *key) {
 	*/bool result/* = leaf_remove(leaf, key);
 	node_unmap((node_ptr)leaf)*/;
 	
-	tree_unlock(root_addr);
 	
+	
+	// condition for merging nodes: "if it's possible to do, then do it"
+	// it may be hard to determine if the node sweep is compressible
+	//  ALL sweeps that are dense (have too many bytes to possibly fit into n-1
+	//   nodes) can immediately be disregarded as incompressible
+	//  sweeps that are not dense, but are compressible, will take a little work
+	
+	// even easier: for branch merges, the compressibility criterion is trivial
+	
+	// do 3->2 merge if possible
+	
+	
+	tree_unlock(root_addr);
 	return result;
 }
