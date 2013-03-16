@@ -125,6 +125,67 @@ void node_shift_backward(node_ptr node, uint16_t first, uint16_t diff_elem,
 	}
 }
 
+void node_append_multiple(node_ptr dst, const node_ptr src, uint16_t src_idx,
+	uint16_t elem_cnt, uint32_t data_len) {
+	if (src_idx + elem_cnt > src->hdr.cnt) {
+		errx("%s: [%" PRIu16 ", %" PRIu16 ") > %" PRIu16 ": dst 0x%" PRIx32
+			" src 0x%" PRIx32 " src_idx %" PRIu16 " elem_cnt %" PRIu16
+			" data_len %" PRIu32,
+			__func__, src_idx, src_idx + elem_cnt, src->hdr.cnt, dst->hdr.this,
+			src->hdr.this, src_idx, elem_cnt, data_len);
+	}
+	
+	uint16_t dst_idx = dst->hdr.cnt;
+	
+	if (dst->hdr.leaf) {
+		ASSERT_LEAF(src);
+		
+		uint32_t off;
+		if (dst->hdr.cnt == 0) {
+			off = node_size_byte();
+		} else {
+			const item_ref *elem_last = dst->l_elems + (dst->hdr.cnt - 1);
+			off = elem_last->off;
+		}
+		
+		item_ref *elem_dst       = dst->l_elems + dst_idx;
+		const item_ref *elem_src = src->l_elems + src_idx;
+		while (elem_cnt-- != 0) {
+			*elem_dst = *elem_src;
+			
+			off -= elem_src->len;
+			elem_dst->off = off;
+			
+			++elem_dst;
+			++elem_src;
+		}
+		
+		uint8_t *data_dst = off;
+		const uint8_t *data_src = leaf_elem_data(src, src_idx + (elem_cnt - 1));
+		
+		memcpy(data_dst, data_src, data_len);
+	} else {
+		ASSERT_BRANCH(src);
+		
+		node_ref *elem_dst       = dst->b_elems + dst_idx;
+		const node_ref *elem_src = src->b_elems + src_idx;
+		while (elem_cnt-- != 0) {
+			*elem_dst = *elem_src;
+			
+			++elem_dst;
+			++elem_src;
+		}
+	}
+	
+	dst->hdr.cnt += elem_cnt;
+}
+
+void node_prepend_multiple() {
+	
+}
+
+
+
 #warning get rid of node_xfer
 #if 0
 void node_xfer(node_ptr dst, const node_ptr src, uint16_t dst_idx,
