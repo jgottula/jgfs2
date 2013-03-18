@@ -113,8 +113,8 @@ void node_unmap(const node_ptr node);
 /* initialization */
 node_ptr node_init(uint32_t node_addr, bool leaf, uint32_t parent,
 	uint32_t prev, uint32_t next);
-node_ptr node_copy_init(uint32_t dst_addr, const node_ptr src, bool leaf,
-	uint32_t parent, uint32_t prev, uint32_t next);
+node_ptr node_copy_init(uint32_t dst_addr, const node_ptr src, uint32_t parent,
+	uint32_t prev, uint32_t next);
 
 /* miscellaneous */
 bool node_is_root(uint32_t node_addr);
