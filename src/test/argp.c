@@ -131,7 +131,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 
 
 /* argp structures */
-static const char args_doc[] = "DEVICE TEST REPS PARAM0";
+static const char args_doc[] = "DEVICE TEST REPS [PARAM0]";
 static const char doc[] = "Run jgfs2 unit tests on a device.";
 static struct argp_option options[] = {
 	{ NULL, 0, NULL, 0, "RNG parameters:", 1 },
