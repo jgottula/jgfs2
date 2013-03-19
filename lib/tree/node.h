@@ -154,8 +154,6 @@ node_ref *branch_search_addr(const node_ptr branch, uint32_t addr);
 
 /* modifying */
 void node_update_ref_in_parent(const node_ptr node);
-bool node_insert(node_ptr node, const key *key,
-	const union elem_payload *payload);
 
 
 /* TODO: make a pass through all node code and delete/static-ify all functions

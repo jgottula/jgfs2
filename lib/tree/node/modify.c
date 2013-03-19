@@ -29,10 +29,3 @@ void node_update_ref_in_parent(const node_ptr node) {
 	
 	node_unmap(parent);
 }
-
-/// @brief 
-/// @return 
-/*bool node_insert(node_ptr node, const key *key,
-	const union elem_payload *payload) {
-	
-}*/
