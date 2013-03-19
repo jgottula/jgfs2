@@ -33,22 +33,21 @@ enum check_error_code {
 	ERR_TREE_PREV_SKIP  = 5,    // prev->prev skips a node
 	ERR_TREE_PREV_ORDER = 6,    // prev->prev goes forwards
 	
-	ERR_NODE_THIS  = 0,         // hdr.this is wrong
-	ERR_NODE_EMPTY = 1,         // !root and no elems
-	ERR_NODE_SORT  = 2,         // key[0] > key[1]
-	ERR_NODE_DUPE  = 3,         // key @ elem_idx[0] == key @ elem_idx[1]
+	ERR_NODE_THIS     = 0,      // hdr.this is wrong
+	ERR_NODE_EMPTY    = 1,      // !root and no elems
+	ERR_NODE_OVERFLOW = 2,      // too much item data
+	ERR_NODE_SORT     = 3,      // key[0] > key[1]
+	ERR_NODE_DUPE     = 4,      // key @ elem_idx[0] == key @ elem_idx[1]
 	#warning generalize prev/next and depth checks to all nodes
 	
-	ERR_BRANCH_OVERFLOW    = 1, // cnt items wouldn't fit in a node
-	ERR_BRANCH_PARENT      = 2, // hdr.this != child.parent
-	ERR_BRANCH_EMPTY_CHILD = 3, // child.hdr.cnt == 0
-	ERR_BRANCH_KEY         = 4, // elem.key != child.keys[0]
+	ERR_BRANCH_PARENT      = 1, // hdr.this != child.parent
+	ERR_BRANCH_EMPTY_CHILD = 2, // child.hdr.cnt == 0
+	ERR_BRANCH_KEY         = 3, // elem.key != child.keys[0]
 	
 	ERR_LEAF_PREV_BRANCH = 1,   // prev points to a branch
 	ERR_LEAF_NEXT_BRANCH = 2,   // next points to a branch
-	ERR_LEAF_OVERFLOW    = 3,   // item_ref overlaps item data
-	ERR_LEAF_UNCONTIG    = 4,   // wasted space between item data
-	ERR_LEAF_OVERLAP     = 5,   // elem data regions overlap
+	ERR_LEAF_UNCONTIG    = 3,   // wasted space between item data
+	ERR_LEAF_OVERLAP     = 4,   // elem data regions overlap
 	
 	ERR_ITEM_TYPE    = 1,       // invalid item type
 	ERR_ITEM_KEY_ID  = 2,       // inappropriate key id for item type
@@ -76,7 +75,7 @@ struct node_check_error {
 
 struct branch_check_error {
 	uint32_t code;
-	uint32_t node_addr;
+	uint32_t branch_addr;
 	
 	uint16_t elem_cnt;
 	uint16_t elem_idx;
@@ -85,7 +84,7 @@ struct branch_check_error {
 
 struct leaf_check_error {
 	uint32_t code;
-	uint32_t node_addr;
+	uint32_t leaf_addr;
 	
 	uint16_t elem_cnt;
 	uint16_t elem_idx[2];
@@ -122,10 +121,10 @@ struct check_result check_tree(uint32_t root_addr);
 struct check_result check_node(uint32_t node_addr, bool recurse);
 
 /* branch checking */
-struct check_result check_branch(branch_ptr node);
+struct check_result check_branch(const node_ptr branch);
 
 /* leaf checking */
-struct check_result check_leaf(leaf_ptr node);
+struct check_result check_leaf(const node_ptr leaf);
 
 /* item checking */
 struct check_result check_item(const key *key, struct item_data item);

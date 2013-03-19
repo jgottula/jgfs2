@@ -11,7 +11,7 @@
 
 struct check_result check_node(uint32_t node_addr, bool recurse) {
 	struct check_result result = { RESULT_TYPE_OK };
-	node_ptr node = node_map(node_addr, false);
+	const node_ptr node = node_map(node_addr, false);
 	
 	if (node->hdr.this != node_addr) {
 		result.type = RESULT_TYPE_NODE;
@@ -39,11 +39,21 @@ struct check_result check_node(uint32_t node_addr, bool recurse) {
 		goto done;
 	}
 	
-	if (node->hdr.leaf) {
-		leaf_ptr node_leaf = (leaf_ptr)node;
+	if (node_used(node) > node_size_usable()) {
+		result.type = RESULT_TYPE_NODE;
+		result.node = (struct node_check_error){
+			.code      = ERR_NODE_OVERFLOW,
+			.node_addr = node_addr,
+			
+			.elem_cnt = 0,
+		};
 		
-		const item_ref *elem_end = node_leaf->elems + node_leaf->hdr.cnt;
-		for (const item_ref *elem = node_leaf->elems + 1;
+		goto done;
+	}
+	
+	if (node->hdr.leaf) {
+		const item_ref *elem_end = node->l_elems + node->hdr.cnt;
+		for (const item_ref *elem = node->l_elems + 1;
 			elem < elem_end; ++elem) {
 			const item_ref *elem_prev = elem - 1;
 			
@@ -56,8 +66,8 @@ struct check_result check_node(uint32_t node_addr, bool recurse) {
 					.node_addr = node_addr,
 					
 					.elem_cnt = 2,
-					.elem_idx[0] = elem_prev - node_leaf->elems,
-					.elem_idx[1] = elem - node_leaf->elems,
+					.elem_idx[0] = elem_prev - node->l_elems,
+					.elem_idx[1] = elem - node->l_elems,
 					.key[0]      = elem_prev->key,
 					.key[1]      = elem->key,
 				};
@@ -66,10 +76,8 @@ struct check_result check_node(uint32_t node_addr, bool recurse) {
 			}
 		}
 	} else {
-		branch_ptr node_branch = (branch_ptr)node;
-		
-		const node_ref *elem_end = node_branch->elems + node_branch->hdr.cnt;
-		for (const node_ref *elem = node_branch->elems + 1;
+		const node_ref *elem_end = node->b_elems + node->hdr.cnt;
+		for (const node_ref *elem = node->b_elems + 1;
 			elem < elem_end; ++elem) {
 			const node_ref *elem_prev = elem - 1;
 			
@@ -82,8 +90,8 @@ struct check_result check_node(uint32_t node_addr, bool recurse) {
 					.node_addr = node_addr,
 					
 					.elem_cnt = 2,
-					.elem_idx[0] = elem_prev - node_branch->elems,
-					.elem_idx[1] = elem - node_branch->elems,
+					.elem_idx[0] = elem_prev - node->b_elems,
+					.elem_idx[1] = elem - node->b_elems,
 					.key[0]      = elem_prev->key,
 					.key[1]      = elem->key,
 				};
@@ -95,9 +103,20 @@ struct check_result check_node(uint32_t node_addr, bool recurse) {
 	
 	/* run specific branch- and leaf-specific checks */
 	if (node->hdr.leaf) {
-		result = check_leaf((leaf_ptr)node);
+		result = check_leaf(node);
 	} else {
-		result = check_branch((branch_ptr)node);
+		result = check_branch(node);
+		
+		if (recurse) {
+			const node_ref *elem_end = node->b_elems + node->hdr.cnt;
+			for (const node_ref *elem = node->b_elems;
+				elem < elem_end; ++elem) {
+				result = check_node(elem->addr, true);
+				if (result.type != RESULT_TYPE_OK) {
+					goto done;
+				}
+			}
+		}
 	}
 	
 done:
@@ -105,14 +124,3 @@ done:
 	
 	return result;
 }
-
-#warning handle recurse in check_node
-/*	if (recurse) {
-		const node_ref *elem_end = node->elems + node->hdr.cnt;
-		for (const node_ref *elem = node->elems; elem < elem_end; ++elem) {
-			result = check_node(elem->addr, true);
-			if (result.type != RESULT_TYPE_OK) {
-				goto done;
-			}
-		}
-	}*/

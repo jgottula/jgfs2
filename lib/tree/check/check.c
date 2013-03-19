@@ -31,6 +31,9 @@ void check_print(struct check_result result, bool fatal) {
 		case ERR_NODE_EMPTY:
 			err_desc = "empty non-root node";
 			break;
+		case ERR_NODE_OVERFLOW:
+			err_desc = "node elem overflow";
+			break;
 		case ERR_NODE_SORT:
 			err_desc = "key sort violation";
 			break;
@@ -52,6 +55,10 @@ void check_print(struct check_result result, bool fatal) {
 		case ERR_NODE_THIS:
 			warnx("hdr.this 0x%" PRIx32, node->hdr.this);
 			break;
+		case ERR_NODE_OVERFLOW:
+			warnx("%" PRIu32 " used > %" PRIu32 " possible",
+				node_used(node), node_size_usable());
+			break;
 		}
 		
 		for (uint16_t i = 0; i < err->elem_cnt; ++i) {
@@ -62,16 +69,13 @@ void check_print(struct check_result result, bool fatal) {
 		node_unmap(node);
 	} else if (result.type == RESULT_TYPE_BRANCH) {
 		const struct branch_check_error *err = &result.branch;
-		const branch_ptr node = (branch_ptr)node_map(err->node_addr, false);
+		const node_ptr branch = node_map(err->branch_addr, false);
 		
-		warnx("check_branch on 0x%" PRIx32 " failed:", err->node_addr);
+		warnx("check_branch on 0x%" PRIx32 " failed:", err->branch_addr);
 		
 		bool have_desc = true;
 		const char *err_desc;
 		switch (err->code) {
-		case ERR_BRANCH_OVERFLOW:
-			err_desc = "node content overflow";
-			break;
 		case ERR_BRANCH_PARENT:
 			err_desc = "child confused about paternity";
 			break;
@@ -92,7 +96,7 @@ void check_print(struct check_result result, bool fatal) {
 			err_desc = "unknown error";
 		}
 		
-		node_ptr child;
+		node_ptr child = NULL;
 		if (err->elem_cnt > 0) {
 			child = node_map(err->elem.addr, false);
 			
@@ -101,10 +105,6 @@ void check_print(struct check_result result, bool fatal) {
 		}
 		
 		switch (err->code) {
-		case ERR_BRANCH_OVERFLOW:
-			warnx("%" PRIu32 " used > %" PRIu32 " possible",
-				branch_used(node), node_size_usable());
-			break;
 		case ERR_BRANCH_PARENT:
 			warnx("child believes its parent is 0x%" PRIx32, child->hdr.parent);
 			break;
@@ -113,15 +113,15 @@ void check_print(struct check_result result, bool fatal) {
 			break;
 		}
 		
-		if (err->elem_cnt > 0) {
+		if (child != NULL) {
 			node_unmap(child);
 		}
-		node_unmap((node_ptr)node);
+		node_unmap(branch);
 	} else if (result.type == RESULT_TYPE_LEAF) {
 		const struct leaf_check_error *err = &result.leaf;
-		const leaf_ptr node = (leaf_ptr)node_map(err->node_addr, false);
+		const node_ptr leaf = node_map(err->leaf_addr, false);
 		
-		warnx("check_leaf on 0x%" PRIx32 " failed:", err->node_addr);
+		warnx("check_leaf on 0x%" PRIx32 " failed:", err->leaf_addr);
 		
 		bool have_desc = true;
 		const char *err_desc;
@@ -131,9 +131,6 @@ void check_print(struct check_result result, bool fatal) {
 			break;
 		case ERR_LEAF_NEXT_BRANCH:
 			err_desc = "next points to branch";
-			break;
-		case ERR_LEAF_OVERFLOW:
-			err_desc = "node content overflow";
 			break;
 		case ERR_LEAF_UNCONTIG:
 			err_desc = "uncontiguous item data";
@@ -154,14 +151,10 @@ void check_print(struct check_result result, bool fatal) {
 		
 		switch (err->code) {
 		case ERR_LEAF_PREV_BRANCH:
-			warnx("prev 0x%" PRIx32, node->hdr.prev);
+			warnx("prev 0x%" PRIx32, leaf->hdr.prev);
 			break;
 		case ERR_LEAF_NEXT_BRANCH:
-			warnx("next 0x%" PRIx32, node->hdr.next);
-			break;
-		case ERR_LEAF_OVERFLOW:
-			warnx("%" PRIu32 " used > %" PRIu32 " possible",
-				leaf_used(node), node_size_usable());
+			warnx("next 0x%" PRIx32, leaf->hdr.next);
 			break;
 		}
 		
@@ -171,7 +164,7 @@ void check_print(struct check_result result, bool fatal) {
 				err->elem[i].off, err->elem[i].len);
 		}
 		
-		node_unmap((node_ptr)node);
+		node_unmap(leaf);
 	} else if (result.type == RESULT_TYPE_ITEM) {
 		//const struct item_check_error *err = &result.item;
 		

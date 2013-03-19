@@ -9,28 +9,16 @@
 #include "../../debug.h"
 
 
-struct check_result check_branch(branch_ptr node) {
+struct check_result check_branch(const node_ptr branch) {
 	struct check_result result = { RESULT_TYPE_OK };
 	
-	if (branch_used(node) > node_size_usable()) {
-		result.type = RESULT_TYPE_BRANCH;
-		result.branch = (struct branch_check_error){
-			.code      = ERR_BRANCH_OVERFLOW,
-			.node_addr = node->hdr.this,
-			
-			.elem_cnt = 0,
-		};
-		
-		goto done;
-	}
-	
-	for (uint16_t i = 0; i < node->hdr.cnt; ++i) {
-		const node_ref *elem = node->elems + i;
+	for (uint16_t i = 0; i < branch->hdr.cnt; ++i) {
+		const node_ref *elem = branch->b_elems + i;
 		node_ptr child = node_map(elem->addr, false);
 		
 		bool bad = false;
 		uint32_t code = 0;
-		if (child->hdr.parent != node->hdr.this) {
+		if (child->hdr.parent != branch->hdr.this) {
 			bad = true;
 			code = ERR_BRANCH_PARENT;
 		} else if (child->hdr.cnt == 0) {
@@ -46,8 +34,8 @@ struct check_result check_branch(branch_ptr node) {
 		if (bad) {
 			result.type = RESULT_TYPE_BRANCH;
 			result.branch = (struct branch_check_error){
-				.code      = code,
-				.node_addr = node->hdr.this,
+				.code        = code,
+				.branch_addr = branch->hdr.this,
 				
 				.elem_cnt = 1,
 				.elem_idx = i,
