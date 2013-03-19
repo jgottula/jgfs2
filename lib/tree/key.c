@@ -34,7 +34,7 @@ int8_t key_cmp(const key *lhs, const key *rhs) {
 const char *key_str(const key *key) {
 	static char buf[23];
 	
-	snprintf(buf, sizeof(buf), "[%08" PRIx32 "|%02" PRIx8 "|%08" PRIx32 "]",
+	snprintf(buf, sizeof(buf), "[%08" PRIx32 "/%02" PRIx8 "/%08" PRIx32 "]",
 		key->id, key->type, key->off);
 	
 	return buf;
