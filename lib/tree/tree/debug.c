@@ -78,7 +78,7 @@ static void tree_graph_r(uint32_t node_addr, uint32_t level,
 	}
 	fprintf_col(stderr, col_cnt, "%*" PRIu16, width_cnt, node->hdr.cnt);
 	fprintf_col(stderr, col_free, "%*" PRIu32, width_free, node_free(node));
-	fprintf_col(stderr, col_pct, "%3d%%", (int)round(used_pct));
+	fprintf_col(stderr, col_pct, "%3d%%", (int)floor(used_pct));
 	fprintf_col(stderr, col_bar, "[%s]\n", used_bar);
 	
 	if (node->hdr.leaf) {
