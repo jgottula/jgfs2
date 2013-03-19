@@ -24,7 +24,6 @@ uint32_t meta;
 bool test_insert(uint32_t cnt) {
 	srand48(param.rand_seed);
 	
-#if 0
 	help_new();
 	meta = fs.sblk->s_addr_meta_tree;
 	FAIL_ON(help_check_tree(meta));
@@ -67,7 +66,7 @@ bool test_insert(uint32_t cnt) {
 	help_check_tree(meta);
 	
 	the_key.id = 0;
-	leaf_ptr node = tree_search(meta, &the_key);
+	node_ptr leaf = tree_search(meta, &the_key);
 	for (uint32_t i = 0; i < cnt; ++i) {
 		if ((i + 1) % 100 == 0 || i == cnt - 1) {
 			fprintf(stderr, "\rcheck %" PRIu32, i + 1);
@@ -79,18 +78,18 @@ bool test_insert(uint32_t cnt) {
 		uint16_t item_idx;
 		
 		/* FAST node elem search using leaf node linked list */
-		while (!node_search((node_ptr)node, &the_key, &item_idx)) {
-			if (node->hdr.next == 0) {
+		while (!node_search(leaf, &the_key, &item_idx)) {
+			if (leaf->hdr.next == 0) {
 				warnx("node_search fail at i = %" PRIu32 "\n", i);
 				abort();
 			}
 			
-			leaf_ptr next = (leaf_ptr)node_map(node->hdr.next, false);
-			node_unmap((node_ptr)node);
-			node = next;
+			node_ptr next = node_map(leaf->hdr.next, false);
+			node_unmap(leaf);
+			leaf = next;
 		}
 		
-		item_ref *item = node->elems + item_idx;
+		item_ref *item = leaf->l_elems + item_idx;
 		
 		if (item->len != len) {
 			warnx("wrong len: i = %" PRIu32 " item->len = %" PRIu32 " len = %"
@@ -98,17 +97,16 @@ bool test_insert(uint32_t cnt) {
 			abort();
 		}
 		
-		uint8_t *item_data = leaf_data_ptr(node, item_idx);
+		uint8_t *item_data = leaf_elem_data(leaf, item_idx);
 		if (memcmp(item_data, data, item->len) != 0) {
 			warnx("bad data: i = %" PRIu32 "\n", i);
 			abort();
 		}
 	}
-	node_unmap((node_ptr)node);
+	node_unmap(leaf);
 	fputc('\n', stderr);
 	
 	//tree_graph(meta);
 	jgfs2_done();
-#endif
 	return true;
 }
