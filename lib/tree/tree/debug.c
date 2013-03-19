@@ -21,7 +21,7 @@ static void tree_graph_r(uint32_t node_addr, uint32_t level,
 	node_ptr node = node_map(node_addr, false);
 	
 	/* draw the node space usage bar */
-	uint8_t used_round = (uint8_t)ceil(((float)node_used(node_addr) * 12.f) /
+	uint8_t used_round = (uint8_t)ceil(((float)node_used(node) * 12.f) /
 		(float)node_size_usable());
 	char used_bar[13];
 	for (uint8_t i = 0; i < 12; ++i) {
@@ -33,13 +33,13 @@ static void tree_graph_r(uint32_t node_addr, uint32_t level,
 	}
 	used_bar[sizeof(used_bar) - 1] = '\0';
 	
-	float used_pct = ((float)node_used(node_addr) * 100.f) /
+	float used_pct = ((float)node_used(node) * 100.f) /
 		(float)node_size_usable();
 	
 	int width_bar  = 12 + 2;
 	int width_pct  = 3 + 1;
 	int width_free = log_u32(10, node_size_usable());
-	int width_cnt  = log_u32(10, node_max_cnt());
+	int width_cnt  = log_u32(10, node_size_usable() / sizeof(item_ref));
 	int width_id   = sizeof(uint32_t) * 2;
 	
 	int col_bar  = 0 - width_bar;
@@ -77,8 +77,7 @@ static void tree_graph_r(uint32_t node_addr, uint32_t level,
 		fprintf_col(stderr, col_id, "%*s", width_id, "<empty>");
 	}
 	fprintf_col(stderr, col_cnt, "%*" PRIu16, width_cnt, node->hdr.cnt);
-	fprintf_col(stderr, col_free, "%*" PRIu32,
-		width_free, node_free(node_addr));
+	fprintf_col(stderr, col_free, "%*" PRIu32, width_free, node_free(node));
 	fprintf_col(stderr, col_pct, "%3d%%", (int)round(used_pct));
 	fprintf_col(stderr, col_bar, "[%s]\n", used_bar);
 	
@@ -90,11 +89,9 @@ static void tree_graph_r(uint32_t node_addr, uint32_t level,
 		
 		*item_qty += node->hdr.cnt;
 	} else {
-		branch_ptr branch = (branch_ptr)node;
-		
 		/* recurse through child nodes */
-		const node_ref *elem_end = branch->elems + branch->hdr.cnt;
-		for (const node_ref *elem = branch->elems; elem < elem_end; ++elem) {
+		const node_ref *elem_end = node->b_elems + node->hdr.cnt;
+		for (const node_ref *elem = node->b_elems; elem < elem_end; ++elem) {
 			tree_graph_r(elem->addr, level + 1, max_level,
 				node_qty, item_qty, avg_fill);
 		}
@@ -102,7 +99,7 @@ static void tree_graph_r(uint32_t node_addr, uint32_t level,
 	
 	++(*node_qty);
 	*avg_fill = (*avg_fill * ((double)(*node_qty - 1) / (double)*node_qty)) +
-		(((double)node_used(node_addr) / (double)node_size_usable()) /
+		(((double)node_used(node) / (double)node_size_usable()) /
 		(double)*node_qty);
 	
 	node_unmap(node);

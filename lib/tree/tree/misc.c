@@ -11,7 +11,7 @@
 
 void tree_init(uint32_t root_addr) {
 	tree_lock(root_addr);
-	node_unmap((node_ptr)leaf_init(root_addr, 0, 0, 0));
+	node_unmap(node_init(root_addr, true, 0, 0, 0));
 	tree_unlock(root_addr);
 }
 

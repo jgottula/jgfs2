@@ -15,9 +15,6 @@
 #include "node.h"
 
 
-#warning define s(b)-tree parameters here
-
-
 struct tree_lock_node {
 	struct tree_lock_node *next;
 	
@@ -37,13 +34,13 @@ void tree_graph(uint32_t root_addr);
 // ...
 
 /* querying */
-leaf_ptr tree_search(uint32_t root_addr, const key *key);
+node_ptr tree_search(uint32_t root_addr, const key *key);
 bool tree_retrieve(uint32_t root_addr, const key *key, size_t max_len,
 	void *buf);
 
 /* modifying */
 void tree_insert(uint32_t root_addr, const key *key, struct item_data item);
-bool tree_remove(uint32_t root_addr, const key *key);
+void tree_remove(uint32_t root_addr, const key *key);
 
 /* miscellaneous */
 void tree_init(uint32_t root_addr);

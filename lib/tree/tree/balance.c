@@ -42,8 +42,8 @@ node_ptr tree_split_single(node_ptr node, const key *key,
 	
 	// handle root, of course
 	
-	// need to update parent refs (before or after?)
-	// (ensure that ptrs/addrs don't change unexpectedly)
+	// need to update parent refs (recursive split concern: before or after?)
+	// make sure to update this node's ref if we inserted into index 0
 	
 	// return pointer to node with spot for the key
 	// caller needs to fill the elem data afterward (if appropriate)
@@ -59,7 +59,7 @@ node_ptr tree_split_pair(node_ptr nodes[2], const key *key,
 	// can put the new node to the left, in the middle, or to the right
 	// optimally, we choose whichever direction results in the least transfers
 	
-	
+	// update this node's ref if we inserted into index 0
 	
 	
 	return NULL;

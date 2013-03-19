@@ -9,6 +9,10 @@
 #include "../../debug.h"
 
 
+/// @brief retrieves the key of a particular elem of a node
+/// @param[in] node  pointer to node
+/// @param[in] idx   elem index
+/// @return pointer to elem's key value
 key *node_key(const node_ptr node, uint16_t idx) {
 	if (idx >= node->hdr.cnt) {
 		errx("%s: idx exceeds bounds: node 0x%" PRIx32 ": %" PRIu16
@@ -18,6 +22,9 @@ key *node_key(const node_ptr node, uint16_t idx) {
 	return &(node_elem(node, idx)->key);
 }
 
+/// @brief retrieves the key of a node's first element
+/// @param[in] node  pointer to node
+/// @return pointer to first elem's key value
 key *node_first_key(const node_ptr node) {
 	ASSERT_NONEMPTY(node);
 	return &(node_elem(node, 0)->key);

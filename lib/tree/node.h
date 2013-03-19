@@ -129,7 +129,9 @@ key *node_key(const node_ptr node, uint16_t idx);
 key *node_first_key(const node_ptr node);
 
 /* elements */
-uint32_t elem_weight(const node_ptr node, uint16_t idx);
+uint32_t node_elem_weight(const node_ptr node, uint16_t idx);
+void node_elem_fill(node_ptr node, uint16_t idx, const key *key,
+	union elem_payload payload);
 void *leaf_elem_data(const node_ptr leaf, uint16_t idx);
 
 /* bulk operations */
@@ -151,6 +153,7 @@ uint32_t branch_search(const node_ptr branch, const key *key);
 node_ref *branch_search_addr(const node_ptr branch, uint32_t addr);
 
 /* modifying */
+void node_update_ref_in_parent(const node_ptr node);
 bool node_insert(node_ptr node, const key *key,
 	const union elem_payload *payload);
 

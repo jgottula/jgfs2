@@ -9,6 +9,8 @@
 #include "../../debug.h"
 
 
+/// @brief zeroes the entire node, except the header
+/// @param[in] node  pointer to node
 void node_zero_all(node_ptr node) {
 	uint8_t *zero_begin = (uint8_t *)node + sizeof(struct node_hdr);
 	uint8_t *zero_end   = (uint8_t *)node + node_size_byte();
@@ -16,6 +18,9 @@ void node_zero_all(node_ptr node) {
 	memset(zero_begin, 0, (zero_end - zero_begin));
 }
 
+/// @brief zeroes all elems in a node, starting from a particular index
+/// @param[in] node   pointer to node
+/// @param[in] first  first index to zero
 void node_zero_range(node_ptr node, uint16_t first) {
 	if (first >= node->hdr.cnt) {
 		errx("%s: first exceeds bounds: node 0x%" PRIx32 ": %" PRIu16
@@ -40,6 +45,12 @@ void node_zero_range(node_ptr node, uint16_t first) {
 	memset(zero_begin, 0, (zero_end - zero_begin));
 }
 
+/// @brief shifts all elems in a node to a higher index (and offset)
+/// @param[in] node       pointer to node
+/// @param[in] first      first index to shift
+/// @param[in] last       last index to shift
+/// @param[in] diff_elem  amount by which to shift elems
+/// @param[in] diff_data  amount by which to shift data offsets (if leaf node)
 void node_shift_forward(node_ptr node, uint16_t first, uint16_t last,
 	uint16_t diff_elem, uint32_t diff_data) {
 	if (first > last) {
@@ -86,6 +97,12 @@ void node_shift_forward(node_ptr node, uint16_t first, uint16_t last,
 	}
 }
 
+/// @brief shifts all elems in a node to a lower index (and offset)
+/// @param[in] node       pointer to node
+/// @param[in] first      first index to shift
+/// @param[in] last       last index to shift
+/// @param[in] diff_elem  amount by which to shift elems
+/// @param[in] diff_data  amount by which to shift data offsets (if leaf node)
 void node_shift_backward(node_ptr node, uint16_t first, uint16_t last,
 	uint16_t diff_elem, uint32_t diff_data) {
 	if (first > last) {
@@ -131,6 +148,13 @@ void node_shift_backward(node_ptr node, uint16_t first, uint16_t last,
 	}
 }
 
+/// @brief copies a range of elems from one node to another
+/// @param[in] dst       pointer to destination node
+/// @param[in] src       pointer to source node
+/// @param[in] dst_idx   first index in destination to copy to
+/// @param[in] src_idx   first index in source to copy from
+/// @param[in] elem_cnt  number of elements to copy
+/// @param[in] data_len  total length of element data in the range, if any
 static void node_xfer_multiple(node_ptr dst, const node_ptr src,
 	uint16_t dst_idx, uint16_t src_idx, uint16_t elem_cnt, uint32_t data_len) {
 	if (src_idx + elem_cnt > src->hdr.cnt) {
@@ -181,6 +205,12 @@ static void node_xfer_multiple(node_ptr dst, const node_ptr src,
 	}
 }
 
+/// @brief copies a range of elems from one node to the end of another
+/// @param[in] dst       pointer to destination node
+/// @param[in] src       pointer to source node
+/// @param[in] src_idx   first index in source to copy from
+/// @param[in] elem_cnt  number of elements to copy
+/// @param[in] data_len  total length of element data in the range, if any
 void node_append_multiple(node_ptr dst, const node_ptr src, uint16_t src_idx,
 	uint16_t elem_cnt, uint32_t data_len) {
 	uint16_t dst_idx = dst->hdr.cnt;
@@ -188,6 +218,12 @@ void node_append_multiple(node_ptr dst, const node_ptr src, uint16_t src_idx,
 	dst->hdr.cnt += elem_cnt;
 }
 
+/// @brief copies a range of elems from one node to the beginning of another
+/// @param[in] dst       pointer to destination node
+/// @param[in] src       pointer to source node
+/// @param[in] src_idx   first index in source to copy from
+/// @param[in] elem_cnt  number of elements to copy
+/// @param[in] data_len  total length of element data in the range, if any
 void node_prepend_multiple(node_ptr dst, const node_ptr src, uint16_t src_idx,
 	uint16_t elem_cnt, uint32_t data_len) {
 	node_shift_forward(dst, 0, dst->hdr.cnt - 1, elem_cnt, data_len);

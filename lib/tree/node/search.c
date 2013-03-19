@@ -9,6 +9,11 @@
 #include "../../debug.h"
 
 
+/// @brief searches a node for an elem with an exactly matching key
+/// @param[in]  node  node pointer
+/// @param[in]  key   pointer to key
+/// @param[out] out   index of elem with matching key
+/// @return true if key was found
 bool node_search(const node_ptr node, const key *key, uint16_t *out) {
 	/* circumvent unsigned wraparound if node->hdr.cnt == 0 */
 	if (node->hdr.cnt == 0) {
@@ -40,6 +45,10 @@ bool node_search(const node_ptr node, const key *key, uint16_t *out) {
 	return false;
 }
 
+/// @brief searches a node for the index at which to insert a key
+/// @param[in]  node  node pointer
+/// @param[in]  key   pointer to key
+/// @return index at which to insert key
 uint16_t node_search_hypo(const node_ptr node, const key *key) {
 	/* for empty node, return first index; for largest key, return very last
 	 * possible index */
@@ -77,6 +86,10 @@ uint16_t node_search_hypo(const node_ptr node, const key *key) {
 		__func__, node->hdr.this, key_str(key));
 }
 
+/// @brief searches a branch node for the child node which contains a key
+/// @param[in]  node  node pointer
+/// @param[in]  key   pointer to key
+/// @return block number of child containing key
 uint32_t branch_search(const node_ptr branch, const key *key) {
 	ASSERT_BRANCH(branch);
 	ASSERT_NONEMPTY(branch);
@@ -114,6 +127,10 @@ uint32_t branch_search(const node_ptr branch, const key *key) {
 		__func__, branch->hdr.this, key_str(key));
 }
 
+/// @brief searches a branch node the slow way: by child block number
+/// @param[in]  branch  branch node pointer
+/// @param[in]  addr    child block number
+/// @return pointer to node_ref with wanted block number, or NULL if not found
 node_ref *branch_search_addr(const node_ptr branch, uint32_t addr) {
 	ASSERT_BRANCH(branch);
 	

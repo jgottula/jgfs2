@@ -18,6 +18,11 @@ enum item_key {
 };
 
 
+struct item_data {
+	uint32_t len;
+	void *data;
+};
+
 struct __attribute__((__packed__)) inode_item {
 	uint32_t i_attr;  // file attributes
 	uint16_t i_mode;  // type and permissions

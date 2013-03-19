@@ -9,6 +9,13 @@
 #include "../../debug.h"
 
 
+/// @brief initializes a node
+/// @param[in] node_addr  block number of new node
+/// @param[in] leaf       initialize as a leaf node
+/// @param[in] parent     block number of parent node
+/// @param[in] prev       block number of left sibling node
+/// @param[in] next       block number of right sibling node
+/// @return device-mapped pointer to new node
 node_ptr node_init(uint32_t node_addr, bool leaf, uint32_t parent,
 	uint32_t prev, uint32_t next) {
 	node_ptr node = node_map(node_addr, true);
@@ -23,6 +30,13 @@ node_ptr node_init(uint32_t node_addr, bool leaf, uint32_t parent,
 	return node;
 }
 
+/// @brief initializes a node with the elems and data of an existing node
+/// @param[in] dst_addr  block number of new node
+/// @param[in] src       pointer to existing node
+/// @param[in] parent    block number of parent node
+/// @param[in] prev      block number of left sibling node
+/// @param[in] next      block number of right sibling node
+/// @return device-mapped pointer to new node
 node_ptr node_copy_init(uint32_t dst_addr, const node_ptr src, uint32_t parent,
 	uint32_t prev, uint32_t next) {
 	node_ptr dst = node_map(dst_addr, true);

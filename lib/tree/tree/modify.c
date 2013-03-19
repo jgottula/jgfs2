@@ -9,8 +9,10 @@
 #include "../../debug.h"
 
 
-static bool tree_make_space(node_ptr node, uint32_t space_needed,
+static bool tree_insert_sibling(node_ptr node, uint32_t space_needed,
 	const key *key, union elem_payload payload) {
+	bool result = false;
+	
 	/* do the siblings even exist? */
 	bool prev_exist = (node->hdr.prev != 0);
 	bool next_exist = (node->hdr.next != 0);
@@ -26,6 +28,10 @@ static bool tree_make_space(node_ptr node, uint32_t space_needed,
 	uint32_t free_prev = (prev_exist ? node_free(prev) : 0);
 	uint32_t free_next = (next_exist ? node_free(next) : 0);
 	
+	if (free_prev + free_next < space_needed) {
+		goto done;
+	}
+	
 	/* were we able to export to a sibling last time? */
 	bool prev_avail = prev_exist;
 	bool next_avail = next_exist;
@@ -34,6 +40,10 @@ static bool tree_make_space(node_ptr node, uint32_t space_needed,
 	uint32_t space_total = 0;
 	uint32_t space_prev  = 0;
 	uint32_t space_next  = 0;
+	
+	/* number of elems exported to siblings */
+	uint16_t cnt_prev = 0;
+	uint16_t cnt_next = 0;
 	
 	/* indexes move inward toward the insertion point */
 	uint16_t idx_insert = node_search_hypo(node, key);
@@ -46,12 +56,14 @@ static bool tree_make_space(node_ptr node, uint32_t space_needed,
 		for (uint8_t try = 2; try > 0; --try) {
 			if (try_prev && prev_avail) {
 				if (idx_prev < idx_insert) {
-					uint32_t size_this = elem_weight(node, idx_prev);
+					uint32_t size_this = node_elem_weight(node, idx_prev);
 					
 					if (size_this <= free_prev) {
 						free_prev   -= size_this;
 						space_total += size_this;
 						space_prev  += size_this;
+						
+						++cnt_prev;
 						
 						++idx_prev;
 					} else {
@@ -64,12 +76,14 @@ static bool tree_make_space(node_ptr node, uint32_t space_needed,
 			
 			if (next_avail) {
 				if (idx_next >= idx_insert) {
-					uint32_t size_this = elem_weight(node, idx_next);
+					uint32_t size_this = node_elem_weight(node, idx_next);
 					
 					if (size_this <= free_next) {
 						free_next   -= size_this;
 						space_total += size_this;
 						space_next  += size_this;
+						
+						++cnt_next;
 						
 						--idx_next;
 					} else {
@@ -80,27 +94,97 @@ static bool tree_make_space(node_ptr node, uint32_t space_needed,
 				}
 			}
 			
+			/* try the other sibling after this one */
 			try_prev = !try_prev;
 			try_next = !try_next;
 		}
 	} while (space_total < space_needed && (prev_avail || next_avail));
 	
-	bool result = false;
-	if (space_total >= space_needed) {
-		result = true;
-		
-		// make space
-		// do the insertion
+	
+	// NOTE: the code from here on out needs some help.
+	
+	if (space_total < space_needed) {
+		goto done;
 	}
 	
-	/* update parent references */
-	TODO("parent refs");
 	
+	// NOTE: we are using 'space' for 'diff_data' and this is wrong: 'space'
+	// includes bytes used for the item_ref itself
+	
+	
+	/* number of elems remaining to the sides of the insertion point */
+	uint16_t cnt_rem_left  = (idx_insert - idx_prev);
+	uint16_t cnt_rem_right = (idx_next - idx_insert) + 1;
+	
+	if (cnt_prev > 0) {
+		/* append to prev node */
+		node_append_multiple(prev, node, 0, cnt_prev, space_prev);
+		
+		/* shift remaining elems before the insertion point */
+		if (cnt_rem_left != 0) {
+			node_shift_backward(node, idx_prev, idx_insert - 1, cnt_prev,
+				space_prev);
+		}
+		
+		// TODO: update this node's parent ref
+	}
+	if (cnt_next > 0) {
+		/* prepend to next node */
+		node_prepend_multiple(next, node, idx_next + 1, cnt_next,
+			space_next);
+		
+		// WHAT IF: cnt_prev == 0 and we would insert into index 0??
+		
+		/* shift remaining elems after the insertion point, leaving space
+		 * for the item to be inserted */
+		if (cnt_rem_right != 0 && cnt_prev > 1) {
+			node_shift_backward(node, idx_insert, idx_next, cnt_prev - 1,
+				space_next);
+		}
+		
+		
+		// TODO: update next node's parent ref
+	}
+	
+	
+	// zero?
+	
+	// put key in
+	
+	// update this cnt
+	
+	// fill in data
+	
+	result = true;
+	
+done:
 	/* unmap sibling node pointers */
-	(prev_exist ? node_unmap(prev) : (void)0);
-	(next_exist ? node_unmap(next) : (void)0);
+	prev_exist ? node_unmap(prev) : (void)0;
+	next_exist ? node_unmap(next) : (void)0;
 	
 	return result;
+}
+
+static bool tree_insert_normal(node_ptr node, uint32_t space_needed,
+	const key *key, union elem_payload payload) {
+	if (node_free(node) < space_needed) {
+		return false;
+	}
+	
+	uint16_t idx_insert = node_search_hypo(node, key);
+	if (idx_insert < node->hdr.cnt) {
+		uint32_t diff_data = (node->hdr.leaf ? payload.l_item.len : 0);
+		node_shift_forward(node, idx_insert, node->hdr.cnt - 1, 1, diff_data);
+	}
+	
+	++node->hdr.cnt;
+	node_elem_fill(node, idx_insert, key, payload);
+	
+	if (idx_insert == 0) {
+		node_update_ref_in_parent(node);
+	}
+	
+	return true;
 }
 
 static void tree_insert_r(uint32_t root_addr, uint32_t node_addr,
@@ -114,14 +198,18 @@ static void tree_insert_r(uint32_t root_addr, uint32_t node_addr,
 		space_needed = sizeof(node_ref);
 	}
 	
-	if (node_free(node) >= space_needed) {
-		// node_insert
-	} else if (!tree_make_space(node, space_needed, key, payload)) {
+	/* try normal and sibling-export inserts, then split if both fail */
+	if (!tree_insert_normal(node, space_needed, key, payload) &&
+		!tree_insert_sibling(node, space_needed, key, payload)) {
+		errx("not done yet");
+		// use node_ptr * so that the split functions can reassign the ptr
+		
 		// if have neighbors, pick the one with more junk (or next if equal)
 		//  and do a 2->3 split
 		// if no neighbors, do a normal btree split (rightward)
 		
-		// be sure to update parent refs at the end of the split
+		// split will return ptr to node with key
+		// if leaf, need to set elem data
 	}
 	
 	node_unmap(node);
@@ -129,6 +217,13 @@ static void tree_insert_r(uint32_t root_addr, uint32_t node_addr,
 
 void tree_insert(uint32_t root_addr, const key *key, struct item_data item) {
 	ASSERT_ROOT(root_addr);
+	tree_lock(root_addr);
+	
+	if (item.len * 10 >= node_size_usable()) {
+		warnx("%s: item len >= 10%% of node size: root 0x%" PRIx32
+			" key %s len %" PRIu32,
+			__func__, root_addr, key_str(key), item.len);
+	}
 	
 	node_ptr leaf = tree_search(root_addr, key);
 	uint32_t leaf_addr = leaf->hdr.this;
@@ -137,44 +232,12 @@ void tree_insert(uint32_t root_addr, const key *key, struct item_data item) {
 	});
 	node_unmap(leaf);
 	
-#if 0
-	bool done = false;
-	uint8_t retry = 0;
-	do {
-		leaf_ptr leaf = tree_search(root_addr, key);
-		uint32_t leaf_addr = leaf->hdr.this;
-		
-		tree_lock(root_addr);
-		
-		if (leaf_insert(leaf, key, item)) {
-			node_unmap((node_ptr)leaf);
-			
-			done = true;
-		} else if (retry == 0) {
-			node_unmap((node_ptr)leaf);
-			node_split(leaf_addr);
-			
-			++retry;
-		} else {
-			errx("%s: giving up: root 0x%" PRIx32 " leaf 0x%"
-				PRIx32 " %s len %" PRIu32,
-				__func__, root_addr, leaf_addr, key_str(key), item.len);
-		}
-		
-		tree_unlock(root_addr);
-	} while (!done);
-#endif
+	tree_unlock(root_addr);
 }
 
-bool tree_remove(uint32_t root_addr, const key *key) {
+void tree_remove(uint32_t root_addr, const key *key) {
 	ASSERT_ROOT(root_addr);
 	tree_lock(root_addr);
-	
-	/*leaf_ptr leaf = tree_search(root_addr, key);
-	uint32_t leaf_addr = leaf->hdr.this;
-	
-	*/bool result/* = leaf_remove(leaf, key);
-	node_unmap((node_ptr)leaf)*/;
 	
 	
 	
@@ -190,5 +253,4 @@ bool tree_remove(uint32_t root_addr, const key *key) {
 	
 	
 	tree_unlock(root_addr);
-	return result;
 }
